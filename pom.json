@@ -1,0 +1,11 @@
+{
+	"main": "Sponde.js",
+	"deps": ["megalabs.utils", "require.text"],
+	"files": [
+		"src/CallStack.js",
+		"src/Parser.js",
+		"src/Sponde.js",
+		"src/Tokenizer.js",
+		"src/UUID.js"
+	]
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Template Parser</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="style/stylesheet.css" />
+		<script type="text/javascript" src="script/require.js"></script>
+		<script type="text/javascript">
+			window.onload = function() {
+
+				var textarea = document.getElementById('textarea');
+
+				window.top._$jscoverage = {};
+
+				require.config({
+					'urlArgs': Math.random(),
+					'paths': {
+						'lib': '../src'
+					}
+				})([
+					'lib.jQuery',
+					'megalabs.utils',
+					'lib/Sponde'
+				], function($, Utils, Sponde) {
+
+					var globalFiles = {};
+
+					Sponde.setUriResolver(function(href, base, ret) {
+						ret(globalFiles[href]);
+					});
+
+					var num  = 0;
+
+					function pad(number, length, ch) {
+						var str = '' + number;
+						while (str.length < length) {
+							str = ch + str;
+						}
+						return str;
+					}
+
+					var parserTestCasesUrl = 'acceptance/parser/cases.json';
+					var evaluatorTestCasesUrl = 'acceptance/evaluator/cases.json';
+
+					$.getJSON(parserTestCasesUrl + '?' + Math.random(), function(parserTestCases) {
+						var testCases = [];
+						for (var c = 0; c < parserTestCases.length; c++) {
+							var url = Utils.uri.resolve(parserTestCases[c], parserTestCasesUrl);
+							testCases.push('require.text!' + url);
+						}
+						$.getJSON(evaluatorTestCasesUrl + '?' + Math.random(), function(evaluatorTestCases) {
+							for (var c = 0; c < evaluatorTestCases.length; c++) {
+								var url = Utils.uri.resolve(evaluatorTestCases[c], evaluatorTestCasesUrl);
+								testCases.push('require.text!' + url);
+							}
+							require(testCases, function() {
+								for (var c = 0; c < arguments.length; c++) {
+									executeTests($.parseXML(arguments[c]), test);
+								}
+							});
+						});
+					});
+
+					return;
+
+					function executeTests(testCases, callback) {
+						var testCases = testCases.getElementsByTagName('case');
+						var testCasesLen = testCases.length;
+						var testCase, caseProps, casePropsLen;
+						var caseProp, casePropName;
+						var excProps, excPropsLen, excProp;
+						var files = {};
+						var input, file, expected, exception, context;
+						for (var c = 0; c < testCasesLen; c++) {
+							testCase = testCases[c];
+							caseProps = testCase.childNodes;
+							casePropsLen = caseProps.length;
+							input = null, file = null, expected = null;
+							exception = null, context = undefined, files = {};
+							for (var i = 0; i < casePropsLen; i++) {
+								caseProp = caseProps[i];
+								casePropName = caseProp.nodeName;
+								if (casePropName === 'input') {
+									input = caseProp.textContent;
+								}
+
+								else if (casePropName === 'global') {
+									if (caseProp.getAttribute('name') === 'baseURI') {
+										file = caseProp.getAttribute('value');
+									}
+								}
+
+								else if (casePropName === 'data') {
+									var url = caseProp.getAttribute('url');
+									var contents = caseProp.textContent;
+									files[url] = contents;
+								}
+								else if (casePropName === 'expected') {
+									expected = caseProp.textContent;
+									if (caseProp.getAttribute('type') === 'json') {
+										expected = JSON.parse(expected);
+									}
+								}
+								else if (casePropName === 'context') {
+									context = caseProp.textContent;
+									//if (caseProp.getAttribute('type') === 'json') {
+										context = JSON.parse(context);
+									//}
+								}
+								else if (casePropName === 'exception') {
+									exception = {};
+									excProps = caseProp.childNodes;
+									excPropsLen = excProps.length;
+									for (var j = 0; j < excPropsLen; j++) {
+										excProp = excProps[j];
+										if (excProp.nodeType !== 1) continue;
+										exception[excProp.nodeName] = (
+											excProp.textContent
+										);
+									}
+								}
+							}
+							callback(
+								input, file, context, files,
+								expected, exception
+							);
+						}
+					}
+
+
+					function sucess(input, output) {
+						var divEl = document.createElement('div');
+						divEl.style.color = 'green';
+						divEl.innerHTML = '[' + pad(num, 4, '0') + '] ';
+						divEl.innerHTML += (input + ' ------ ' + output);
+						document.body.appendChild(divEl);
+					}
+
+					function error(input, expected, result) {
+						var divEl = document.createElement('div');
+						divEl.style.color = 'red';
+						divEl.innerHTML += '[' + pad(num, 4, '0') + '] ';
+						divEl.innerHTML += 'input: ' + input;
+						divEl.innerHTML += '<br /><span style="visibility: hidden;">.......</span>expect: ' + expected;
+						divEl.innerHTML += '<br /><span style="visibility: hidden;">.......</span>result: ' + result;
+						document.body.appendChild(divEl);
+					}
+
+					function test(input, file, context, files, expected, exception) {
+						num++;
+						globalFiles = files;
+						try {
+							var result = Sponde(input, file);
+
+							if (typeof(expected) === 'object') {
+								if (exception !== null) {
+									error(input, JSON.stringify(
+										exception
+									), 'NO_EXCEPTION');
+								}
+								expected = JSON.stringify(expected);
+								result = JSON.stringify(result.tree);
+								if (expected === result) sucess(input, result);
+								else error(input, expected, result);
+							} else {
+								result.render(function(result) {
+									if (exception !== null) {
+										error(input, JSON.stringify(
+											exception
+										), 'NO_EXCEPTION');
+									}
+									if (expected === result) sucess(input, result);
+									else error(input, expected, result);
+								}, context);
+							}
+
+						} catch (thrownException) {
+							if (exception !== null) {
+								for (var key in exception) {
+									if (String(exception[key]) !==
+										String(thrownException[key])) {
+										return error(
+											input, JSON.stringify(
+												exception
+											), JSON.stringify(
+												thrownException
+											)
+										);
+									}
+								}
+								exception = JSON.stringify(exception);
+								sucess(input, exception);
+							} else {
+								error(input, 'NO_EXCEPTION', JSON.stringify(
+									thrownException
+								));
+							}
+						}
+					}
+
+				});
+			};
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
