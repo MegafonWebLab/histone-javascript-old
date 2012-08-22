@@ -102,7 +102,7 @@ without the rest of it:
 ```javascript
 // create Template instance
 var template = Histone('*** {{macro foo}} {{self.arguments.toJSON()}} {{/macro}} ***');
-// render template
+// process template's macro
 template.call(
     // macro's name
     'foo',
@@ -115,6 +115,41 @@ template.call(
     }
 );
 ```
+
+Dependency management
+--------------------------------------
+
+Templates can contain calls to the functions that performs external resource
+loading. You can manage resouce loading by setting up your own URI - resolver:
+
+```javascript
+// set up our own URI - resolver
+Histone.setURIResolver(function(href, base, ret, options) {
+
+    // href - contains full path to the requested resource
+    // base - contains path to the template that is requesting resource
+    // ret - callback function that has to be called to retrieve the result
+    // options - special parameters array
+
+    // handle only "file:" protocol requests
+    if (href.substr(0, 5) === 'file:') {
+        // do something
+        ret('resource contents as string', 'requested resource baseURI');
+        // tell the engine that we can handle this request
+        return true;
+    }
+    // here we return to the default resource loader
+});
+
+// create Template instance
+var template = Histone('{{loadText("file:///foobar")}}');
+// render template
+template.render(function(result) {
+    // output the result
+    alert(result);
+});
+```
+
 
 Important links
 --------------------------------------
