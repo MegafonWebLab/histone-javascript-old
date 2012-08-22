@@ -69,6 +69,22 @@ In case if you use Histone as RequireJS module:
 </script>
 ```
 
+In case if you prefer to use pure JavaScript - library:
+
+```html
+<!-- include Histone library -->
+<script type="text/javascript" src="Histone.js"></script>
+<script type="text/javascript">
+    // create Template instance
+    var template = Histone('2 x 2 = {{2 * 2}}');
+    // render template
+    template.render(function(result) {
+        // output the result
+        alert(result);
+    });
+</script>
+```
+
 Important links
 --------------------------------------
 
