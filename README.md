@@ -50,7 +50,7 @@ In case if you use Histone as RequireJS module:
 <script type="text/javascript" src="http://requirejs.org/docs/release/2.0.6/minified/require.js"></script>
 <script type="text/javascript">
 	// load Histone module
-	require(['../Histone'], function(Histone) {
+	require(['Histone'], function(Histone) {
 		// create Template instance
 		var template = Histone('2 x 2 = {{2 * 2}}');
 		// render template
