@@ -217,5 +217,3 @@ Important links
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/3203e66ac05abaa4606c9b3f55b40d15 "githalytics.com")](http://githalytics.com/MegafonWebLab/histone-javascript)
