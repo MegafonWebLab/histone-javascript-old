@@ -150,6 +150,68 @@ template.render(function(result) {
 });
 ```
 
+Extending the engine
+--------------------------------------
+
+You can extend template engine by implementing your own functions,
+methods and properties:
+
+```javascript
+// define global function random
+Histone.Global.random = function(value, args, ret) {
+
+    // this - contains the reference to the instance of the CallStack class
+    // value - contains the reference to the value (in this case it's Histone.Global object)
+    // args - contains an array of function call arguments
+    // ret - callback - function that you have to call for returning the result
+
+    ret(Math.random());
+};
+
+// define function on the values of any data type
+Histone.Type.toHTML = function(value, args, ret) {
+
+    // this - contains the reference to the instance of the CallStack class
+    // value - contains the reference to the value (in this case it's Histone.Global object)
+    // args - contains an array of function call arguments
+    // ret - callback - function that you have to call for returning the result
+
+    ret('<div>' + value + '</div>');
+};
+
+// define function on the values of the string data type
+Histone.String.repeat = function(value, args, ret) {
+
+    // this - contains the reference to the instance of the CallStack class
+    // value - contains the reference to the value (in this case it's Histone.Global object)
+    // args - contains an array of function call arguments
+    // ret - callback - function that you have to call for returning the result
+
+    var result = '';
+    var times = parseInt(args[0]);
+    if (isNaN(times) || times <= 0) return ret(value);
+    for (var c = 0; c <= times; c++) result += value;
+    ret(result);
+};
+
+// test Global.random function
+Histone('{{random()}}').render(function(result) {
+    // output the result
+    alert(result);
+});
+
+// test Type.toHTML function
+Histone('{{123.toHTML()}}').render(function(result) {
+    // output the result
+    alert(result);
+});
+
+// test String.repeat function
+Histone('{{"A".repeat(5)}}').render(function(result) {
+    // output the result
+    alert(result);
+});
+```
 
 Important links
 --------------------------------------
