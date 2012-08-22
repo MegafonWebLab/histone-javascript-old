@@ -93,6 +93,22 @@ template.render(function(result) {
 }, {'foo': 'bar'});
 ```
 
+Calling template's macros
+--------------------------------------
+
+It's possible to process a macro, that is defined in the template,
+without the rest of it:
+
+```javascript
+// create Template instance
+var template = Histone('*** {{macro foo}} {{self.arguments.toJSON()}} {{/macro}} ***');
+// render template
+template.call('foo', [1, 2, 3], function(result) {
+    // output the result
+    alert(result);
+});
+```
+
 Important links
 --------------------------------------
 
