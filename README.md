@@ -17,6 +17,19 @@ What you need to build RequireJS module
 In order to build Histone as RequireJS module, you need to have
 [Apache ANT](http://ant.apache.org) [installed](http://ant.apache.org/manual/index.html).
 
+First, clone a copy of the Histone JavaScript git repo by running:
+
+```bash
+git clone git://github.com/MegafonWebLab/histone-javascript.git
+```
+
+Enter the directory and install run ant:
+
+```bash
+cd histone-javascript
+ant
+```
+
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
