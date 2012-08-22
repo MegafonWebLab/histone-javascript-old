@@ -15,8 +15,7 @@ What you need to build RequireJS module
 --------------------------------------
 
 In order to build Histone as RequireJS module, you need to have
-[Apache ANT](http://ant.apache.org) installed. Installation process is well
-described in [Apache ANT documentation](http://ant.apache.org/manual/index.html).
+[Apache ANT](http://ant.apache.org) [installed](http://ant.apache.org/manual/index.html).
 
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
