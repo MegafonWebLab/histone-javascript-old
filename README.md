@@ -1,4 +1,4 @@
-Histone template engine JavaScript - implementation
+Histone template engine
 ==================
 
 Histone — powerful and flexible template engine, which can be used for
