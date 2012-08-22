@@ -125,7 +125,6 @@ loading. You can manage resouce loading by setting up your own URI - resolver:
 ```javascript
 // set up our own URI - resolver
 Histone.setURIResolver(function(href, base, ret, options) {
-
     // href - contains full path to the requested resource
     // base - contains path to the template that is requesting resource
     // ret - callback function that has to be called to retrieve the result
@@ -159,7 +158,6 @@ methods and properties:
 ```javascript
 // define global function random
 Histone.Global.random = function(value, args, ret) {
-
     // this - contains the reference to the instance of the CallStack class
     // value - contains the reference to the value (in this case it's Histone.Global object)
     // args - contains an array of function call arguments
@@ -170,7 +168,6 @@ Histone.Global.random = function(value, args, ret) {
 
 // define function on the values of any data type
 Histone.Type.toHTML = function(value, args, ret) {
-
     // this - contains the reference to the instance of the CallStack class
     // value - contains the reference to the value (in this case it's Histone.Global object)
     // args - contains an array of function call arguments
@@ -181,7 +178,6 @@ Histone.Type.toHTML = function(value, args, ret) {
 
 // define function on the values of the string data type
 Histone.String.repeat = function(value, args, ret) {
-
     // this - contains the reference to the instance of the CallStack class
     // value - contains the reference to the value (in this case it's Histone.Global object)
     // args - contains an array of function call arguments
