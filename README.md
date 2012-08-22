@@ -42,7 +42,7 @@ Enter the directory and build RequireJS module by running ant:
 
 ```bash
 cd histone-javascript
-ant
+ant -Dresult=function
 ```
 
 This will produce Histone.js in the same folder.
