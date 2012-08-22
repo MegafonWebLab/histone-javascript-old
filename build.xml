@@ -3,9 +3,9 @@
 
 	<path id="classpath">
 		<!-- path to Mozilla Rhino JavaScript engine -->
-		<pathelement location="lib/java/js.jar" />
+		<pathelement location="build/lib/java/js.jar" />
 		<!-- path to Google Closure Compiler -->
-		<pathelement location="lib/java/compiler.jar" />
+		<pathelement location="build/lib/java/compiler.jar" />
 	</path>
 
 	<target name="build" description="build">
@@ -15,8 +15,10 @@
 			<arg value="-classpath" />
 			<arg value="${toString:classpath}" />
 			<arg value="org.mozilla.javascript.tools.shell.Main" />
-			<arg line="-modules lib/js" />
-			<arg line="-main build.js" />
+			<arg line="-modules build/lib/js" />
+			<arg line="-main build/build.js" />
+			<env key="input" path="src/Histone.js" />
+			<env key="output" path="Histone.js" />
 		</exec>
 
 	</target>

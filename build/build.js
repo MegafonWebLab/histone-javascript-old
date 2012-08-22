@@ -5,6 +5,9 @@ var [Utils, Files, Compiler, JSParser] = [
 	require('JSParser')
 ];
 
+var INPUT_PATH = Utils.getEnv('input');
+var OUTPUT_PATH = Utils.getEnv('output');
+
 function rewriteDefinition(fileName, moduleName, dependencies) {
 	var fileData = Files.read(fileName);
 	if (!Utils.isString(moduleName)) moduleName = '';
@@ -83,11 +86,12 @@ function getModuleInfo(modulePath) {
 				});
 				resultDeps = fileDeps.deps.concat(resultDeps);
 			} else {
-				resultDeps.unshift({
-					path: dep,
-					name: deps[c],
-					info: 'DO_NOT_COMPILE'
-				});
+				print('foo');
+				// resultDeps.unshift({
+				// 	path: dep,
+				// 	name: deps[c],
+				// 	info: 'DO_NOT_COMPILE'
+				// });
 			}
 		}
 	});
@@ -104,13 +108,13 @@ function buildDependencies(modulePath) {
 
 	var dependenciesMap = {};
 	for (var c = 0; c < moduleDeps.length; c++) {
-		if (moduleDeps[c].info === 'DO_NOT_COMPILE') continue;
+		// if (moduleDeps[c].info === 'DO_NOT_COMPILE') continue;
 		dependenciesMap[moduleDeps[c].name] = Utils.uniqueId();
 	}
 
 	var buildResult = [];
 	for (var c = 0; c < moduleDeps.length; c++) {
-		if (moduleDeps[c].info === 'DO_NOT_COMPILE') continue;
+		// if (moduleDeps[c].info === 'DO_NOT_COMPILE') continue;
 		var a = rewriteDefinition(
 			moduleDeps[c].path,
 			dependenciesMap[moduleDeps[c].name],
@@ -126,9 +130,9 @@ function buildDependencies(modulePath) {
 	return buildResult.join('');
 }
 
-var data = buildDependencies('../src/Sponde.js');
+var data = buildDependencies(INPUT_PATH);
 data = Compiler.compile(data);
-Files.write('Sponde.js', data);
+Files.write(OUTPUT_PATH, data);
 
 
 
