@@ -994,4 +994,4 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 
 	return Sponde;
 
-}, 'DO_NOT_COMPILE');
+});
