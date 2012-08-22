@@ -11,6 +11,13 @@ project. Templates has clean and simple syntax and can be stored either as
 source code or as compiled code that can be executed with the maximum
 performance wherever it's needed.
 
+What you need to build RequireJS module
+--------------------------------------
+
+In order to build Histone as RequireJS module, you need to have
+[Apache ANT](http://ant.apache.org) installed. Installation process is well
+described in [Apache ANT documentation](http://ant.apache.org/manual/index.html).
+
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
