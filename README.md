@@ -11,7 +11,7 @@ project. Templates has clean and simple syntax and can be stored either as
 source code or as compiled code that can be executed with the maximum
 performance wherever it's needed.
 
-What you need to build RequireJS module
+What you need to build Histone
 --------------------------------------
 
 In order to build Histone as RequireJS module, you need to have
