@@ -23,7 +23,7 @@ First, clone a copy of the Histone JavaScript git repo by running:
 git clone git://github.com/MegafonWebLab/histone-javascript.git
 ```
 
-Enter the directory and install run ant:
+Enter the directory and build RequireJS module by running ant:
 
 ```bash
 cd histone-javascript
