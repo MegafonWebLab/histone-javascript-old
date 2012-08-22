@@ -149,19 +149,19 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 
 		var handler = value;
 		switch (Utils.getBaseType(value)) {
-			case Utils.T_NULL: handler = Sponde.Type; break;
-			case Utils.T_BOOLEAN: handler = Sponde.Type; break;
-			case Utils.T_UNDEFINED: handler = Sponde.Type; break;
-			case Utils.T_NUMBER: handler = Sponde.Number; break;
-			case Utils.T_STRING: handler = Sponde.String; break;
+			case Utils.T_NULL: handler = Histone.Type; break;
+			case Utils.T_BOOLEAN: handler = Histone.Type; break;
+			case Utils.T_UNDEFINED: handler = Histone.Type; break;
+			case Utils.T_NUMBER: handler = Histone.Number; break;
+			case Utils.T_STRING: handler = Histone.String; break;
 		}
 
 		if (Utils.isObject(value) && value instanceof OrderedMap) {
-			handler = Sponde.Map;
+			handler = Histone.Map;
 		}
 
 		if (handler.hasOwnProperty(name)) return handler[name];
-		if (Sponde.Type.hasOwnProperty(name)) return Sponde.Type[name];
+		if (Histone.Type.hasOwnProperty(name)) return Histone.Type[name];
 		if (isProp && handler.hasOwnProperty('')) return handler[''];
 	}
 
@@ -393,7 +393,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		}
 		if (fragment === 'global') {
 			return evalSelector(
-				Sponde.Global,
+				Histone.Global,
 				selector,
 				stack,
 				ret
@@ -409,8 +409,8 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		}
 		stack.getVar(fragment, function(value, found) {
 			if (found) return evalSelector(value, selector, stack, ret);
-			if (Sponde.Global.hasOwnProperty(fragment)) return evalSelector(
-				Sponde.Global, [fragment].concat(selector), stack, ret);
+			if (Histone.Global.hasOwnProperty(fragment)) return evalSelector(
+				Histone.Global, [fragment].concat(selector), stack, ret);
 			if (Utils.isObject(stack.context) &&
 				stack.context.hasOwnProperty(fragment)) return evalSelector(
 				stack.context, [fragment].concat(selector), stack, ret);
@@ -453,7 +453,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 				if (Utils.isNull(target)) {
 					if (handler = stack.getMacro(name))
 						return callMacro(handler, callArgs, stack, ret);
-						target = Sponde.Global;
+						target = Histone.Global;
 				}
 				processNode(target, stack, function(target) {
 					if (handler = getHandlerFor(target, name)) {
@@ -482,7 +482,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 
 		resolveURI(requestURI, baseURI, function(resourceData, resourceURI) {
 			try {
-				resourceData = Sponde(resourceData, resourceURI);
+				resourceData = Histone(resourceData, resourceURI);
 				stack.setBaseURI(resourceURI);
 				processNodes(resourceData.getAST(), stack,
 					function(resourceData) {
@@ -594,7 +594,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 
 	}
 
-	var Sponde = function(template, baseURI) {
+	var Histone = function(template, baseURI) {
 		if (Utils.isString(template)) {
 			if (!parserInstance) parserInstance = new Parser();
 			template = parserInstance.parse(template, baseURI);
@@ -607,9 +607,9 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		return new Template(template, baseURI);
 	};
 
-	Sponde.OrderedMap = OrderedMap;
+	Histone.OrderedMap = OrderedMap;
 
-	Sponde.Type = {
+	Histone.Type = {
 
 		isUndefined: function(value, args, ret) {
 			ret(Utils.isUndefined(value));
@@ -654,7 +654,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		}
 	};
 
-	Sponde.Number = {
+	Histone.Number = {
 
 		isInteger: function(value, args, ret) {
 			ret(value % 1 === 0);
@@ -708,7 +708,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 
 	};
 
-	Sponde.String = {
+	Histone.String = {
 
 		'': function(value, args, ret) {
 			var index = parseFloat(args[0], 10);
@@ -803,7 +803,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		}
 	};
 
-	Sponde.Map = {
+	Histone.Map = {
 
 		'': function(value, args, ret) {
 			var key = args[0];
@@ -856,7 +856,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 
 	};
 
-	Sponde.Global = {
+	Histone.Global = {
 
 		clientType: 'browser',
 
@@ -903,7 +903,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 			resolveURI(requestURI, baseURI, function(
 				resourceData, resourceURI) {
 				try {
-					resourceData = Sponde(resourceData, resourceURI);
+					resourceData = Histone(resourceData, resourceURI);
 					resourceData.render(ret, js2internal(context));
 					return resourceData;
 				} catch (e) { ret(); }
@@ -974,17 +974,17 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		}
 	};
 
-	Sponde.load = function(name, req, load, config) {
+	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
 		doRequest(requestURI, function(resourceData, contentType) {
 			if (contentType === 'application/json') try {
 				resourceData = JSON.parse(resourceData);
 			} catch (e) {}
-			load(Sponde(resourceData, requestURI));
+			load(Histone(resourceData, requestURI));
 		}, null);
 	};
 
-	Sponde.setURIResolver = function(callback) {
+	Histone.setURIResolver = function(callback) {
 		if (!Utils.isFunction(callback)) {
 			URIResolver = null;
 		} else {
@@ -992,6 +992,6 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 		}
 	};
 
-	return Sponde;
+	return Histone;
 
 });
