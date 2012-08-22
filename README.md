@@ -78,6 +78,19 @@ In case if you prefer to use pure JavaScript - library:
 </script>
 ```
 
+Passing JavaScript - variables
+--------------------------------------
+
+```javascript
+// create Template instance
+var template = Histone('this.foo = {{this.foo}}');
+// render template
+template.render(function(result) {
+    // output the result
+    alert(result);
+}, {'foo': 'bar'});
+```
+
 Important links
 --------------------------------------
 
