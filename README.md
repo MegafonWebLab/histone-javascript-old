@@ -30,6 +30,9 @@ cd histone-javascript
 ant
 ```
 
+Important links
+--------------------------------------
+
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
