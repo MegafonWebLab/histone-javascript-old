@@ -86,12 +86,10 @@ function getModuleInfo(modulePath) {
 				});
 				resultDeps = fileDeps.deps.concat(resultDeps);
 			} else {
-				print('foo');
-				// resultDeps.unshift({
-				// 	path: dep,
-				// 	name: deps[c],
-				// 	info: 'DO_NOT_COMPILE'
-				// });
+				print(
+					'Couldn\'t find dependency:',
+					dep, 'in ' + modulePath
+				);
 			}
 		}
 	});
@@ -103,34 +101,33 @@ function getModuleInfo(modulePath) {
 
 function buildDependencies(modulePath) {
 
+	var dependencyPath;
+	var buildResult = [];
+	var dependenciesMap = {};
 	var moduleInfo = getModuleInfo(modulePath);
 	var moduleDeps = moduleInfo.deps;
 
-	var dependenciesMap = {};
 	for (var c = 0; c < moduleDeps.length; c++) {
-		// if (moduleDeps[c].info === 'DO_NOT_COMPILE') continue;
 		dependenciesMap[moduleDeps[c].name] = Utils.uniqueId();
 	}
 
-	var buildResult = [];
 	for (var c = 0; c < moduleDeps.length; c++) {
-		// if (moduleDeps[c].info === 'DO_NOT_COMPILE') continue;
-		var a = rewriteDefinition(
-			moduleDeps[c].path,
+		dependencyPath = moduleDeps[c].path;
+		print('Processing dependency:', dependencyPath);
+		buildResult.push(rewriteDefinition(
+			dependencyPath,
 			dependenciesMap[moduleDeps[c].name],
 			dependenciesMap
-		);
-		buildResult.push(a);
+		));
 	}
-
 	buildResult.push(rewriteDefinition(
 		modulePath, null, dependenciesMap
 	));
-
 	return buildResult.join('');
 }
 
 var data = buildDependencies(INPUT_PATH);
+print('Compiling...');
 data = Compiler.compile(data);
 Files.write(OUTPUT_PATH, data);
 
