@@ -189,18 +189,9 @@ define(function() {
 		if (partOne > UID_TIME_LAST) UID_TIME_DIFF = 0;
 		else partOne += (++UID_TIME_DIFF);
 		UID_TIME_LAST = partOne;
-		partOne = partOne;
-
-
-		var partTwo = 1 + Math.floor((Math.random()*32767));
-		var partThree = 1 + Math.floor((Math.random()*32767));
-		console.info(window);
-
-		return (
-			prefix +
-			partOne.toString(36) +
-			partTwo.toString(36) +
-			partThree.toString(36)
+		return (prefix + partOne.toString(36) +
+			(1 + Math.floor((Math.random()*32767))).toString(36) +
+			(1 + Math.floor((Math.random()*32767))).toString(36)
 		);
 	}
 
