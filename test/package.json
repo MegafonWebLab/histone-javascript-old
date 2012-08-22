@@ -1,7 +1,0 @@
-{
-	"deps": [
-		"lib.jQuery",
-		"require.text",
-		"megalabs.utils"
-	]
-}
