@@ -23,6 +23,8 @@ First, clone a copy of the Histone JavaScript git repo by running:
 git clone git://github.com/MegafonWebLab/histone-javascript.git
 ```
 
+or just download ZIP - archive from this webpage.
+
 Building Histone
 --------------------------------------
 
