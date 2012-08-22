@@ -30,6 +30,8 @@ cd histone-javascript
 ant
 ```
 
+This will produce Histone.js in the same folder.
+
 Important links
 --------------------------------------
 
