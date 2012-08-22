@@ -14,8 +14,8 @@ performance wherever it's needed.
 What you need to build Histone
 --------------------------------------
 
-In order to build Histone as RequireJS module, you need to have
-[Apache ANT](http://ant.apache.org) [installed](http://ant.apache.org/manual/index.html).
+In order to build Histone, you need to have [Apache ANT](http://ant.apache.org)
+[installed](http://ant.apache.org/manual/index.html).
 
 First, clone a copy of the Histone JavaScript git repo by running:
 
