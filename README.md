@@ -81,6 +81,8 @@ In case if you prefer to use pure JavaScript - library:
 Passing JavaScript - variables
 --------------------------------------
 
+Use second argument to pass any JavaScript value into template:
+
 ```javascript
 // create Template instance
 var template = Histone('this.foo = {{this.foo}}');
