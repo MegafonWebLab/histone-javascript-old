@@ -47,6 +47,44 @@ ant -Dresult=function
 
 This will produce Histone.js in the same folder.
 
+Using Histone
+--------------------------------------
+
+In case if you use Histone as RequireJS module:
+
+```html
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Template Parser</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="style/stylesheet.css" />
+		<script type="text/javascript" src="http://requirejs.org/docs/release/2.0.6/minified/require.js"></script>
+		<script type="text/javascript">
+			window.onload = function() {
+				var textarea = document.getElementById('textarea');
+				require.config({
+					'urlArgs': Math.random()
+				})(['../Histone'], function(Histone) {
+
+					Histone('{{2 * 2}}').render(function(result) {
+						alert(result);
+					});
+
+
+				});
+			};
+		</script>
+	</head>
+	<body>
+		<div><textarea id="input" style="width: 100%; height: 360px;"></textarea></div>
+		<div>
+			<textarea id="output" style="width: 100%; height: 360px;"></textarea>
+		</div>
+	</body>
+</html>
+```
+
 Important links
 --------------------------------------
 
