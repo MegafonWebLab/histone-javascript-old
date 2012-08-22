@@ -103,10 +103,17 @@ without the rest of it:
 // create Template instance
 var template = Histone('*** {{macro foo}} {{self.arguments.toJSON()}} {{/macro}} ***');
 // render template
-template.call('foo', [1, 2, 3], function(result) {
-    // output the result
-    alert(result);
-});
+template.call(
+    // macro's name
+    'foo',
+    // macro's arguments
+    [1, 2, 3],
+    // result handler
+    function(result) {
+        // output the result
+        alert(result);
+    }
+);
 ```
 
 Important links
