@@ -19,6 +19,7 @@
 			<arg line="-main build/build.js" />
 			<env key="input" path="src/Histone.js" />
 			<env key="output" path="Histone.js" />
+			<env key="result" value="${result}" />
 		</exec>
 
 	</target>

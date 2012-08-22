@@ -5,8 +5,10 @@ var [Utils, Files, Compiler, JSParser] = [
 	require('JSParser')
 ];
 
+var FUNCTION_NAME = 'Histone';
 var INPUT_PATH = Utils.getEnv('input');
 var OUTPUT_PATH = Utils.getEnv('output');
+var OUTPUT_TYPE = Utils.getEnv('result');
 
 function rewriteDefinition(fileName, moduleName, dependencies) {
 	var fileData = Files.read(fileName);
@@ -63,7 +65,6 @@ function rewriteDefinition(fileName, moduleName, dependencies) {
 }
 
 function getModuleInfo(modulePath) {
-	var buildInfo = null;
 	var resultDeps = [];
 	var module = new Function('define', Files.read(modulePath));
 	module(function() {
@@ -71,8 +72,6 @@ function getModuleInfo(modulePath) {
 		var args = Utils.args2arr(arguments);
 		if (args.length >= 2) {
 			if (Utils.isArray(args[0])) deps = args[0];
-			if (args.length === 2) buildInfo = args[1];
-			else buildInfo = args[2];
 		}
 		for (var c = 0; c < deps.length; c++) {
 			var dep = (deps[c] + '.js');
@@ -81,22 +80,16 @@ function getModuleInfo(modulePath) {
 				var fileDeps = getModuleInfo(dep);
 				resultDeps.unshift({
 					path: dep,
-					name: deps[c],
-					info: fileDeps.info
+					name: deps[c]
 				});
 				resultDeps = fileDeps.deps.concat(resultDeps);
-			} else {
-				print(
-					'Couldn\'t find dependency:',
-					dep, 'in ' + modulePath
-				);
-			}
+			} else print(
+				'Couldn\'t find dependency:',
+				dep, 'in ' + modulePath
+			);
 		}
 	});
-	return {
-		info: buildInfo,
-		deps: resultDeps
-	};
+	return {deps: resultDeps};
 }
 
 function buildDependencies(modulePath) {
@@ -127,6 +120,32 @@ function buildDependencies(modulePath) {
 }
 
 var data = buildDependencies(INPUT_PATH);
+
+if (OUTPUT_TYPE === 'function') {
+	var result = [];
+	(new Function('define', data))(function() {
+		var name = 'Result', deps = [], value = '';
+		for (var c = 0; c < arguments.length; c++) {
+			if (Utils.isString(arguments[c])) {
+				name = arguments[c];
+			} else if (Utils.isArray(arguments[c])) {
+				deps = arguments[c];
+			} else {
+				value = arguments[c];
+				break;
+			}
+		}
+		result.push('var ' + name + ' = (' +
+			value.toString() +
+		')(' + deps.toString() + ');');
+	});
+
+	data = 'window["' + FUNCTION_NAME + '"] = (function() {' +
+		result.join('') +
+		'return Result;' +
+	'})();'
+}
+
 print('Compiling...');
 data = Compiler.compile(data);
 Files.write(OUTPUT_PATH, data);
