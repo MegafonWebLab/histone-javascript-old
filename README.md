@@ -37,7 +37,6 @@ This will produce Histone.js in the same folder. In case if you want to build
 pure JavaScript - library, run ant with following arguments:
 
 ```bash
-cd histone-javascript
 ant -Dresult=function
 ```
 
