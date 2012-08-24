@@ -384,6 +384,7 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 	}
 
 	function processSelector(path, stack, ret) {
+		var context;
 		var selector = path.slice(1);
 		var fragment = path[0];
 		if (!Utils.isString(fragment)) {
@@ -411,9 +412,11 @@ define(['./Utils', './OrderedMap', './Parser', './CallStack'],
 			if (found) return evalSelector(value, selector, stack, ret);
 			if (Histone.Global.hasOwnProperty(fragment)) return evalSelector(
 				Histone.Global, [fragment].concat(selector), stack, ret);
-			if (Utils.isObject(stack.context) &&
-				stack.context.hasOwnProperty(fragment)) return evalSelector(
-				stack.context, [fragment].concat(selector), stack, ret);
+			context = stack.context;
+			if (Utils.isObject(context) &&
+				context instanceof OrderedMap &&
+				context.hasKey(fragment)) return evalSelector(
+				context, [fragment].concat(selector), stack, ret);
 			evalSelector(undefined, selector, stack, ret);
 		});
 	}
