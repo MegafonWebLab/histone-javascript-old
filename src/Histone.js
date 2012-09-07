@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['./Utils', './OrderedMap', './Parser', './CallStack'],
+define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 	function(Utils, OrderedMap, Parser, CallStack) {
 
 	var resourceCache = {};

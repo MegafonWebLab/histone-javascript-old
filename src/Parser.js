@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['./Tokenizer'], function(Tokenizer) {
+define(['./Tokenizer.js'], function(Tokenizer) {
 
 	// tokenizer instance
 	var tokenizer;

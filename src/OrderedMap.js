@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['./Utils'], function(Utils) {
+define(['./Utils.js'], function(Utils) {
 
 	var OrderedMap = function() {
 
