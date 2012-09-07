@@ -12,6 +12,7 @@
 
 			$(document).ready(function() {
 
+				var consoleEl = $('.console');
 				var resultEl = $('.right-column');
 				var templateEditor = CodeMirror.fromTextArea(
 					$('.template')[0], {
@@ -32,7 +33,13 @@
 
 					function onChange(templateEditor) {
 						var template = templateEditor.getValue();
-						template = Histone(template);
+						try {
+							template = Histone(template);
+						} catch (exception) {
+							consoleEl.html(exception.toString());
+							return;
+						}
+						consoleEl.html('');
 						template.render(function(result) {
 							resultEl.html(result);
 						});
