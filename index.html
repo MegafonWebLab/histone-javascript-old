@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html class="loading">
 	<head>
 		<title>demo</title>
 		<link rel="stylesheet" href="style/stylesheet.css">
@@ -10,12 +10,16 @@
 		<script type="text/javascript" src="script/codeMirror/smarty.js"></script>
 		<script type="text/javascript">
 
-			$(document).ready(function() {
+			var documentRef = $(document);
+
+			documentRef.ready(function() {
 
 				var consoleEl = $('.console');
+				var templateEl = $('.template');
 				var resultEl = $('.right-column');
+
 				var templateEditor = CodeMirror.fromTextArea(
-					$('.template')[0], {
+					templateEl[0], {
 						theme: 'elegant',
 						mode: 'smarty',
 						indentUnit: 4,
@@ -31,7 +35,10 @@
 					'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone.js'
 				], function(Histone) {
 
-					function onChange(templateEditor) {
+					$('html').removeClass('loading');
+
+					documentRef.on('click', '.toolbar-button', function() {
+						templateEditor.focus();
 						var template = templateEditor.getValue();
 						try {
 							template = Histone(template);
@@ -43,18 +50,31 @@
 						template.render(function(result) {
 							resultEl.html(result);
 						});
-					};
-
-					templateEditor.setOption('onChange', onChange);
-					onChange(templateEditor);
+					});
 				});
 			});
 		</script>
 	</head>
 	<body>
+		<div class="preloader-layer"></div>
+		<div class="preloader-image">loading</div>
+		<ul class="toolbar">
+			<li class="histone-logo">
+			<li class="histone-label">Histone
+			<li class="toolbar-divider">
+			<li class="toolbar-button">Execute
+		</ul>
 		<div class="workspace">
 			<div class="left-column">
-				<textarea class="template">{{2 * 2}}</textarea>
+				<textarea class="template">
+{{* press "Execute" button to see the result *}}
+<div style="border: 1px solid red;">
+	{{for item in [1, 2, 3, 4, 5, 6]}}
+		<div style="border: 1px solid blue; margin: 1px;">
+			{{item}}
+		</div>
+	{{/for}}
+</div></textarea>
 			</div>
 			<div class="right-column"></div>
 		</div>

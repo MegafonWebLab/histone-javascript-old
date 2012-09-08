@@ -4,12 +4,111 @@ html, body {
 	width: 100%;
 	height: 100%;
 	position: absolute;
-	font-size: 12px;
+	font-size: 13px;
 	font-family: Verdana;
 }
 
-.workspace {
+.preloader-layer {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	display: none;
+	z-index: 10000;
+	opacity: 0.7;
+	background-color: white;
+}
+
+.preloader-image {
+	top: 50%;
+	left: 50%;
+	width: 300px;
+	height: 60px;
+	display: none;
+	z-index: 10001;
+	line-height: 60px;
+	text-align: center;
+	margin-left: -150px;
+	margin-top: -30px;
+	font-weight: bold;
+	padding-top: 40px;
+	font-size: 11px;
+	position: absolute;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-image: url('../media/preloader.gif');
+}
+
+.loading .preloader-layer,
+.loading .preloader-image {
+	display: block;
+}
+
+.toolbar {
+	margin: 0px;
+	position: absolute;
 	top: 0px;
+	height: 31px;
+	left: 0px;
+	right: 0px;
+	padding: 8px;
+	background-color: #A8A8A8;
+	background-repeat: repeat-x;
+	background-position: left top;
+	background-image: url('../media/toolbar_bg.png');
+	border-bottom: 1px solid #949494;
+}
+
+.toolbar li {
+	vertical-align: middle;
+	display: inline-block;
+}
+
+.histone-logo {
+	width: 32px;
+	height: 32px;
+	margin-left: 10px;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-image: url('../media/histone.png');
+}
+
+.histone-label {
+	color: white;
+	font-size: 20px;
+	font-weight: bold;
+	margin-left: 10px;
+	margin-right: 18px;
+	text-shadow: 0px 0px 3px black;
+}
+
+.toolbar-divider {
+	width: 1px;
+	height: 32px;
+	margin-right: 14px;
+	border-left: 1px solid #AAAAAA;
+}
+
+.toolbar-button {
+	height: 32px;
+	cursor: pointer;
+	font-size: 11px;
+	line-height: 32px;
+	text-align: right;
+	font-weight: bold;
+	padding-left: 40px;
+	padding-right: 5px;
+	background-repeat: no-repeat;
+	background-position: left top;
+	text-shadow: 1px 1px 1px white;
+	background-image: url('../media/button.png');
+}
+
+.toolbar-button:active {
+	background-position: left bottom;
+}
+
+.workspace {
+	top: 48px;
 	bottom: 22px;
 	left: 0px;
 	right: 0px;
@@ -23,7 +122,7 @@ html, body {
 	width: 50%;
 	position: absolute;
 	overflow: auto;
-	border-right: 1px solid #DDDDDD;
+	border-right: 1px solid #949494;
 }
 
 .left-column .CodeMirror {
@@ -51,7 +150,7 @@ html, body {
 	top: 0px;
 	bottom: 0px;
 	right: 0px;
-	padding: 10px;
+	padding: 5px;
 	overflow: auto;
 	position: absolute;
 }
@@ -61,14 +160,14 @@ html, body {
 	right: 0px;
 	bottom: 0px;
 	height: 22px;
+	color: red;
 	z-index: 10;
 	font-size: 11px;
 	position: absolute;
-	border-top: 1px solid #DDDDDD;
 	padding-left: 5px;
 	padding-right: 5px;
 	line-height: 22px;
-	color: red;
+	border-top: 1px solid #949494;
 }
 
 .cm-s-elegant span.cm-number, .cm-s-elegant span.cm-string, .cm-s-elegant span.cm-atom {color: #762;}
