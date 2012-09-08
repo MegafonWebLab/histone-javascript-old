@@ -215,7 +215,7 @@ Histone('{{"A".repeat(5)}}').render(function(result) {
 Important links
 --------------------------------------
 
+* [Histone playground](http://megafonweblab.github.com/histone-javascript/)
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
-* [Histone playground](http://megafonweblab.github.com/histone-javascript/)
