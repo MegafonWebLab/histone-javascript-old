@@ -48,6 +48,15 @@
 						}
 					});
 
+					documentRef.on('click', '.change-result-format', function() {
+						if (resultFormat.val() === 'html') {
+							resultFormat.val('text');
+						} else {
+							resultFormat.val('html');
+						}
+						resultFormat.trigger('change');
+					});
+
 					documentRef.on('click', '.toolbar-button', function() {
 						templateEditor.focus();
 						var template = templateEditor.getValue();
@@ -77,7 +86,9 @@
 			<li class="toolbar-button">Execute
 			<li class="toolbar-divider">
 			<li class="toolbar-right">
-				<span>show result as</span>
+				<span class="change-result-format">
+					show result as
+				</span>
 				<select class="result-format">
 					<option value="html">HTML</option>
 					<option value="text">Text</option>

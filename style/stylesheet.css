@@ -109,6 +109,10 @@ html, body {
 	background-position: left bottom;
 }
 
+.change-result-format {
+	cursor: pointer;
+}
+
 .toolbar-right {
 	height: 32px;
 	line-height: 32px;
