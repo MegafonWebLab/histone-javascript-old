@@ -182,6 +182,11 @@ html, body {
 	resize: none;
 	border-style: none;
 	position: absolute;
+	width: 100%;
+	height: 100%;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 .result-html .text-area,
