@@ -9,7 +9,8 @@ client. Built - in extension mechanism allows you to extend default template
 engine features, by adding your own methods and properties for the particular
 project. Templates has clean and simple syntax and can be stored either as
 source code or as compiled code that can be executed with the maximum
-performance wherever it's needed.
+performance wherever it's needed. See live demo here:
+[http://megafonweblab.github.com/histone-javascript/](http://megafonweblab.github.com/histone-javascript/)
 
 What you need to build Histone
 --------------------------------------
@@ -217,3 +218,4 @@ Important links
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
+* [Live demo](http://megafonweblab.github.com/histone-javascript/)
