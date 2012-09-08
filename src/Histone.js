@@ -974,6 +974,21 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 				var day = date.getDay();
 				ret(day ? day : 7);
 			} else ret();
+		},
+
+		daysInMonth: function(value, args, ret) {
+			var year = parseFloat(args[0]);
+			var month = parseFloat(args[1]);
+			if (!Utils.isNumber(year) ||
+				!Utils.isNumber(month) ||
+				year % 1 !== 0 ||
+				month % 1 !== 0 ||
+				month < 1 ||
+				month > 12) {
+				return ret();
+			}
+			var date = new Date(year, month, 0);
+			ret(date.getDate());
 		}
 	};
 
