@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html class="loading">
+<html class="loading result-html">
 	<head>
 		<title>Histone - playground</title>
 		<link rel="stylesheet" href="style/stylesheet.css">
@@ -17,6 +17,7 @@
 				var consoleEl = $('.console');
 				var templateEl = $('.template');
 				var resultEl = $('.right-column');
+				var resultFormat = $('.result-format');
 
 				var templateEditor = CodeMirror.fromTextArea(
 					templateEl[0], {
@@ -37,6 +38,16 @@
 
 					$('html').removeClass('loading');
 
+					resultFormat.on('change', function() {
+						if (resultFormat.val() === 'html') {
+							$('html').removeClass('result-text');
+							$('html').addClass('result-html');
+						} else {
+							$('html').addClass('result-text');
+							$('html').removeClass('result-html');
+						}
+					});
+
 					documentRef.on('click', '.toolbar-button', function() {
 						templateEditor.focus();
 						var template = templateEditor.getValue();
@@ -48,7 +59,8 @@
 						}
 						consoleEl.html('');
 						template.render(function(result) {
-							resultEl.html(result);
+							$('.html-area', resultEl).html(result);
+							$('.text-area', resultEl).val(result);
 						});
 					});
 				});
@@ -63,6 +75,14 @@
 			<li class="histone-label">Histone
 			<li class="toolbar-divider">
 			<li class="toolbar-button">Execute
+			<li class="toolbar-divider">
+			<li class="toolbar-right">
+				<span>show result as</span>
+				<select class="result-format">
+					<option value="html">HTML</option>
+					<option value="text">Text</option>
+				</select>
+			<li class="toolbar-divider toolbar-right">
 		</ul>
 		<div class="workspace">
 			<div class="left-column">
@@ -76,7 +96,10 @@
 	{{/for}}
 </div></textarea>
 			</div>
-			<div class="right-column"></div>
+			<div class="right-column">
+				<div class="html-area"></div>
+				<textarea class="text-area"></textarea>
+			</div>
 		</div>
 		<div class="console"></div>
 	</body>

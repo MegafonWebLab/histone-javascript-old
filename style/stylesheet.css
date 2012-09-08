@@ -67,6 +67,7 @@ html, body {
 	width: 32px;
 	height: 32px;
 	margin-left: 10px;
+	cursor: default;
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-image: url('../media/histone.png');
@@ -77,13 +78,14 @@ html, body {
 	font-size: 20px;
 	font-weight: bold;
 	margin-left: 10px;
-	margin-right: 18px;
+	cursor: default;
 	text-shadow: 0px 0px 3px black;
 }
 
 .toolbar-divider {
 	width: 1px;
 	height: 32px;
+	margin-left: 14px;
 	margin-right: 14px;
 	border-left: 1px solid #AAAAAA;
 }
@@ -107,6 +109,15 @@ html, body {
 	background-position: left bottom;
 }
 
+.toolbar-right {
+	height: 32px;
+	line-height: 32px;
+	float: right;
+	font-size: 11px;
+	font-weight: bold;
+	text-shadow: 1px 1px 1px white;
+}
+
 .workspace {
 	top: 48px;
 	bottom: 22px;
@@ -122,6 +133,7 @@ html, body {
 	width: 50%;
 	position: absolute;
 	overflow: auto;
+	z-index: 1;
 	border-right: 1px solid #949494;
 }
 
@@ -150,9 +162,27 @@ html, body {
 	top: 0px;
 	bottom: 0px;
 	right: 0px;
+	position: absolute;
+}
+
+.right-column .html-area,
+.right-column .text-area {
+	left: 0px;
+	right: 0px;
+	top: 0px;
+	bottom: 0px;
+	margin: 0px;
 	padding: 5px;
 	overflow: auto;
+	outline: none;
+	resize: none;
+	border-style: none;
 	position: absolute;
+}
+
+.result-html .text-area,
+.result-text .html-area {
+	display: none;
 }
 
 .console {
