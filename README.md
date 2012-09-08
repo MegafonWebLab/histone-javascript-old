@@ -218,4 +218,4 @@ Important links
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
-* [Live demo](http://megafonweblab.github.com/histone-javascript/)
+* [Histone playground](http://megafonweblab.github.com/histone-javascript/)
