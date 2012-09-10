@@ -70,7 +70,7 @@
 						template.render(function(result) {
 							$('.html-area', resultEl).html(result);
 							$('.text-area', resultEl).val(result);
-						});
+						}, window.location);
 					});
 				});
 			});
