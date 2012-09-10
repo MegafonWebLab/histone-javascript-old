@@ -813,7 +813,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 			ret(value.get(key));
 		},
 
-		length: function(value, args, ret) {
+		size: function(value, args, ret) {
 			ret(value.length());
 		},
 
