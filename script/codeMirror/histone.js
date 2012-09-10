@@ -1,6 +1,7 @@
 CodeMirror.defineMode('histone', function(config, parserConfig) {
 
 	var keyFuncs = [
+		// global functions
 		'dayOfWeek',
 		'daysInMonth',
 		'include',
@@ -10,6 +11,7 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 		'min',
 		'range',
 		'uniqueId',
+		// control structures
 		'macro',
 		'call',
 		'import',
