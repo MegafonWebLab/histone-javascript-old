@@ -61,7 +61,10 @@
 						templateEditor.focus();
 						var template = templateEditor.getValue();
 						try {
-							template = Histone(template);
+							template = Histone(
+								template,
+								window.location.href
+							);
 						} catch (exception) {
 							consoleEl.html(exception.toString());
 							return;
