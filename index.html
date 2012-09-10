@@ -1,83 +1,13 @@
 <!DOCTYPE HTML>
-<html class="loading result-html">
+<html class="loading">
 	<head>
 		<title>Histone template engine playground</title>
 		<link rel="stylesheet" href="style/stylesheet.css">
 		<link rel="stylesheet" href="script/codeMirror/codemirror.css">
-		<script type="text/javascript" src="script/require.js"></script>
 		<script type="text/javascript" src="script/jquery-1.8.1.min.js"></script>
 		<script type="text/javascript" src="script/codeMirror/codemirror.js"></script>
 		<script type="text/javascript" src="script/codeMirror/histone.js"></script>
-		<script type="text/javascript">
-
-			var documentRef = $(document);
-
-			documentRef.ready(function() {
-
-				var consoleEl = $('.console');
-				var templateEl = $('.template');
-				var resultEl = $('.right-column');
-				var resultFormat = $('.result-format');
-
-				var templateEditor = CodeMirror.fromTextArea(
-					templateEl[0], {
-						theme: 'elegant',
-						mode: 'histone',
-						indentUnit: 4,
-						lineNumbers: true,
-						lineWrapping: false,
-						indentWithTabs: true,
-						matchBrackets: true,
-						autofocus: true
-					}
-				);
-
-				require([
-					'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone.js'
-				], function(Histone) {
-
-					$('html').removeClass('loading');
-
-					resultFormat.on('change', function() {
-						if (resultFormat.val() === 'html') {
-							$('html').removeClass('result-text');
-							$('html').addClass('result-html');
-						} else {
-							$('html').addClass('result-text');
-							$('html').removeClass('result-html');
-						}
-					});
-
-					documentRef.on('click', '.change-result-format', function() {
-						if (resultFormat.val() === 'html') {
-							resultFormat.val('text');
-						} else {
-							resultFormat.val('html');
-						}
-						resultFormat.trigger('change');
-					});
-
-					documentRef.on('click', '.toolbar-button', function() {
-						templateEditor.focus();
-						var template = templateEditor.getValue();
-						try {
-							template = Histone(
-								template,
-								window.location.href
-							);
-						} catch (exception) {
-							consoleEl.html(exception.toString());
-							return;
-						}
-						consoleEl.html('');
-						template.render(function(result) {
-							$('.html-area', resultEl).html(result);
-							$('.text-area', resultEl).val(result);
-						}, window.location);
-					});
-				});
-			});
-		</script>
+		<script type="text/javascript" src="script/require.js" data-main="script/main.js"></script>
 	</head>
 	<body>
 		<div class="preloader-layer"></div>
@@ -110,7 +40,7 @@
 	{{/for}}
 </div></textarea>
 			</div>
-			<div class="right-column">
+			<div class="right-column result-html">
 				<div class="html-area"></div>
 				<textarea readonly="yes" class="text-area"></textarea>
 			</div>
