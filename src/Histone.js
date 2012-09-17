@@ -128,6 +128,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 		if (value instanceof OrderedMap) return value;
 		var orderedMap = new OrderedMap();
 		for (var key in value) {
+			if (!Utils.isFunction(value.hasOwnProperty)) continue;
 			if (!value.hasOwnProperty(key)) continue;
 			orderedMap.set(key, js2internal(value[key]));
 		}
