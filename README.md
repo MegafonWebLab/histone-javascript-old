@@ -219,4 +219,5 @@ Important links
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
 * [Follow us on twitter](https://twitter.com/intent/follow?screen_name=MegafonWebLab)
+* [Syntax highlighters](https://github.com/MegafonWebLab/histone-syntax-highlighting)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
