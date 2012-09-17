@@ -218,5 +218,5 @@ Important links
 * [Histone playground](http://megafonweblab.github.com/histone-javascript/)
 * [Project website](http://weblab.megafon.ru/histone/)
 * [Documentation](http://weblab.megafon.ru/histone/documentation/)
-* [Follow us on twitter](https://twitter.com/intent/follow?screen_name=MegafonWebLab).
+* [Follow us on twitter](https://twitter.com/intent/follow?screen_name=MegafonWebLab)
 * [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
