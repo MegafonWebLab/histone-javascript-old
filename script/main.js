@@ -104,7 +104,7 @@ $(document).ready(function() {
 		var templateAST = template.getAST();
 		templateAST = JSON.stringify(templateAST);
 		templateAST = js_beautify(templateAST);
-		astResultEl.html(templateAST);
+		astResultEl.val(templateAST);
 		template.render(function(result) {
 			setResult(result);
 		}, thisObj);
