@@ -192,6 +192,10 @@ html, body {
 	box-sizing: border-box;
 }
 
+.right-column .ast-area {
+	font-family: monospace;
+}
+
 .result-html .text-area,
 .result-html .ast-area,
 .result-text .html-area,
