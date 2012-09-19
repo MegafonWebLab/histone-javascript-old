@@ -7,6 +7,7 @@ $(document).ready(function() {
 	var resultFormatEl = $('.result-format');
 	var textResultEl = $('.text-area', resultEl);
 	var htmlResultEl = $('.html-area', resultEl);
+	var astResultEl = $('.ast-area', resultEl);
 	var preloaderEl = $('.preloader-layer, .preloader-image');
 
 	var templateEditor = CodeMirror.fromTextArea(
@@ -53,10 +54,16 @@ $(document).ready(function() {
 		resultFormatEl.val(format);
 		if (format === 'html') {
 			resultEl.removeClass('result-text');
+			resultEl.removeClass('result-ast');
 			resultEl.addClass('result-html');
-		} else {
-			resultEl.addClass('result-text');
+		} else if (format === 'text') {
+			resultEl.removeClass('result-ast');
 			resultEl.removeClass('result-html');
+			resultEl.addClass('result-text');
+		} else {
+			resultEl.removeClass('result-html');
+			resultEl.removeClass('result-text');
+			resultEl.addClass('result-ast');
 		}
 	}
 
@@ -64,6 +71,8 @@ $(document).ready(function() {
 		var resultFormat = getResultFormat();
 		if (resultFormat === 'html') {
 			setResultFormat('text');
+		} else if (resultFormat === 'text') {
+			setResultFormat('ast');
 		} else {
 			setResultFormat('html');
 		}
@@ -73,8 +82,10 @@ $(document).ready(function() {
 		var resultFormat = getResultFormat();
 		if (resultFormat === 'html') {
 			setResultFormat('html');
-		} else {
+		} else if (resultFormat === 'text') {
 			setResultFormat('text');
+		} else {
+			setResultFormat('ast');
 		}
 	}
 
@@ -90,6 +101,10 @@ $(document).ready(function() {
 			return;
 		}
 		setError('');
+		var templateAST = template.getAST();
+		templateAST = JSON.stringify(templateAST);
+		templateAST = js_beautify(templateAST);
+		astResultEl.html(templateAST);
 		template.render(function(result) {
 			setResult(result);
 		}, thisObj);
