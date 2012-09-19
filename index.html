@@ -4,6 +4,7 @@
 		<title>Histone template engine playground</title>
 		<link rel="stylesheet" href="style/stylesheet.css">
 		<link rel="stylesheet" href="script/codeMirror/codemirror.css">
+		<script type="text/javascript" src="script/beautify.js"></script>
 		<script type="text/javascript" src="script/jquery-1.8.1.min.js"></script>
 		<script type="text/javascript" src="script/codeMirror/codemirror.js"></script>
 		<script type="text/javascript" src="script/codeMirror/histone.js"></script>
@@ -35,6 +36,7 @@
 				<select class="result-format">
 					<option value="html">HTML</option>
 					<option value="text">Text</option>
+					<option value="ast">AST</option>
 				</select>
 			<li class="toolbar-divider toolbar-right">
 		</ul>
@@ -59,6 +61,7 @@
 			</div>
 			<div class="right-column result-html">
 				<div class="html-area"></div>
+				<div class="ast-area"></div>
 				<textarea readonly="yes" class="text-area"></textarea>
 			</div>
 		</div>
