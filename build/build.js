@@ -74,7 +74,8 @@ function getModuleInfo(modulePath) {
 			if (Utils.isArray(args[0])) deps = args[0];
 		}
 		for (var c = 0; c < deps.length; c++) {
-			var dep = (deps[c] + '.js');
+			var dep = deps[c];
+			if (dep.substr(-3) !== '.js') dep += '.js';
 			dep = Files.resolvePath(dep, modulePath);
 			if (Files.exists(dep)) {
 				var fileDeps = getModuleInfo(dep);
