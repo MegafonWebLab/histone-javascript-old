@@ -21,6 +21,17 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 	var resourceCache = {};
 	var URIResolver = null;
 	var parserInstance = null;
+	var clientType = 'javascript/' + (
+		typeof Packages !== 'undefined' ? 'rhino' :
+		typeof process  !== 'undefined' ? 'node' :
+		typeof window !== 'undefined' ? 'browser' :
+		'server-side-javascript'
+	);
+	var userAgent = (
+		clientType === 'javascript/browser' ?
+		window.navigator.userAgent :
+		''
+	);
 
 	function nodeToBoolean(value) {
 		switch (Utils.getBaseType(value)) {
@@ -862,12 +873,17 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 
 	Histone.Global = {
 
-		clientType: 'browser',
-
-		userAgent: window.navigator.userAgent,
+		clientType: clientType,
+		userAgent: userAgent,
 
 		baseURI: function(value, args, ret) {
 			ret(this.getBaseURI());
+		},
+
+		resolveURI: function(value, args, ret) {
+			var uri = args[0];
+			var baseURI = args[1];
+			ret(Utils.uri.resolve(uri, baseURI));
 		},
 
 		uniqueId: function(value, args, ret) {
@@ -995,6 +1011,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 
 	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
+		requestURI = Utils.uri.resolve(requestURI, window.location.href);
 		doRequest(requestURI, function(resourceData, contentType) {
 			if (contentType === 'application/json') try {
 				resourceData = JSON.parse(resourceData);
