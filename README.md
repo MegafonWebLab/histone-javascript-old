@@ -43,6 +43,21 @@ pure JavaScript - library, run ant with following arguments:
 ant -Dresult=function
 ```
 
+Running automated tests
+--------------------------------------
+
+Enter the directory and execute test target:
+
+```bash
+cd histone-javascript
+ant test
+```
+
+This will build Histone.js, obtain latest test files from
+[git://github.com/MegafonWebLab/histone-acceptance-tests.git](git://github.com/MegafonWebLab/histone-acceptance-tests.git)
+and test Histone against them, using [Mozilla Rhino Javascript engine](https://developer.mozilla.org/en-US/docs/Rhino).
+You can also check current build status on [Travis CI continuous integration server](https://travis-ci.org/#!/MegafonWebLab/histone-javascript).
+
 Using Histone
 --------------------------------------
 
