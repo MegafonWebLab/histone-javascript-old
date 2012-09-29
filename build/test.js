@@ -45,6 +45,7 @@ readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
 
+	//
 	// if (file.name === 'functions.json') {
 	// 	var testSuites = readFile(file.path);
 	// 	testSuites = JSON.parse(testSuites);
