@@ -1,4 +1,4 @@
-Histone template engine
+Histone template engine [![Build Status](https://secure.travis-ci.org/MegafonWebLab/histone-javascript.png)](http://travis-ci.org/MegafonWebLab/histone-javascript)
 ==================
 
 Histone — powerful and flexible template engine, which can be used for
