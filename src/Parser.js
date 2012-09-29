@@ -177,8 +177,8 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 						}
 
 						if (value[0] !== Parser.T_SELECTOR) {
-							key = value[1];
-						} else key = value[1][0];
+							key = String(value[1]);
+						} else key = String(value[1][0]);
 
 						value = parseExpression();
 					}
