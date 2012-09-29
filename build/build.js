@@ -141,10 +141,10 @@ if (OUTPUT_TYPE === 'function') {
 		')(' + deps.toString() + ');');
 	});
 
-	data = 'window["' + FUNCTION_NAME + '"] = (function() {' +
+	data = '(function(window, undefined) {' +
 		result.join('') +
-		'return Result;' +
-	'})();'
+		'window["'+FUNCTION_NAME+'"] = Result;' +
+	'})(function() { return this; }.call(null));'
 }
 
 print('Compiling...');
