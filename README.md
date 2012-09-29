@@ -54,7 +54,7 @@ ant test
 ```
 
 This will build Histone.js, obtain latest test files from
-[https://github.com/MegafonWebLab/histone-acceptance-tests.git](https://github.com/MegafonWebLab/histone-acceptance-tests.git)
+[git://github.com/MegafonWebLab/histone-acceptance-tests.git](https://github.com/MegafonWebLab/histone-acceptance-tests.git)
 and test Histone against them, using [Mozilla Rhino Javascript engine](https://developer.mozilla.org/en-US/docs/Rhino).
 You can also check current build status on [Travis CI continuous integration server](https://travis-ci.org/#!/MegafonWebLab/histone-javascript).
 
