@@ -109,7 +109,7 @@ readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 				// 	Histone(input);
 				// } catch (error) {
 				// 	for (var key in exception) {
-				//
+
 				// 	}
 				// 	// print(JSON.stringify(result));
 				// }
