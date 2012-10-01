@@ -84,12 +84,13 @@ function buildDependencies(fileName, exportAs, callback) {
 		}
 	}
 
-	var header = '(typeof requirejs === "function" &&';
-	header += 'typeof define === "function" &&';
-	header += 'define.amd instanceof Object ?';
-	header += 'define : function(definition, global) {';
-	header += 'global["' + FUNCTION_NAME + '"] = definition();';
-	header += '})(function() {';
+	var header = '(typeof requirejs === "function" && ';
+	header += 'typeof define === "function" &&\n';
+	header += '\tdefine.amd instanceof Object ? define : ';
+	header += 'function(definition, global) {\n';
+	header += '\t\tglobal["' + FUNCTION_NAME + '"] = definition();\n';
+	header += '\t}\n';
+	header += ')(function() {\n';
 
 	result = header + result;
 	result += 'return ' + FUNCTION_NAME + ';';

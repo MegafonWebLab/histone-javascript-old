@@ -30,6 +30,25 @@ const Java = JavaImporter(
 	javax.xml.xpath.XPathConstants
 );
 
+function printColor() {
+	var args = Array.prototype.slice.call(arguments);
+	var color = args.shift();
+	switch (color) {
+		case 'red':
+			color = '\033[01;31m';
+			break;
+		case 'white':
+			color = '\033[01;37m';
+			break;
+		case 'green':
+			color = '\033[01;32m';
+			break;
+		default:
+			color = '';
+	}
+	print.apply(this, [color].concat(args));
+}
+
 function readDir(path, callback) {
 	var result = [];
 	if (!callback) callback = function() {};
@@ -84,7 +103,7 @@ readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 
 	for (var i = 0; i < testSuites.length; i++) {
 		var testSuite = testSuites[i];
-		print('\n[TESTING "' + testSuite.name + '"]\n');
+		printColor('green', '\n[TESTING "' + testSuite.name + '"]\n');
 		for (var j = 0; j < testSuite.cases.length; j++) {
 			var testCase = testSuite.cases[j];
 			var input = testCase.input;
@@ -95,9 +114,9 @@ readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 				var result = Histone(input);
 				result = JSON.stringify(result.getAST());
 				if (expected === result) {
-					print('	[SUCCESS]', input);
+					printColor('white', '	[SUCCESS]', input);
 				} else {
-					print('	[FAILING]', input);
+					printColor('red', '	[FAILING]', input);
 					testResult = 1;
 				}
 
