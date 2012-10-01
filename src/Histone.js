@@ -965,7 +965,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 				!Utils.isNumber(end) ||
 				start % 1 !== 0 ||
 				end % 1 !== 0) {
-				return ret(result);
+				return ret();
 			}
 			if (start > end) {
 				for (var i = start; i >= end; i -= 1) result.push(i);
