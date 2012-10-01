@@ -172,7 +172,7 @@ with (exports) {
 		if (isUndefined(args)) argumentsList = [];
 		if (!isArray(args)) argumentsList = [args];
 		var functionBody = getFunctionBody(value);
-		return new Function(args, functionBody);
+		return new Function(argumentsList, functionBody);
 	};
 
 	/**
@@ -300,7 +300,7 @@ with (exports) {
 		}
 		return result;
 	};
-	
+
 	/**
 	 * Gets the value of the specified system property.
 	 * @param {string | Object} name System property name,
