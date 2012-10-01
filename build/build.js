@@ -25,7 +25,7 @@ var FUNCTION_NAME = 'Histone';
 var INPUT_PATH = Utils.getEnv('input');
 var OUTPUT_PATH = Utils.getEnv('output');
 
-function buildDependencies(fileName, exportAs) {
+function buildDependencies(fileName, exportAs, callback) {
 
 	var result = '';
 	var dependencyPaths = {};
@@ -40,6 +40,7 @@ function buildDependencies(fileName, exportAs) {
 			if (args.length) dependencies = args.pop();
 
 			if (!dependencyPaths.hasOwnProperty(fileName)) {
+				if (callback instanceof Function) callback(fileName);
 				dependencyPaths[fileName] = {exportAs: {},
 					body: definition
 				};
@@ -97,6 +98,9 @@ function buildDependencies(fileName, exportAs) {
 	return result;
 }
 
-var result = buildDependencies(INPUT_PATH, FUNCTION_NAME);
+var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
+	print('processing dependency:', path);
+});
+print('compiling:', OUTPUT_PATH);
 result = Compiler.compile(result);
 Files.write(OUTPUT_PATH, result);
