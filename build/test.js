@@ -30,25 +30,6 @@ const Java = JavaImporter(
 	javax.xml.xpath.XPathConstants
 );
 
-function printColor() {
-	var args = Array.prototype.slice.call(arguments);
-	var color = args.shift();
-	switch (color) {
-		case 'red':
-			color = '\033[01;31m';
-			break;
-		case 'white':
-			color = '\033[01;37m';
-			break;
-		case 'green':
-			color = '\033[01;32m';
-			break;
-		default:
-			color = '';
-	}
-	print.apply(this, [color].concat(args));
-}
-
 function readDir(path, callback) {
 	var result = [];
 	if (!callback) callback = function() {};
@@ -77,6 +58,45 @@ function readDir(path, callback) {
 
 var testResult = 0;
 
+function doTestExpected(input, testCase) {
+	var expected = testCase.expected;
+	expected = JSON.stringify(expected);
+	try {
+		var result = Histone(input);
+		result = JSON.stringify(result.getAST());
+		if (expected === result) return true;
+	} catch (e) { return false; }
+}
+
+function doTestException(input, testCase) {
+	var exception = testCase.exception;
+	try { Histone(input); } catch (error) {
+		for (var key in exception) {
+			if (!error.hasOwnProperty(key)) continue;
+			if (String(error[key]) !==
+				String(exception[key])) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+function printSuccess(message) {
+	var message = JSON.stringify(message);
+	message = message.substr(1);
+	message = message.substr(0, message.length - 1);
+	print('     [ SUCCESS ]', message);
+}
+
+function printFail(message) {
+	var message = JSON.stringify(message);
+	message = message.substr(1);
+	message = message.substr(0, message.length - 1);
+	print('---- [ FAILING ]', message);
+}
+
 readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
@@ -94,47 +114,34 @@ readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 	// 			testCase.expected = JSON.parse(testCase.expected);
 	// 		}
 	// 	}
-	//
 	// 	print(JSON.stringify(testSuites));
 	// }
-
 
 	var testSuites = readFile(file.path);
 	testSuites = JSON.parse(testSuites);
 
 	for (var i = 0; i < testSuites.length; i++) {
 		var testSuite = testSuites[i];
-		printColor('green', '\n[TESTING "' + testSuite.name + '"]\n');
+		print('\n[ TESTING "' + testSuite.name + '" ]\n');
 		for (var j = 0; j < testSuite.cases.length; j++) {
 			var testCase = testSuite.cases[j];
 			var input = testCase.input;
-
 			if (testCase.hasOwnProperty('expected')) {
-				var expected = testCase.expected;
-				expected = JSON.stringify(expected);
-				var result = Histone(input);
-				result = JSON.stringify(result.getAST());
-				if (expected === result) {
-					printColor('white', '	[SUCCESS]', input);
+				if (doTestExpected(input, testCase)) {
+					printSuccess(input);
 				} else {
-					printColor('red', '	[FAILING]', input);
 					testResult = 1;
+					printFail(input);
 				}
-
 			}
-
 			else if (testCase.hasOwnProperty('exception')) {
-				// var exception = testCase.exception;
-				// try {
-				// 	Histone(input);
-				// } catch (error) {
-				// 	for (var key in exception) {
-
-				// 	}
-				// 	// print(JSON.stringify(result));
-				// }
+				if (doTestException(input, testCase)) {
+					printSuccess(input);
+				} else {
+					testResult = 1;
+					printFail(input);
+				}
 			}
-
 		}
 	}
 
