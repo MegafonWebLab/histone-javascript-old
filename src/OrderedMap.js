@@ -137,11 +137,19 @@ define(['./Utils.js'], function(Utils) {
 			if (!Utils.isNumber(offset)) offset = 0;
 			if (offset < 0) offset = arrLen + offset;
 			if (offset < 0) offset = 0;
-			if (offset >= arrLen) return [];
+			if (offset >= arrLen) {
+				keys = [];
+				values = [];
+				return this;
+			}
 			if (!Utils.isNumber(length)) length = 0;
 			if (length === 0) length = arrLen - offset;
 			if (length < 0) length = arrLen - offset + length;
-			if (length <= 0) return [];
+			if (length <= 0) {
+				keys = [];
+				values = [];
+				return this;
+			}
 			keys = keys.slice(offset, offset + length);
 			values = values.slice(offset, offset + length);
 			return this;
