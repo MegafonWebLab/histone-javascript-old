@@ -84,11 +84,14 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 				);
 		}
 		if (Utils.isObject(value) && value instanceof OrderedMap) {
+			var result = [], value;
 			var values = value.values();
 			for (var c = 0; c < values.length; c++) {
-				values[c] = nodeToString(values[c]);
+				value = values[c];
+				if (Utils.isUndefined(value)) continue;
+				result.push(nodeToString(value));
 			}
-			return values.join(' ');
+			return result.join(' ');
 		}
 		return '';
 	}
