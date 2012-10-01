@@ -19,6 +19,24 @@ load('Histone.js');
 var testResult = 0;
 var Files = require('Files');
 
+function registerFunction(type, name, result, exception) {
+	var nodeType = (
+		type === 'map' ? Histone.Map :
+		type === 'type' ? Histone.Type :
+		type === 'number' ? Histone.Number :
+		type === 'string' ? Histone.String :
+		Histone.Global
+	);
+	nodeType[name] = function(value, args, ret) {
+		if (typeof result === 'string') {
+			Histone(result).render(ret, {
+				target: value,
+				args: args
+			});
+		} else ret(result);
+	};
+}
+
 function testParserExpected(input, testCase) {
 	var expected = testCase.expected;
 	expected = JSON.stringify(expected);
@@ -47,13 +65,32 @@ function testParserException(input, testCase) {
 function testEvaluatorExpected(input, testCase, callback) {
 	var context = testCase.context;
 	var expected = testCase.expected;
+
+	if (testCase.hasOwnProperty('function')) {
+		var functionDefs = testCase.function;
+		if (!(functionDefs instanceof Array)) {
+			functionDefs = [functionDefs];
+		}
+		for (var c = 0; c < functionDefs.length; c++) {
+			var functionDef = functionDefs[c];
+			registerFunction(
+				functionDef.node,
+				functionDef.name,
+				functionDef.result,
+				functionDef.exception
+			);
+		}
+	}
+
 	try {
 		var result = false;
 		var template = Histone(input);
 		template.render(function(result) {
 			callback(expected === result);
 		}, context);
-	} catch (e) { callback(false); }
+	} catch (e) {
+		callback(false);
+	}
 }
 
 function printSuccess(message) {
