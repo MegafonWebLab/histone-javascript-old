@@ -16,47 +16,8 @@
  */
 
 load('Histone.js');
-
-const Java = JavaImporter(
-	java.io.File,
-	java.net.URI,
-	java.io.FileWriter,
-	java.io.PrintWriter,
-	java.io.FileInputStream,
-	java.io.FileOutputStream,
-	org.w3c.dom.NodeList,
-	javax.xml.parsers.DocumentBuilderFactory,
-	javax.xml.xpath.XPathFactory,
-	javax.xml.xpath.XPathConstants
-);
-
-function readDir(path, callback) {
-	var result = [];
-	if (!callback) callback = function() {};
-	var dirObj = new java.io.File(path);
-	if (dirObj.isDirectory()) {
-		var files = dirObj.list();
-		var absolutePath = (dirObj.getAbsolutePath() + '');
-		for (var fileDescr = {}, c = 0; c < files.length; c++) {
-			var filePath = absolutePath.concat('/', String(files[c]));
-			var fileObj = new java.io.File(filePath);
-			var fileName = String(fileObj.getName());
-			if (fileObj.isDirectory()) fileDescr = {
-				'type': 'folder', 'name': fileName, 'path': filePath
-			}; else if (fileObj.isFile()) fileDescr = {
-				'type': 'file', 'name': fileName, 'path': filePath
-			};
-			if (callback(fileDescr) === false) continue;
-			if (fileObj.isDirectory()) {
-				fileDescr.files = readDir(filePath, callback);
-				if (callback(fileDescr)) result.push(fileDescr);
-			} else result.push(fileDescr);
-		}
-	}
-	return result;
-};
-
 var testResult = 0;
+var Files = require('Files');
 
 function testParserExpected(input, testCase) {
 	var expected = testCase.expected;
@@ -109,7 +70,8 @@ function printFail(message) {
 	print('---- [ FAILING ] ', message);
 }
 
-readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
+Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
+
 	if (file.type === 'folder') {
 		if (file.name === 'evaluator') return true;
 		if (file.name === 'parser') return true;
