@@ -94,6 +94,7 @@ readDir('histone-acceptance-tests/src/main/acceptance/parser', function(file) {
 	// 			testCase.expected = JSON.parse(testCase.expected);
 	// 		}
 	// 	}
+	//
 	// 	print(JSON.stringify(testSuites));
 	// }
 
