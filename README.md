@@ -29,19 +29,14 @@ or just download ZIP - archive from this webpage.
 Building Histone
 --------------------------------------
 
-Enter the directory and build RequireJS module by running ant without arguments:
+Enter the directory and build Histone by running ant without arguments:
 
 ```bash
 cd histone-javascript
 ant
 ```
 
-This will produce Histone.js in the same folder. In case if you want to build
-pure JavaScript - library, run ant with following arguments:
-
-```bash
-ant -Dresult=function
-```
+This will produce Histone.js in the same folder.
 
 Running automated tests
 --------------------------------------
