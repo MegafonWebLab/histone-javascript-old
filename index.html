@@ -116,14 +116,75 @@
 </script>
 
 <script type="text/histone" data-name="global functions: dayOfWeek">
+{{* define week day names *}}
+{{var days = [
+	'Monday',
+	'Tuesday',
+	'Wednesday',
+	'Thursday',
+	'Friday',
+	'Saturday',
+	'Sunday'
+]}}
+
 {{* 11 July 2012: Wednesday *}}
-<div>{{dayOfWeek(2012, 7, 11)}}</div>
+<div>11.07.2012 is {{days[dayOfWeek(2012, 7, 11) - 1]}}</div>
 
 {{* 22 November 1963: Friday *}}
-<div>{{dayOfWeek(1963, 11, 22)}}</div>
+<div>22.11.1963 is {{days[dayOfWeek(1963, 11, 22) - 1]}}</div>
 
 {{* 25 July 1985: Thursday *}}
-<div>{{dayOfWeek(1985, 7, 25)}}</div>
+<div>25.07.1985 is {{days[dayOfWeek(1985, 7, 25) - 1]}}</div>
+</script>
+
+<script type="text/histone" data-name="global functions: daysInMonth">
+{{* define month names *}}
+{{var months = [
+	'January', 'February', 'March',
+	'April', 'May', 'June', 'July', 'August',
+	'September', 'October', 'November', 'December'
+]}}
+
+{{* result: 31 *}}
+<div>There are {{daysInMonth(2012, 12)}} days in {{months[11]}} 2012</div>
+
+{{* result: 29 *}}
+<div>There are {{daysInMonth(2012, 2)}} days in {{months[1]}} 2012</div>
+</script>
+
+<script type="text/histone" data-name="global functions: min">
+{{* result: 10 *}}
+{{min(10, 20, 30)}}
+</script>
+
+<script type="text/histone" data-name="global functions: max">
+{{* result: 30 *}}
+{{max(10, 20, 30)}}
+</script>
+
+<script type="text/histone" data-name="global functions: range">
+<div>
+	{{* creating a array with 30 elements in it *}}
+	{{for item in range(1, 30)}}
+		<div style="{{[
+			'float: left',
+			'background-color: gray',
+			'width: 40px',
+			'height: 40px',
+			'margin-right: 5px',
+			'margin-bottom: 5px'
+		].join(';')}}">
+			{{item}}
+		</div>
+	{{/for}}
+</div>
+</script>
+
+<script type="text/histone" data-name="global functions: uniqueId">
+{{* generate 10 unique identifiers *}}
+{{for index in range(1, 30)}}
+	<div>{{index}}. uniquId is {{uniqueId()}}</div>
+{{/for}}
 </script>
 
 	</head>
