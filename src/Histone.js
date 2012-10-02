@@ -97,43 +97,49 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 	}
 
 	function doRequest(uri, success, fail, props) {
+		try {
+			var xhr = new XMLHttpRequest();//text.createXhr();
+			xhr.open('GET', uri + '?' + Math.random(), true);
 
-		var xhr = new XMLHttpRequest();//text.createXhr();
-		xhr.open('GET', uri + '?' + Math.random(), true);
+			xhr.onreadystatechange = function (evt) {
+				if (xhr.readyState !== 4) return;
 
-		xhr.onreadystatechange = function (evt) {
-			if (xhr.readyState !== 4) return;
+				// intelligent guess!
+				var contentType = xhr.getResponseHeader('Content-type');
 
-			// intelligent guess!
-			var contentType = xhr.getResponseHeader('Content-type');
+				var status = xhr.status;
+				if (status > 399 && status < 600) fail();
+				else {
+					success(xhr.responseText, contentType);
+				}
+			};
+			xhr.send(null);
+		} catch (e) { fail(); }
+	}
 
-			var status = xhr.status;
-			if (status > 399 && status < 600) fail();
-			else {
-				success(xhr.responseText, contentType);
-			}
-		};
-		xhr.send(null);
+	function resolveURIDefault(requestURI, baseURI, ret, requestProps) {
+		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
+		if (!resourceCache.hasOwnProperty(resourceURI)) {
+			doRequest(resourceURI, function(resourceData) {
+				resourceData = ret(resourceData, resourceURI);
+				if (!Utils.isUndefined(resourceData)) {
+					resourceCache[resourceURI] = resourceData;
+				}
+			}, function() {
+				ret(undefined, resourceURI);
+			}, requestProps);
+		} else ret(resourceCache[resourceURI], resourceURI);
 	}
 
 	function resolveURI(requestURI, baseURI, ret, requestProps) {
-		if (!Utils.isFunction(URIResolver) || URIResolver(
-			requestURI, baseURI, function(resourceData, resourceURI) {
-			if (!Utils.isString(resourceURI)) resourceURI = requestURI;
-			ret(resourceData, resourceURI);
-		}, requestProps) !== true) {
-			var resourceURI = Utils.uri.resolve(requestURI, baseURI);
-			if (!resourceCache.hasOwnProperty(resourceURI)) {
-				doRequest(resourceURI, function(resourceData) {
-					resourceData = ret(resourceData, resourceURI);
-					if (!Utils.isUndefined(resourceData)) {
-						resourceCache[resourceURI] = resourceData;
-					}
-				}, function() {
-					ret(undefined, resourceURI);
-				}, requestProps);
-			} else ret(resourceCache[resourceURI], resourceURI);
-		}
+		try {
+			if (Utils.isFunction(URIResolver) && URIResolver(
+				requestURI, baseURI, function(resourceData, resourceURI) {
+				if (!Utils.isString(resourceURI)) resourceURI = requestURI;
+				ret(resourceData, resourceURI);
+			}, requestProps) === true) return;
+		} catch (e) {}
+		resolveURIDefault(requestURI, baseURI, ret, requestProps);
 	}
 
 	function js2internal(value) {
@@ -517,7 +523,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 				processNodes(resourceData.getAST(), stack,
 					function(resourceData) {
 						stack.setBaseURI(baseURI);
-						ret(resourceData);
+						ret('');
 					}
 				);
 				return resourceData;
@@ -931,7 +937,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 			var requestProps = args[1];
 			var baseURI = this.getBaseURI();
 			resolveURI(requestURI, baseURI, function(resourceData) {
-				ret(Utils.isString(resourceData) ? resourceData : '');
+				ret(Utils.isString(resourceData) ? resourceData : undefined);
 			}, requestProps);
 		},
 

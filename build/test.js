@@ -24,6 +24,7 @@ Histone.setURIResolver(function(requestURI, baseURI, ret, requestProps) {
 	var requestURI = Files.resolvePath(requestURI, baseURI);
 	var fileContents = readFile(requestURI);
 	ret(fileContents, requestURI);
+	return true;
 });
 
 function registerFunction(type, name, result, exception) {
@@ -169,7 +170,7 @@ Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 	}
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
-	// if (file.name !== 'global-functions-registration.json') return;
+	// if (file.name !== 'external-resources.json') return;
 
 
 	// if (file.name === 'constructs.json') {
