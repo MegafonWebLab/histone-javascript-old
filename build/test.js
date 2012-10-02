@@ -18,6 +18,7 @@
 load('Histone.js');
 var testResult = 0;
 var Files = require('Files');
+var RegisterFunctions = [];
 
 function registerFunction(type, name, result, exception) {
 	var nodeType = (
@@ -27,6 +28,11 @@ function registerFunction(type, name, result, exception) {
 		type === 'string' ? Histone.String :
 		Histone.Global
 	);
+	RegisterFunctions.push({
+		name: name,
+		target: nodeType,
+		value: nodeType[name]
+	});
 	nodeType[name] = function(value, args, ret) {
 		if (typeof exception !== 'undefined')  {
 			throw exception;
@@ -38,6 +44,15 @@ function registerFunction(type, name, result, exception) {
 			});
 		} else ret(result);
 	};
+}
+
+function unregisterFunctions() {
+	while (RegisterFunctions.length) {
+		var RegisterFunction = RegisterFunctions.shift();
+		RegisterFunction.target[
+			RegisterFunction.name
+		] = RegisterFunction.value;
+	}
 }
 
 function testParserExpected(input, testCase) {
@@ -89,9 +104,11 @@ function testEvaluatorExpected(input, testCase, callback) {
 		var result = false;
 		var template = Histone(input);
 		template.render(function(result) {
+			unregisterFunctions();
 			callback(expected === result);
 		}, context);
 	} catch (e) {
+		unregisterFunctions();
 		callback(false);
 	}
 }
