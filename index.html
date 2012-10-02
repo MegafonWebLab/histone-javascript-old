@@ -115,7 +115,22 @@
 {{/call}}
 </script>
 
-<script type="text/histone" data-name="global functions: dayOfWeek">
+<script type="text/histone" data-name="number.toChar()">
+{{* using toChar() function to convert character code into a character *}}
+
+{{var codes = [
+	72, 101, 108,
+	108, 111, 32,
+	119, 111, 114,
+	108, 100, 33
+]}}
+
+{{for code in codes}}{{
+	code.toChar()
+}}{{/for}}
+</script>
+
+<script type="text/histone" data-name="global.dayOfWeek()">
 {{* define week day names *}}
 {{var days = [
 	'Monday',
@@ -137,7 +152,7 @@
 <div>25.07.1985 is {{days[dayOfWeek(1985, 7, 25) - 1]}}</div>
 </script>
 
-<script type="text/histone" data-name="global functions: daysInMonth">
+<script type="text/histone" data-name="global.daysInMonth()">
 {{* define month names *}}
 {{var months = [
 	'January', 'February', 'March',
@@ -152,17 +167,7 @@
 <div>There are {{daysInMonth(2012, 2)}} days in {{months[1]}} 2012</div>
 </script>
 
-<script type="text/histone" data-name="global functions: min">
-{{* result: 10 *}}
-{{min(10, 20, 30)}}
-</script>
-
-<script type="text/histone" data-name="global functions: max">
-{{* result: 30 *}}
-{{max(10, 20, 30)}}
-</script>
-
-<script type="text/histone" data-name="global functions: range">
+<script type="text/histone" data-name="global.range()">
 <div>
 	{{* creating a array with 30 elements in it *}}
 	{{for item in range(1, 30)}}
@@ -180,20 +185,64 @@
 </div>
 </script>
 
-<script type="text/histone" data-name="global functions: uniqueId">
+<script type="text/histone" data-name="global.uniqueId()">
 {{* generate 10 unique identifiers *}}
 {{for index in range(1, 30)}}
 	<div>{{index}}. uniquId is {{uniqueId()}}</div>
 {{/for}}
 </script>
 
-<script type="text/histone" data-name="global functions: loadText">
+<script type="text/histone" data-name="global.loadText()">
 {{* load text file using loadText function *}}
 {{var url = resolveURI('examples/text.txt', this.href)}}
 
 Text from: <a target="_blank" href="{{url}}">{{url}}</a>
 <div style="padding-left: 20px; padding-top: 10px;">{{loadText(url)}}</div>
 </script>
+
+<script type="text/histone" data-name="global.loadJSON()">
+{{* load JSON object from file using loadJSON function *}}
+{{var url = resolveURI('examples/json.json', this.href)}}
+{{var data = loadJSON(url)}}
+
+{{macro dumpJSON(tree, level)}}
+	{{var level = level or 0}}
+	{{for key:value in tree}}
+		<div style="padding-left: {{level * 20}}px;">
+			{{if value.isMap()}}
+				{{key}}: {
+					{{dumpJSON(value, level + 1)}}
+				}
+			{{else}}
+				{{key}}: {{value.toJSON()}}
+			{{/if}}
+		</div>
+	{{/for}}
+{{/macro}}
+
+JSON object from: <a target="_blank" href="{{url}}">
+	{{url}}
+</a>
+<div style="padding-left: 20px; padding-top: 10px;">
+	{{dumpJSON(data)}}
+</div>
+</script>
+
+<script type="text/histone" data-name="global.include()">
+{{* process template from examples/include.tpl file *}}
+{{var url = 'examples/include.tpl'}}
+{{var url = resolveURI(url, this.href)}}
+
+{{include(url, [
+	color: 'white',
+	borderColor: 'red',
+	borderRadius: 10,
+	backgroundColor: 'gray',
+	href: url
+])}}
+</script>
+
+
 	</head>
 	<body>
 		<div class="preloader-layer"></div>
