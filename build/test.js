@@ -28,6 +28,9 @@ function registerFunction(type, name, result, exception) {
 		Histone.Global
 	);
 	nodeType[name] = function(value, args, ret) {
+		if (typeof exception !== 'undefined')  {
+			throw exception;
+		}
 		if (typeof result === 'string') {
 			Histone(result).render(ret, {
 				target: value,
