@@ -111,6 +111,8 @@ function printFail(message) {
 }
 
 Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
+	//'/Users/ruslan/Sites/externals/histone-acceptance-tests.git/trunk/src/main/acceptance/'
+	//histone-acceptance-tests/src/main/acceptance
 
 	if (file.type === 'folder') {
 		if (file.name === 'evaluator') return true;
@@ -119,6 +121,7 @@ Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 	}
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
+	// if (file.name !== 'global-scope.json') return;
 
 
 	// if (file.name === 'constructs.json') {
