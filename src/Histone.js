@@ -380,12 +380,22 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 			processNode(fragment, stack, function(fragment) {
 				prevSubj = subject;
 				if (handler = getHandlerFor(subject, fragment, true)) {
-					if (Utils.isFunction(handler)) handler.call(
-						stack, prevSubj, [fragment], function(value) {
-							subject = js2internal(value);
+					if (Utils.isFunction(handler)) {
+						try {
+							handler.call(
+								stack,
+								prevSubj,
+								[fragment],
+								function(value) {
+									subject = js2internal(value);
+									ret();
+								}
+							);
+						} catch (e) {
+							subject = undefined;
 							ret();
 						}
-					); else {
+					} else {
 						subject = js2internal(handler);
 						ret();
 					}
@@ -476,12 +486,14 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 				processNode(target, stack, function(target) {
 					if (handler = getHandlerFor(target, name)) {
 						if (Utils.isFunction(handler)) {
-							handler.call(
-								stack, target,
-								internal2js(callArgs),
-								function(value) {
-								ret(js2internal(value));
-							});
+							try {
+								handler.call(
+									stack, target,
+									internal2js(callArgs),
+									function(value) {
+									ret(js2internal(value));
+								});
+							} catch (e) { ret(); }
 						} else ret(js2internal(handler));
 					}
 					else return ret();
