@@ -20,6 +20,12 @@ var testResult = 0;
 var Files = require('Files');
 var registeredFunctions = [];
 
+Histone.setURIResolver(function(requestURI, baseURI, ret, requestProps) {
+	var requestURI = Files.resolvePath(requestURI, baseURI);
+	var fileContents = readFile(requestURI);
+	ret(fileContents, requestURI);
+});
+
 function registerFunction(type, name, result, exception) {
 	var nodeType = (
 		type === 'map' ? Histone.Map :
@@ -88,7 +94,7 @@ function testParserException(input, testCase) {
 	return false;
 }
 
-function testEvaluatorExpected(input, testCase, callback) {
+function testEvaluatorExpected(input, testCase, callback, baseURI) {
 	var context = testCase.context;
 	var expected = testCase.expected;
 
@@ -126,7 +132,7 @@ function testEvaluatorExpected(input, testCase, callback) {
 
 	try {
 		var result = false;
-		var template = Histone(input);
+		var template = Histone(input, baseURI);
 		template.render(function(result) {
 			unregisterFunctions();
 			unregisterProperties();
@@ -163,7 +169,7 @@ Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 	}
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
-	// if (file.name !== 'global-scope.json') return;
+	// if (file.name !== 'global-functions-registration.json') return;
 
 
 	// if (file.name === 'constructs.json') {
@@ -207,7 +213,7 @@ Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 							testResult = 1;
 							printFail(input);
 						}
-					}
+					}, file.path
 				);
 			}
 			else if (testCase.hasOwnProperty('exception')) {
