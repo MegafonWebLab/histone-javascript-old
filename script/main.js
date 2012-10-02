@@ -1,7 +1,9 @@
 $(document).ready(function() {
 
 	var hlLine = 0;
+	var examples = [];
 	var Histone = null;
+	var sideBar = $('.sidebar');
 	var consoleEl =  $('.console');
 	var resultEl = $('.right-column');
 	var resultFormatEl = $('.result-format');
@@ -110,16 +112,51 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
+	function renderExamples() {
+		$('script').each(function() {
+			var script = $(this);
+			if (script.attr('type') === 'text/histone') {
+				var exampleName = script.data('name');
+				var exampleData = script.remove().text();
+				exampleData = exampleData.replace(/^\s\s*/, '');
+				exampleData = exampleData.replace(/\s\s*$/, '');
+				examples.push(exampleData);
+				var sideBarItem = $('<div></div>');
+				sideBarItem.addClass('sidebar-item');
+				sideBarItem.data('index', examples.length - 1);
+				sideBarItem.data('name', exampleName);
+				sideBarItem.html(exampleName);
+				sideBarItem.appendTo(sideBar);
+			}
+		});
+	}
+
+	function sideBarItemClick() {
+		var sideBarItem = $(this);
+		var sideBarItemSelected = $('.sidebar-item-selected', sideBar);
+		if (sideBarItemSelected.is(sideBarItem)) return;
+		sideBarItem.addClass('sidebar-item-selected');
+		sideBarItemSelected.removeClass('sidebar-item-selected');
+		var exampleName = sideBarItem.data('name');
+		var exampleIndex = sideBarItem.data('index');
+		var exampleData = examples[exampleIndex];
+		templateEditor.setValue(exampleData);
+		templateEditor.focus();
+	}
+
 	require([
 		'https://raw.github.com/MegafonWebLab/' +
 		'histone-javascript/master/src/Histone.js'
 	], function(HistoneRef) {
+		renderExamples();
 		hidePreloader();
 		Histone = HistoneRef;
 		$('.toolbar-button').on('click', processTemplate);
 		$('.change-result-format').on('click', swapResultFormat);
+		$('.sidebar-item').on('click', sideBarItemClick);
 		resultFormatEl.on('change', updateResultFormat);
 		hlLine = templateEditor.setLineClass(0, 'activeline');
+		$('.sidebar-item').first().trigger('click');
 	});
 
 });

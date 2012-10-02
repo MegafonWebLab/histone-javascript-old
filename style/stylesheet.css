@@ -52,11 +52,12 @@ html, body {
 	right: 0px;
 	padding: 8px;
 	display: block;
+	z-index: 30;
 	background-color: #A8A8A8;
 	background-repeat: repeat-x;
 	background-position: left top;
 	background-image: url('../media/toolbar_bg.png');
-	border-bottom: 1px solid #949494;
+	box-shadow: 0px 0px 10px black;
 }
 
 .toolbar li {
@@ -124,8 +125,52 @@ html, body {
 	text-shadow: 1px 1px 1px white;
 }
 
-.workspace {
+.sidebar {
 	top: 48px;
+	left: 0px;
+	width: 250px;
+	bottom: 0px;
+	position: absolute;
+	z-index: 20;
+	background-color: #DEE4EA;
+	border-right: 1px solid #DDDDDD;
+	cursor: default;
+	overflow-y: auto;
+	overflow-x: hidden;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}
+
+.sidebar-item {
+	color: black;
+	height: 24px;
+	position: relative;
+	line-height: 24px;
+	font-size: 12px;
+	padding-left: 14px;
+	padding-right: 14px;
+	font-size: 12px;
+}
+
+.sidebar-item-selected {
+	color: white;
+	background-image: url('../media/selbg.png');
+	background-position: left top;
+	background-repeat: repeat-x;
+	background-color: #1C6CB5;
+}
+
+.workspace-wrapper {
+	top: 48px;
+	bottom: 0px;
+	left: 250px;
+	right: 0px;
+	position: absolute;
+}
+
+.workspace {
+	top: 0px;
 	bottom: 22px;
 	left: 0px;
 	right: 0px;
@@ -140,7 +185,7 @@ html, body {
 	position: absolute;
 	overflow: auto;
 	z-index: 1;
-	border-right: 1px solid #949494;
+	border-right: 1px solid #DDDDDD;
 }
 
 .left-column .CodeMirror {
@@ -217,7 +262,7 @@ html, body {
 	padding-left: 5px;
 	padding-right: 5px;
 	line-height: 22px;
-	border-top: 1px solid #949494;
+	border-top: 1px solid #DDDDDD;
 }
 
 .activeline {background: #EFEFEF !important;}
