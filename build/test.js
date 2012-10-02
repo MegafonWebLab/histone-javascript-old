@@ -18,7 +18,7 @@
 load('Histone.js');
 var testResult = 0;
 var Files = require('Files');
-var RegisterFunctions = [];
+var registeredFunctions = [];
 
 function registerFunction(type, name, result, exception) {
 	var nodeType = (
@@ -28,7 +28,7 @@ function registerFunction(type, name, result, exception) {
 		type === 'string' ? Histone.String :
 		Histone.Global
 	);
-	RegisterFunctions.push({
+	registeredFunctions.push({
 		name: name,
 		target: nodeType,
 		value: nodeType[name]
@@ -46,13 +46,21 @@ function registerFunction(type, name, result, exception) {
 	};
 }
 
+function registerProperty(type, name, result, exception) {
+	registerFunction(type, name, result, exception);
+}
+
 function unregisterFunctions() {
-	while (RegisterFunctions.length) {
-		var RegisterFunction = RegisterFunctions.shift();
-		RegisterFunction.target[
-			RegisterFunction.name
-		] = RegisterFunction.value;
+	while (registeredFunctions.length) {
+		var registeredFunction = registeredFunctions.shift();
+		registeredFunction.target[
+			registeredFunction.name
+		] = registeredFunction.value;
 	}
+}
+
+function unregisterProperties() {
+	unregisterFunctions();
 }
 
 function testParserExpected(input, testCase) {
@@ -100,15 +108,33 @@ function testEvaluatorExpected(input, testCase, callback) {
 		}
 	}
 
+	if (testCase.hasOwnProperty('property')) {
+		var propertyDefs = testCase.property;
+		if (!(propertyDefs instanceof Array)) {
+			propertyDefs = [propertyDefs];
+		}
+		for (var c = 0; c < propertyDefs.length; c++) {
+			var propertyDef = propertyDefs[c];
+			registerProperty(
+				propertyDef.node,
+				propertyDef.name,
+				propertyDef.result,
+				propertyDef.exception
+			);
+		}
+	}
+
 	try {
 		var result = false;
 		var template = Histone(input);
 		template.render(function(result) {
 			unregisterFunctions();
+			unregisterProperties();
 			callback(expected === result);
 		}, context);
 	} catch (e) {
 		unregisterFunctions();
+		unregisterProperties();
 		callback(false);
 	}
 }
@@ -129,7 +155,6 @@ function printFail(message) {
 
 Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 	//'/Users/ruslan/Sites/externals/histone-acceptance-tests.git/trunk/src/main/acceptance/'
-	//histone-acceptance-tests/src/main/acceptance
 
 	if (file.type === 'folder') {
 		if (file.name === 'evaluator') return true;
