@@ -901,6 +901,10 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 			ret(Utils.uri.resolve(uri, baseURI));
 		},
 
+		isMap: function(value, args, ret) {
+			ret(true);
+		},
+
 		uniqueId: function(value, args, ret) {
 			ret(Utils.uniqueId());
 		},
