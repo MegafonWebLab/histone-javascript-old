@@ -115,6 +115,12 @@
 {{/call}}
 </script>
 
+<script type="text/histone" data-name="{{import}} for importing macros">
+{{* import macro "hello" from external template *}}
+{{import 'examples/include.tpl'}}
+{{hello('world')}}
+</script>
+
 <script type="text/histone" data-name="number.toChar()">
 {{* using toChar() function to convert character code into a character *}}
 {{var codes = [

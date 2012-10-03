@@ -7,3 +7,7 @@
 ].join(';')}}">
 	<a target="_blank" href="{{href}}">{{href}}</a>
 </div>
+
+{{macro hello(name)}}
+	Hello {{name}}!
+{{/macro}}
