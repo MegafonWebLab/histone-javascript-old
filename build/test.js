@@ -183,7 +183,7 @@ function runTestCase(testCase, testCaseURL) {
 
 };
 
-Files.readDir('/Users/ruslan/Sites/externals/histone-acceptance-tests.git/trunk/src/main/acceptance', function(file) {
+Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 
 	if (file.type === 'folder') {
 		if (file.name === 'evaluator') return true;
