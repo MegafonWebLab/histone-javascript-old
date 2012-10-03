@@ -112,22 +112,24 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
-	function renderExamples() {
-		$('script').each(function() {
-			var script = $(this);
-			if (script.attr('type') === 'text/histone') {
-				var exampleName = script.data('name');
-				var exampleData = script.remove().text();
-				exampleData = exampleData.replace(/^\s\s*/, '');
-				exampleData = exampleData.replace(/\s\s*$/, '');
-				examples.push(exampleData);
-				var sideBarItem = $('<div></div>');
-				sideBarItem.addClass('sidebar-item');
-				sideBarItem.data('index', examples.length - 1);
-				sideBarItem.data('name', exampleName);
-				sideBarItem.html(exampleName);
-				sideBarItem.appendTo(sideBar);
-			}
+	function renderExamples(examplesList) {
+		$(examplesList).find('examples example').each(function() {
+			var example = $(this);
+			var exampleName = example.attr('name');
+			var exampleData = example.text();
+
+			exampleData = exampleData.replace(/\n\x09{2}/g, '\n');
+			exampleData = exampleData.replace(/^\s\s*/, '');
+			exampleData = exampleData.replace(/\s\s*$/, '');
+
+			examples.push(exampleData);
+			var sideBarItem = $('<div></div>');
+			sideBarItem.addClass('sidebar-item');
+			sideBarItem.data('index', examples.length - 1);
+			sideBarItem.data('name', exampleName);
+			sideBarItem.html(exampleName);
+			sideBarItem.appendTo(sideBar);
+
 		});
 	}
 
@@ -148,15 +150,19 @@ $(document).ready(function() {
 		'https://raw.github.com/MegafonWebLab/' +
 		'histone-javascript/master/src/Histone.js'
 	], function(HistoneRef) {
-		renderExamples();
-		hidePreloader();
-		Histone = HistoneRef;
-		$('.toolbar-button').on('click', processTemplate);
-		$('.change-result-format').on('click', swapResultFormat);
-		$('.sidebar-item').on('click', sideBarItemClick);
-		resultFormatEl.on('change', updateResultFormat);
-		hlLine = templateEditor.setLineClass(0, 'activeline');
-		$('.sidebar-item').first().trigger('click');
+
+		$.get('examples/examples.xml', function(result) {
+			renderExamples(result);
+			Histone = HistoneRef;
+			$('.toolbar-button').on('click', processTemplate);
+			$('.change-result-format').on('click', swapResultFormat);
+			$('.sidebar-item').on('click', sideBarItemClick);
+			resultFormatEl.on('change', updateResultFormat);
+			hlLine = templateEditor.setLineClass(0, 'activeline');
+			$('.sidebar-item').first().trigger('click');
+			hidePreloader();
+		});
+
 	});
 
 });
