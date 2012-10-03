@@ -218,7 +218,9 @@ html, body {
 	box-sizing: border-box;
 }
 
-.right-column .ast-area {
+.right-column .ast-area,
+.right-column .text-area {
+	font-size: 12px;
 	font-family: monospace;
 }
 
