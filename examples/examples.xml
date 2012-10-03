@@ -22,6 +22,11 @@
 		{{* reading iteration index in the loop *}}
 		<div style="border: 1px solid red;">
 			{{for item in [1, 2, 3, 4, 5, 6]}}
+				{{if self.index is 0}}
+					<strong>first item:</strong>
+				{{elseif self.index is self.last}}
+					<strong>last item:</strong>
+				{{/if}}
 				{{if self.index mod 2}}
 					<div style="padding: 4px; border: 2px solid blue; margin: 1px;">
 						{{item}}
@@ -72,6 +77,19 @@
 		{{makeList('Apple', 'Google', 'Microsoft', 'Facebook')}}
 	]]></example>
 
+	<example name="{{macro}} recursive calls"><![CDATA[
+		{{* recursive macros example *}}
+		{{macro myMacro(string, offset)}}
+			{{var offset = offset.isNumber() ? offset : 0}}
+			<div>{{string.slice(offset)}}</div>
+			{{if offset < string.size() - 1}}
+				{{myMacro(string, offset + 1)}}
+			{{/if}}
+		{{/macro}}
+
+		{{myMacro('Hello world!')}}
+	]]></example>
+
 	<example name="{{call}} for calling macros"><![CDATA[
 		{{* macro with variable arguments list *}}
 		{{macro makeBorderAround(html)}}
@@ -113,6 +131,92 @@
 		{{for code in codes}}{{
 			code.toChar()
 		}}{{/for}}
+	]]></example>
+
+	<example name="string.strip()"><![CDATA[
+		{{* using string.strip to remove unwanted characters
+			at the beginning and the end of a string *}}
+		{{var myString = "   [   one two three   ]   "}}
+		<div>myString = {{myString.toJSON()}}</div>
+		<div>myString = {{myString.strip(' ', '[', ']').toJSON()}}</div>
+	]]></example>
+
+	<example name="string.split()"><![CDATA[
+		{{* using string.split to turn string into an array *}}
+		{{var myString = "Hello world"}}
+		{{for char in myString.split('')}}
+			<div>character at index({{self.index}}) = {{char.toJSON()}}</div>
+		{{/for}}
+	]]></example>
+
+	<example name="string.test()"><![CDATA[
+		{{* testing strings against the regular expression *}}
+		{{var emailRegExp = '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'}}
+
+		{{for emailAddress in [
+			'foobar',
+			'dsfsdafd@',
+			'@xxxxxx',
+			'sadfdsf@cccc',
+			'@xxxxxx.com',
+			'weblab@megafon.ru'
+		]}}
+			<div>
+				{{if emailAddress.test(emailRegExp)}}
+					"<strong style="color: green;">{{emailAddress}}</strong>"
+					<span>is valid email address</span>
+				{{else}}
+					"<strong style="color: red;">{{emailAddress}}</strong>"
+					<span>is invalid email address</span>
+				{{/if}}
+			</div>
+		{{/for}}
+	]]></example>
+
+	<example name="string.toNumber()"><![CDATA[
+		{{* using string.toNumber() to turn string into a number *}}
+		{{var myString}}
+			3.14
+		{{/var}}
+
+		<div>{{myString}} * 100 = {{myString.toNumber() * 100}}</div>
+	]]></example>
+
+	<example name="map.join()"><![CDATA[
+		{{* using map.join to turn map into a string *}}
+		{{var style = [
+			'color: blue',
+			'padding: 8px',
+			'font-weight: bold',
+			'border-radius: 8px',
+			'border: 1px solid red'
+		].join(';')}}
+
+		<div style="{{style}}">
+			hello world
+		</div>
+	]]></example>
+
+	<example name="map.remove()"><![CDATA[
+		{{* using map.remove to remove array items *}}
+		{{macro reduce(array)}}
+			{{var key = array.keys()[0]}}
+			{{if key}}
+				{{var values = array.values()}}
+				<div>{{values.toJSON()}}</div>
+				{{reduce(array.remove(key))}}
+			{{/if}}
+		{{/macro}}
+
+		{{reduce([
+			"different",
+			"something",
+			"caterpillar",
+			"everything",
+			"chocolate",
+			"hamburger",
+			"downstairs"
+		])}}
 	]]></example>
 
 	<example name="global.dayOfWeek()"><![CDATA[
@@ -226,4 +330,5 @@
 			href: url
 		])}}
 	]]></example>
+
 </examples>
