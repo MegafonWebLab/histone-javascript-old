@@ -135,22 +135,15 @@ $(document).ready(function() {
 	function saveGist() {
 		showPreloader('saving example');
 		var template = templateEditor.getValue();
-		$.ajax({
-			'type': 'POST',
-			'dataType': 'json',
-			'crossDomain': true,
-			'url': 'https://api.github.com/gists',
-			'data': JSON.stringify({
-				'public': true, 'files': {
-					'template': {
-						'content': template
-					}
+		$.post('https://api.github.com/gists', JSON.stringify({
+			'public': true, 'files': {
+				'template': {
+					'content': template
 				}
-			}),
-			'success': function(gistData) {
-				window.location.hash = gistData.id;
-				hidePreloader();
 			}
+		}), function(gistData) {
+			window.location.hash = gistData.id;
+			hidePreloader();
 		});
 	}
 
