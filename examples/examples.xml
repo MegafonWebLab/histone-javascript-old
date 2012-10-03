@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <examples>
 
-	<example name="built-in properties"><![CDATA[
-		{{* accessing built-in properties *}}
-		<div>baseURI = "{{baseURI}}"</div>
-		<div>clientType = "{{clientType}}"</div>
-		<div>userAgent = "{{userAgent}}"</div>
-	]]></example>
-
 	<example name="{{for}} simple example"><![CDATA[
 		{{* simple loop example *}}
 		<ul>
@@ -337,6 +330,13 @@
 			backgroundColor: 'gray',
 			href: url
 		])}}
+	]]></example>
+
+	<example name="built-in properties"><![CDATA[
+		{{* accessing built-in properties *}}
+		<div>baseURI = "{{baseURI}}"</div>
+		<div>clientType = "{{clientType}}"</div>
+		<div>userAgent = "{{userAgent}}"</div>
 	]]></example>
 
 </examples>
