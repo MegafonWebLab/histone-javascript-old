@@ -26,16 +26,28 @@ $(document).ready(function() {
 		}
 	);
 
+	function uniqueId(prefix) {
+		var old = new Date().getTime();
+		var now = new Date().getTime();
+		while (old === now) now = new Date().getTime();
+		return (prefix + now.toString(16));
+	}
+
 	function onCursorActivity() {
 		var currentLine = templateEditor.getCursor().line;
 		templateEditor.setLineClass(hlLine, null, null);
 		hlLine = templateEditor.setLineClass(currentLine, null, 'activeline');
 	}
 
+	function showPreloader(message) {
+		preloaderEl.html(message);
+		$('html').addClass('loading');
+	}
+
 	function hidePreloader() {
 		preloaderEl.animate({opacity: 0}, function() {
-			$(this).css('opacity', '');
 			$('html').removeClass('loading');
+			$(this).css('opacity', '');
 		});
 	}
 
@@ -45,6 +57,16 @@ $(document).ready(function() {
 
 	function setResult(result) {
 		textResultEl.val(result);
+		// alert(
+			// How to make it save? Like on jsFiddle
+
+			// MAKe A FUNCTION THAT MAKES JSONP REQUEST!!!!
+			// SHARE ON TWITTER
+			// iframe stuff
+			// htmlResultEl[0].contentWindow.document.open();
+			// htmlResultEl[0].contentWindow.document.write(result);
+			// $(htmlResultEl[0].contentWindow.document.body).html(result);
+			// );
 		htmlResultEl.html(result);
 	}
 
@@ -112,6 +134,36 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
+	// function saveTemplate() {
+	// 	showPreloader('saving example');
+	// 	var template = templateEditor.getValue();
+	// 	$.post('https://api.github.com/gists', JSON.stringify({
+	// 		'description': 'the description for this gist',
+	// 		'public': true,
+	// 		'files': {
+	// 			'template': {
+	// 				'content': template
+	// 			}
+	// 		}
+	// 	}), function(a) {
+	// 		window.location.hash = a.id;
+	// 		console.info(a);
+	// 		hidePreloader();
+	// 	});
+	// }
+
+	// function loadGist(gistID, callback) {
+	// 	var callbackID = uniqueId('loadGist');
+	// 	window[callbackID] = function(data) {
+	// 		delete window[callbackID];
+	// 		callback(data);
+	// 	};
+	// 	$.jsonp({url: [
+	// 		'https://api.github.com/gists/', gistID,
+	// 		'?callback=' + callbackID
+	// 	].join('')});
+	// }
+
 	function renderExamples(examplesList, treeViewTpl, callback) {
 		$(examplesList).find('examples example').each(function() {
 			var example = $(this);
@@ -144,6 +196,7 @@ $(document).ready(function() {
 		var treeItemId = treeItem.data('id');
 		var exampleData = examples[treeItemId].data;
 		templateEditor.setValue(exampleData);
+		window.location.hash = '';
 		templateEditor.focus();
 	}
 
@@ -154,15 +207,30 @@ $(document).ready(function() {
 		'histone-javascript/master/src/Histone.js!../templates/treeView.tpl'
 	], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
-		$.get('examples/examples.xml?cache=3', function(result) {
+		showPreloader('loading examples');
+		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
-				$('.toolbar-button').on('click', processTemplate);
+				$('.toolbar-execute').on('click', processTemplate);
+				// $('.toolbar-save input').on('click', saveTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-				$('.-ui-treeView-item').first().trigger('mousedown');
-				hidePreloader();
+
+				// var templateId = window.location.hash.split('#').pop();
+				// if (gistID) {
+				// 	showPreloader('loading template');
+				// 	loadGist(gistID, function(result) {
+				// 		result = result.data.files;
+				// 		result = result.template.content;
+				// 		templateEditor.setValue(result);
+				// 		hidePreloader();
+				// 	});
+				// } else {
+					$('.-ui-treeView-item').first().trigger('mousedown');
+					hidePreloader();
+				// }
+
 			});
 		});
 	});
