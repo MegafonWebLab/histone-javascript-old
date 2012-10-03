@@ -5,7 +5,7 @@ html, body {
 	height: 100%;
 	position: absolute;
 	font-size: 13px;
-	font-family: Verdana;
+	font-family: 'Lucida Grande', Tahoma;
 }
 
 .preloader-layer {
@@ -57,7 +57,7 @@ html, body {
 	background-repeat: repeat-x;
 	background-position: left top;
 	background-image: url('../media/toolbar_bg.png');
-	box-shadow: 0px 0px 10px black;
+	border-bottom: 1px solid #999999;
 }
 
 .toolbar li {
@@ -128,7 +128,7 @@ html, body {
 .sidebar {
 	top: 48px;
 	left: 0px;
-	width: 250px;
+	width: 280px;
 	bottom: 0px;
 	position: absolute;
 	z-index: 20;
@@ -142,29 +142,10 @@ html, body {
 	-moz-user-select: none;
 }
 
-.sidebar-item {
-	color: black;
-	height: 24px;
-	position: relative;
-	line-height: 24px;
-	font-size: 12px;
-	padding-left: 14px;
-	padding-right: 14px;
-	font-size: 12px;
-}
-
-.sidebar-item-selected {
-	color: white;
-	background-image: url('../media/selbg.png');
-	background-position: left top;
-	background-repeat: repeat-x;
-	background-color: #1C6CB5;
-}
-
 .workspace-wrapper {
 	top: 48px;
 	bottom: 0px;
-	left: 250px;
+	left: 280px;
 	right: 0px;
 	position: absolute;
 }
@@ -180,12 +161,12 @@ html, body {
 .left-column {
 	left: 0px;
 	top: 0px;
-	bottom: 0px;
-	width: 50%;
+	height: 50%;
+	right: 0px;
 	position: absolute;
 	overflow: auto;
 	z-index: 1;
-	border-right: 1px solid #DDDDDD;
+	border-bottom: 1px solid #DDDDDD;
 }
 
 .left-column .CodeMirror {
@@ -209,8 +190,8 @@ html, body {
 }
 
 .right-column {
-	left: 50%;
-	top: 0px;
+	left: 0px;
+	top: 50%;
 	bottom: 0px;
 	right: 0px;
 	position: absolute;
@@ -279,3 +260,100 @@ html, body {
 .cm-s-elegant div.CodeMirror-selected {background: #B5D4FF !important;}
 .cm-s-elegant .CodeMirror-matchingbracket { color: red !important; }
 .cm-s-elegant .CodeMirror-nonmatchingbracket { color: black !important; }
+
+.-ui-treeView {
+	zoom: 1;
+	height: 100%;
+	overflow: auto;
+	position: relative;
+}
+
+.-ui-treeView-wrapper {
+	zoom: 1;
+	width: 100%;
+	height: 100%;
+	*width: auto;
+	display: table;
+	position: relative;
+}
+
+.-ui-treeView-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.-ui-treeView-item {
+	display: block;
+	color: #333333;
+	cursor: default;
+	position: relative;
+	white-space: nowrap;
+}
+
+.-ui-treeView-item-wrapper {
+	margin: 0px;
+	padding: 0px;
+	padding-right: 8px;
+	display: inline-block;
+	position: relative;
+}
+
+.-ui-treeView-item-arrow,
+.-ui-treeView-item-icon,
+.-ui-treeView-item-title {
+	position: relative;
+	margin-left: 8px;
+	vertical-align: middle;
+	display: inline-block;
+	//display: inline;
+	//zoom: 1;
+}
+
+.-ui-treeView-item-arrow,
+.-ui-treeView-item-icon {
+	width: 20px;
+	height: 16px;
+}
+
+.-ui-treeView-item-icon {
+	background-repeat: no-repeat;
+	background-position: top center;
+	background-image: url('../media/icon.png');
+}
+
+.-ui-treeView-item-title {
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+.-ui-treeView-item-terminal
+.-ui-treeView-item-arrow {
+	visibility: hidden;
+}
+
+.-ui-treeView-item:hover,
+.-ui-treeView-item:hover
+.-ui-treeView-item-wrapper {
+	background-color: #FFFFD6;
+}
+
+.-ui-treeView-item-selected,
+.-ui-treeView-item-selected:hover,
+.-ui-treeView-item-selected
+.-ui-treeView-item-wrapper,
+.-ui-treeView-item-selected:hover
+.-ui-treeView-item-wrapper {
+	color: white;
+	background-color: #2A63EE;
+	background-repeat: repeat-x;
+	background-position: left top;
+	background-image: url('../media/selbg.png');
+}
+
+.-ui-treeView-item-children {
+	display: none;
+}
+
+.-ui-treeView-item-children-shown {
+	display: block;
+}

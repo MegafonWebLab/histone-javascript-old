@@ -112,57 +112,59 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
-	function renderExamples(examplesList) {
+	function renderExamples(examplesList, treeViewTpl, callback) {
 		$(examplesList).find('examples example').each(function() {
 			var example = $(this);
 			var exampleName = example.attr('name');
 			var exampleData = example.text();
-
 			exampleData = exampleData.replace(/\n\x09{2}/g, '\n');
 			exampleData = exampleData.replace(/^\s\s*/, '');
 			exampleData = exampleData.replace(/\s\s*$/, '');
-
-			examples.push(exampleData);
-			var sideBarItem = $('<div></div>');
-			sideBarItem.addClass('sidebar-item');
-			sideBarItem.data('index', examples.length - 1);
-			sideBarItem.data('name', exampleName);
-			sideBarItem.html(exampleName);
-			sideBarItem.appendTo(sideBar);
-
+			examples.push({
+				title: exampleName,
+				data: exampleData,
+				id: examples.length,
+			});
+		});
+		treeViewTpl.render(function(html) {
+			sideBar.html(html);
+			callback();
+		}, {
+			items: examples
 		});
 	}
 
-	function sideBarItemClick() {
-		var sideBarItem = $(this);
-		var sideBarItemSelected = $('.sidebar-item-selected', sideBar);
-		if (sideBarItemSelected.is(sideBarItem)) return;
-		sideBarItem.addClass('sidebar-item-selected');
-		sideBarItemSelected.removeClass('sidebar-item-selected');
-		var exampleName = sideBarItem.data('name');
-		var exampleIndex = sideBarItem.data('index');
-		var exampleData = examples[exampleIndex];
+	function treeViewItemClick() {
+		var treeItem = $(this);
+		var treeView = treeItem.closest('.-ui-treeView');
+		if (treeItem.hasClass('-ui-treeView-item-selected')) return;
+		var selected = $('.-ui-treeView-item-selected', treeView);
+		selected.removeClass('-ui-treeView-item-selected');
+		treeItem.addClass('-ui-treeView-item-selected');
+		var treeItemId = treeItem.data('id');
+		var exampleData = examples[treeItemId].data;
 		templateEditor.setValue(exampleData);
 		templateEditor.focus();
 	}
 
 	require([
 		'https://raw.github.com/MegafonWebLab/' +
-		'histone-javascript/master/src/Histone.js'
-	], function(HistoneRef) {
-
+		'histone-javascript/master/src/Histone.js',
+		'https://raw.github.com/MegafonWebLab/' +
+		'histone-javascript/master/src/Histone.js!../templates/treeView.tpl'
+	], function(HistoneRef, treeViewTpl) {
+		Histone = HistoneRef;
 		$.get('examples/examples.xml', function(result) {
-			renderExamples(result);
-			Histone = HistoneRef;
-			$('.toolbar-button').on('click', processTemplate);
-			$('.change-result-format').on('click', swapResultFormat);
-			$('.sidebar-item').on('click', sideBarItemClick);
-			resultFormatEl.on('change', updateResultFormat);
-			hlLine = templateEditor.setLineClass(0, 'activeline');
-			$('.sidebar-item').first().trigger('click');
-			hidePreloader();
+			renderExamples(result, treeViewTpl, function() {
+				$('.toolbar-button').on('click', processTemplate);
+				$('.change-result-format').on('click', swapResultFormat);
+				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
+				resultFormatEl.on('change', updateResultFormat);
+				hlLine = templateEditor.setLineClass(0, 'activeline');
+				$('.-ui-treeView-item').first().trigger('mousedown');
+				hidePreloader();
+			});
 		});
-
 	});
 
 });
