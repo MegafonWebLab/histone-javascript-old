@@ -135,7 +135,7 @@ $(document).ready(function() {
 	function saveGist() {
 		showPreloader('saving example');
 		var template = templateEditor.getValue();
-		$.ajax(
+		$.ajax({
 			'type': 'POST',
 			'dataType': 'json',
 			'crossDomain': true,
@@ -151,7 +151,7 @@ $(document).ready(function() {
 				window.location.hash = gistData.id;
 				hidePreloader();
 			}
-		);
+		});
 	}
 
 	function loadGist(gistID, success, fail) {
