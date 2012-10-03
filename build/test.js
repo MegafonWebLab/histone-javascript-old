@@ -16,16 +16,16 @@
  */
 
 load('Histone.js');
-var testResult = 0;
 var Files = require('Files');
+var testResult = 0;
 var registeredFunctions = [];
 
-Histone.setURIResolver(function(requestURI, baseURI, ret, requestProps) {
-	var requestURI = Files.resolvePath(requestURI, baseURI);
-	var fileContents = readFile(requestURI);
-	ret(fileContents, requestURI);
-	return true;
-});
+function printMessage(type, message) {
+	var message = JSON.stringify(message);
+	message = message.substr(1);
+	message = message.substr(0, message.length - 1);
+	print('     [ ' + type + ' ] ', message);
+}
 
 function registerFunction(type, name, result, exception) {
 	var nodeType = (
@@ -45,16 +45,15 @@ function registerFunction(type, name, result, exception) {
 			throw exception;
 		}
 		if (typeof result === 'string') {
-			Histone(result).render(ret, {
+			Histone(result).render(function(rrr) {
+				print('rrr', rrr);
+				ret(rrr);
+			}, {
 				target: value,
 				args: args
 			});
 		} else ret(result);
 	};
-}
-
-function registerProperty(type, name, result, exception) {
-	registerFunction(type, name, result, exception);
 }
 
 function unregisterFunctions() {
@@ -66,46 +65,27 @@ function unregisterFunctions() {
 	}
 }
 
-function unregisterProperties() {
-	unregisterFunctions();
-}
+Histone.setURIResolver(function(requestURI, baseURI, ret, requestProps) {
+	var requestURI = Files.resolvePath(requestURI, baseURI);
+	var fileContents = readFile(requestURI);
+	ret(fileContents, requestURI);
+	return true;
+});
 
-function testParserExpected(input, testCase) {
-	var expected = testCase.expected;
-	expected = JSON.stringify(expected);
-	try {
-		var result = Histone(input);
-		result = JSON.stringify(result.getAST());
-		return (expected === result);
-	} catch (e) { return false; }
-}
+function runTestCase(testCase, testCaseURL) {
+	var template, actualException,
+		actualAST, actualResult;
 
-function testParserException(input, testCase) {
-	var exception = testCase.exception;
-	try { Histone(input); } catch (error) {
-		for (var key in exception) {
-			if (!error.hasOwnProperty(key)) continue;
-			if (String(error[key]) !==
-				String(exception[key])) {
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
-}
+	var isProcessed = false;
 
-function testEvaluatorExpected(input, testCase, callback, baseURI) {
-	var context = testCase.context;
-	var expected = testCase.expected;
-
-	if (testCase.hasOwnProperty('function')) {
-		var functionDefs = testCase.function;
+	if (typeof(testCase['function']) === 'object') {
+		var functionDef;
+		var functionDefs = testCase['function'];
 		if (!(functionDefs instanceof Array)) {
 			functionDefs = [functionDefs];
-		}
-		for (var c = 0; c < functionDefs.length; c++) {
-			var functionDef = functionDefs[c];
+	 	}
+		while (functionDefs.length) {
+			functionDef = functionDefs.shift();
 			registerFunction(
 				functionDef.node,
 				functionDef.name,
@@ -115,116 +95,118 @@ function testEvaluatorExpected(input, testCase, callback, baseURI) {
 		}
 	}
 
-	if (testCase.hasOwnProperty('property')) {
-		var propertyDefs = testCase.property;
-		if (!(propertyDefs instanceof Array)) {
-			propertyDefs = [propertyDefs];
-		}
-		for (var c = 0; c < propertyDefs.length; c++) {
-			var propertyDef = propertyDefs[c];
-			registerProperty(
-				propertyDef.node,
-				propertyDef.name,
-				propertyDef.result,
-				propertyDef.exception
+	if (typeof(testCase['property']) === 'object') {
+		var functionDef;
+		var functionDefs = testCase['property'];
+		if (!(functionDefs instanceof Array)) {
+			functionDefs = [functionDefs];
+	 	}
+		while (functionDefs.length) {
+			functionDef = functionDefs.shift();
+			registerFunction(
+				functionDef.node,
+				functionDef.name,
+				functionDef.result,
+				functionDef.exception
 			);
 		}
 	}
 
 	try {
-		var result = false;
-		var template = Histone(input, baseURI);
+		template = Histone(
+			testCase.input,
+			testCaseURL
+		);
+		actualAST = template.getAST();
 		template.render(function(result) {
-			unregisterFunctions();
-			unregisterProperties();
-			callback(expected === result);
-		}, context);
-	} catch (e) {
-		unregisterFunctions();
-		unregisterProperties();
-		callback(false);
+			actualResult = result;
+		}, testCase.context);
+	} catch (exception) {
+		actualException = exception;
 	}
-}
 
-function printSuccess(message) {
-	var message = JSON.stringify(message);
-	message = message.substr(1);
-	message = message.substr(0, message.length - 1);
-	print('     [ SUCCESS ] ', message);
-}
+	unregisterFunctions();
 
-function printFail(message) {
-	var message = JSON.stringify(message);
-	message = message.substr(1);
-	message = message.substr(0, message.length - 1);
-	print('---- [ FAILING ] ', message);
-}
+	if (template && testCase.expectedAST instanceof Array) {
+		isProcessed = true;
+		actualAST = JSON.stringify(template.getAST());
+		var expectedAST = JSON.stringify(testCase.expectedAST);
+		if (expectedAST !== actualAST) {
+			testResult = 1;
+			return printMessage('FAILING', (
+				'expected AST is:' + expectedAST +
+				'actual AST is:' + actualAST
+			));
+		}
+	}
 
-Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
-	//'/Users/ruslan/Sites/externals/histone-acceptance-tests.git/trunk/src/main/acceptance/'
+	if (!actualException && typeof(testCase.expectedResult) === 'string') {
+		isProcessed = true;
+		if (testCase.expectedResult !== actualResult) {
+			testResult = 1;
+			return printMessage('FAILING', (
+				'expected result is:' + testCase.expectedResult +
+				'actual result is:' + actualResult
+			));
+		}
+	}
+
+	if (testCase.expectedException instanceof Object) {
+		isProcessed = true;
+		if (!actualException) {
+			testResult = 1;
+			return printMessage('FAILING', (
+				'expected exception:' +
+				JSON.stringify(testCase.expectedException)
+			));
+		}
+		for (var expectedKey in testCase.expectedException) {
+			if (!actualException.hasOwnProperty(expectedKey) ||
+				String(actualException[expectedKey]) !==
+				String(testCase.expectedException[expectedKey])) {
+				testResult = 1;
+				return printMessage('FAILING', (
+					'expected exception is:' +
+					JSON.stringify(testCase.expectedException) +
+					'actual exception is:' +
+					JSON.stringify(actualException)
+				));
+			}
+		}
+	}
+
+	if (isProcessed) {
+		printMessage('SUCCESS', testCase.input);
+	} else {
+		printMessage('SKIPPED', testCase.input);
+	}
+
+};
+
+Files.readDir('/Users/ruslan/Sites/externals/histone-acceptance-tests.git/trunk/src/main/acceptance', function(file) {
 
 	if (file.type === 'folder') {
 		if (file.name === 'evaluator') return true;
 		if (file.name === 'parser') return true;
 		return false;
 	}
+
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
-	// if (file.name !== 'external-resources.json') return;
-
-
-	// if (file.name === 'constructs.json') {
-	// 	var testSuites = readFile(file.path);
-	// 	testSuites = JSON.parse(testSuites);
-	// 	for (var i = 0; i < testSuites.length; i++) {
-	// 		var testSuite = testSuites[i];
-	// 		print('TESTING:', testSuite.name);
-	// 		for (var j = 0; j < testSuite.cases.length; j++) {
-	// 			var testCase = testSuite.cases[j];
-	// 			if (!testCase.context) continue;
-	// 			testCase.context = JSON.parse(testCase.context);
-	// 		}
-	// 	}
-	//
-	// 	print(JSON.stringify(testSuites));
-	// }
 
 	var testSuites = readFile(file.path);
 	testSuites = JSON.parse(testSuites);
 
-	for (var i = 0; i < testSuites.length; i++) {
-		var testSuite = testSuites[i];
-		print('\n[ TESTING "' + testSuite.name + '" ]\n');
-		for (var j = 0; j < testSuite.cases.length; j++) {
-			var testCase = testSuite.cases[j];
-			var input = testCase.input;
-			if (testCase.hasOwnProperty('expected')) {
-				if (testCase.expected instanceof Array) {
-					if (testParserExpected(input, testCase)) {
-						printSuccess(input);
-					} else {
-						testResult = 1;
-						printFail(input);
-					}
-				} else testEvaluatorExpected(
-					input, testCase, function(result) {
-						if (result) {
-							printSuccess(input);
-						} else {
-							testResult = 1;
-							printFail(input);
-						}
-					}, file.path
-				);
-			}
-			else if (testCase.hasOwnProperty('exception')) {
-				if (testParserException(input, testCase)) {
-					printSuccess(input);
-				} else {
-					testResult = 1;
-					printFail(input);
-				}
-			}
+	while (testSuites.length) {
+		var testSuite = testSuites.shift();
+		var suiteName = testSuite.name;
+		var testCases = testSuite.cases;
+		print('\n[ "' + file.name + '" -> "' + suiteName + '"]\n');
+		while (testCases.length) {
+			runTestCase(
+				testCases.shift(),
+				file.path
+			);
 		}
 	}
 
