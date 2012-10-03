@@ -135,16 +135,23 @@ $(document).ready(function() {
 	function saveGist() {
 		showPreloader('saving example');
 		var template = templateEditor.getValue();
-		$.post('https://api.github.com/gists', JSON.stringify({
-			'public': true, 'files': {
-				'template': {
-					'content': template
+		$.ajax(
+			'type': 'POST',
+			'dataType': 'json',
+			'crossDomain': true,
+			'url': 'https://api.github.com/gists',
+			'data': JSON.stringify({
+				'public': true, 'files': {
+					'template': {
+						'content': template
+					}
 				}
+			}),
+			'success': function(gistData) {
+				window.location.hash = gistData.id;
+				hidePreloader();
 			}
-		}), function(gistData) {
-			window.location.hash = gistData.id;
-			hidePreloader();
-		});
+		);
 	}
 
 	function loadGist(gistID, success, fail) {
@@ -208,7 +215,7 @@ $(document).ready(function() {
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
-				// $('.toolbar-save').on('click', saveGist);
+				$('.toolbar-save').on('click', saveGist);
 				$('.toolbar-execute').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
