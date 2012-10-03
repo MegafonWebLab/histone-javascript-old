@@ -154,7 +154,7 @@ $(document).ready(function() {
 		'histone-javascript/master/src/Histone.js!../templates/treeView.tpl'
 	], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
-		$.get('examples/examples.xml?cache=1', function(result) {
+		$.get('examples/examples.xml?cache=2', function(result) {
 			renderExamples(result, treeViewTpl, function() {
 				$('.toolbar-button').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
