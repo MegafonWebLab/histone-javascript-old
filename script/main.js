@@ -58,8 +58,6 @@ $(document).ready(function() {
 	function setResult(result) {
 		textResultEl.val(result);
 		// alert(
-			// How to make it save? Like on jsFiddle
-
 			// MAKe A FUNCTION THAT MAKES JSONP REQUEST!!!!
 			// SHARE ON TWITTER
 			// iframe stuff
@@ -134,35 +132,35 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
-	// function saveTemplate() {
-	// 	showPreloader('saving example');
-	// 	var template = templateEditor.getValue();
-	// 	$.post('https://api.github.com/gists', JSON.stringify({
-	// 		'description': 'the description for this gist',
-	// 		'public': true,
-	// 		'files': {
-	// 			'template': {
-	// 				'content': template
-	// 			}
-	// 		}
-	// 	}), function(a) {
-	// 		window.location.hash = a.id;
-	// 		console.info(a);
-	// 		hidePreloader();
-	// 	});
-	// }
+	function saveGist() {
+		showPreloader('saving example');
+		var template = templateEditor.getValue();
+		$.post('https://api.github.com/gists', JSON.stringify({
+			'public': true, 'files': {
+				'template': {
+					'content': template
+				}
+			}
+		}), function(gistData) {
+			window.location.hash = gistData.id;
+			hidePreloader();
+		});
+	}
 
-	// function loadGist(gistID, callback) {
-	// 	var callbackID = uniqueId('loadGist');
-	// 	window[callbackID] = function(data) {
-	// 		delete window[callbackID];
-	// 		callback(data);
-	// 	};
-	// 	$.jsonp({url: [
-	// 		'https://api.github.com/gists/', gistID,
-	// 		'?callback=' + callbackID
-	// 	].join('')});
-	// }
+	function loadGist(gistID, success, fail) {
+		if (gistID && gistID.match('^[0-9]+$')) {
+			showPreloader('loading template');
+			var callbackID = uniqueId('loadGist');
+			window[callbackID] = function(data) {
+				delete window[callbackID];
+				success(data, fail);
+			};
+			$.jsonp({url: [
+				'https://api.github.com/gists/', gistID,
+				'?callback=' + callbackID
+			].join('')});
+		} else fail();
+	}
 
 	function renderExamples(examplesList, treeViewTpl, callback) {
 		$(examplesList).find('examples example').each(function() {
@@ -210,27 +208,25 @@ $(document).ready(function() {
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
+				$('.toolbar-save').on('click', saveGist);
 				$('.toolbar-execute').on('click', processTemplate);
-				// $('.toolbar-save input').on('click', saveTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-
-				// var templateId = window.location.hash.split('#').pop();
-				// if (gistID) {
-				// 	showPreloader('loading template');
-				// 	loadGist(gistID, function(result) {
-				// 		result = result.data.files;
-				// 		result = result.template.content;
-				// 		templateEditor.setValue(result);
-				// 		hidePreloader();
-				// 	});
-				// } else {
+				var gistID = window.location.hash.split('#').pop();
+				loadGist(gistID, function(result, fail) {
+					try {
+						result = result.data.files;
+						result = result.template.content;
+						templateEditor.setValue(result);
+						processTemplate();
+						hidePreloader();
+					} catch (e) { fail(); }
+				}, function() {
 					$('.-ui-treeView-item').first().trigger('mousedown');
 					hidePreloader();
-				// }
-
+				});
 			});
 		});
 	});
