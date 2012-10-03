@@ -159,6 +159,22 @@ html, body {
 	position: absolute;
 }
 
+.code-type {
+	top: 6px;
+	right: 6px;
+	color: #888;
+	height: 20px;
+	z-index: 3000;
+	font-size: 11px;
+	opacity: 0.9;
+	padding: 0px 6px;
+	line-height: 20px;
+	border-radius: 3px;
+	position: absolute;
+	background-color: white;
+	border: 1px solid #D3D4D5;
+}
+
 .left-column {
 	left: 0px;
 	top: 0px;
@@ -168,6 +184,11 @@ html, body {
 	overflow: auto;
 	z-index: 1;
 	border-bottom: 1px solid #DDDDDD;
+}
+
+.left-column:hover .code-type,
+.right-column:hover .code-type {
+	display: none;
 }
 
 .left-column .CodeMirror {
