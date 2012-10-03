@@ -208,25 +208,25 @@ $(document).ready(function() {
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
-				$('.toolbar-save').on('click', saveGist);
+				// $('.toolbar-save').on('click', saveGist);
 				$('.toolbar-execute').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-				var gistID = window.location.hash.split('#').pop();
-				loadGist(gistID, function(result, fail) {
-					try {
-						result = result.data.files;
-						result = result.template.content;
-						templateEditor.setValue(result);
-						processTemplate();
-						hidePreloader();
-					} catch (e) { fail(); }
-				}, function() {
+				// var gistID = window.location.hash.split('#').pop();
+				// loadGist(gistID, function(result, fail) {
+				// 	try {
+				// 		result = result.data.files;
+				// 		result = result.template.content;
+				// 		templateEditor.setValue(result);
+				// 		processTemplate();
+				// 		hidePreloader();
+				// 	} catch (e) { fail(); }
+				// }, function() {
 					$('.-ui-treeView-item').first().trigger('mousedown');
 					hidePreloader();
-				});
+				// });
 			});
 		});
 	});
