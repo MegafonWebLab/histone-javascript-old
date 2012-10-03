@@ -20,6 +20,7 @@ var Files = require('Files');
 var testResult = 0;
 var registeredFunctions = [];
 
+
 function printMessage(type, message) {
 	var message = JSON.stringify(message);
 	message = message.substr(1);
