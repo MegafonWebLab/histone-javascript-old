@@ -54,6 +54,9 @@ html, body {
 	padding: 8px;
 	display: block;
 	z-index: 30;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
 	background-color: #A8A8A8;
 	background-repeat: repeat-x;
 	background-position: left top;
