@@ -10,7 +10,6 @@ $(document).ready(function() {
 	var textResultEl = $('.text-area', resultEl);
 	var htmlResultEl = $('.html-area', resultEl);
 	var astResultEl = $('.ast-area', resultEl);
-	var storagePrefix = 'megafonweblab_github_com';
 	var preloaderEl = $('.preloader-layer, .preloader-image');
 
 	var templateEditor = CodeMirror.fromTextArea(
@@ -26,14 +25,6 @@ $(document).ready(function() {
 			onCursorActivity: onCursorActivity
 		}
 	);
-
-	function uniqueId(prefix) {
-		var old = new Date().getTime();
-		var now = new Date().getTime();
-		while (old === now) now = new Date().getTime();
-		if (typeof(prefix) !== 'string') prefix = '';
-		return (prefix + now.toString(16));
-	}
 
 	function onCursorActivity() {
 		var currentLine = templateEditor.getCursor().line;
@@ -134,40 +125,6 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
-	function generateGistID(gistID) {
-		return [storagePrefix, gistID].join('_');
-	}
-
-	function saveGist() {
-		showPreloader('saving example');
-		var gistID = uniqueId();
-		window.remoteStorage.setItem(
-			generateGistID(gistID),
-			templateEditor.getValue(),
-			function() {
-				window.location.hash = gistID;
-				hidePreloader();
-			}
-		);
-	}
-
-	function loadGist(fail) {
-		var gistID = window.location.hash.split('#').pop();
-		if (!gistID || !gistID.match('^[0-9a-zA-Z]+$')) return fail();
-		try {
-			showPreloader('loading template');
-			window.remoteStorage.getItem(
-				generateGistID(gistID),
-				function(gistData) {
-					if (typeof(gistData) === 'string') {
-						templateEditor.setValue(gistData);
-						hidePreloader();
-					} else return fail();
-				}
-			);
-		} catch (e) { fail(); }
-	}
-
 	function renderExamples(examplesList, treeViewTpl, callback) {
 		$(examplesList).find('examples example').each(function() {
 			var example = $(this);
@@ -200,7 +157,6 @@ $(document).ready(function() {
 		var treeItemId = treeItem.data('id');
 		var exampleData = examples[treeItemId].data;
 		templateEditor.setValue(exampleData);
-		window.location.hash = '';
 		templateEditor.focus();
 	}
 
@@ -214,16 +170,13 @@ $(document).ready(function() {
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
-				$('.toolbar-save').on('click', saveGist);
 				$('.toolbar-execute').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-				loadGist(function() {
-					$('.-ui-treeView-item').first().trigger('mousedown');
-					hidePreloader();
-				});
+				$('.-ui-treeView-item').first().trigger('mousedown');
+				hidePreloader();
 			});
 		});
 	});
