@@ -1,8 +1,11 @@
 $(document).ready(function() {
 
+	var ws = null;
 	var hlLine = 0;
 	var examples = [];
 	var Histone = null;
+	var UID_TIME_LAST = 0;
+	var UID_TIME_DIFF = 0;
 	var sideBar = $('.sidebar');
 	var consoleEl =  $('.console');
 	var resultEl = $('.right-column');
@@ -30,6 +33,18 @@ $(document).ready(function() {
 		var currentLine = templateEditor.getCursor().line;
 		templateEditor.setLineClass(hlLine, null, null);
 		hlLine = templateEditor.setLineClass(currentLine, null, 'activeline');
+	}
+
+	function uniqueId(prefix) {
+		var partOne = new Date().getTime();
+		if (typeof(prefix) !== 'string') prefix = '';
+		if (partOne > UID_TIME_LAST) UID_TIME_DIFF = 0;
+		else partOne += (++UID_TIME_DIFF);
+		UID_TIME_LAST = partOne;
+		return (prefix + partOne.toString(36) +
+			(1 + Math.floor((Math.random()*32767))).toString(36) +
+			(1 + Math.floor((Math.random()*32767))).toString(36)
+		);
 	}
 
 	function showPreloader(message) {
@@ -125,6 +140,27 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
+	function saveTemplate() {
+		if (!ws) ws = new cloudmine.WebService({
+			appid: 'a52c8c78a297414ba60979c75fef4317',
+			apikey: 'b8b315ebc5e4430197c9b49666e5bac3'
+		});
+
+
+		showPreloader('saving template');
+
+		var generatedKey = uniqueId();
+
+		ws.set(
+			generatedKey,
+			templateEditor.getValue()
+		).on('success', function(data, response) {
+			window.location.hash = generatedKey;
+			hidePreloader();
+		});
+
+	}
+
 	function renderExamples(examplesList, treeViewTpl, callback) {
 		$(examplesList).find('examples example').each(function() {
 			var example = $(this);
@@ -170,6 +206,7 @@ $(document).ready(function() {
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
+				$('.toolbar-save').on('click', saveTemplate);
 				$('.toolbar-execute').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
