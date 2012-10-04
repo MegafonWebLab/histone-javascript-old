@@ -1,6 +1,5 @@
 $(document).ready(function() {
 
-	var ws = null;
 	var hlLine = 0;
 	var examples = [];
 	var Histone = null;
@@ -14,6 +13,11 @@ $(document).ready(function() {
 	var htmlResultEl = $('.html-area', resultEl);
 	var astResultEl = $('.ast-area', resultEl);
 	var preloaderEl = $('.preloader-layer, .preloader-image');
+
+	var cloudMine = new cloudmine.WebService({
+		appid: 'a52c8c78a297414ba60979c75fef4317',
+		apikey: 'b8b315ebc5e4430197c9b49666e5bac3'
+	});
 
 	var templateEditor = CodeMirror.fromTextArea(
 		$('.template')[0], {
@@ -141,24 +145,27 @@ $(document).ready(function() {
 	}
 
 	function saveTemplate() {
-		if (!ws) ws = new cloudmine.WebService({
-			appid: 'a52c8c78a297414ba60979c75fef4317',
-			apikey: 'b8b315ebc5e4430197c9b49666e5bac3'
-		});
-
-
 		showPreloader('saving template');
-
-		var generatedKey = uniqueId();
-
-		ws.set(
-			generatedKey,
+		var templateId = uniqueId();
+		cloudMine.set(templateId,
 			templateEditor.getValue()
 		).on('success', function(data, response) {
-			window.location.hash = generatedKey;
+			window.location.hash = templateId;
 			hidePreloader();
-		});
+		}).on('error', hidePreloader);
+	}
 
+	function loadTemplate(fail) {
+		var templateId = window.location.hash.split('#').pop();
+		if (!templateId || !templateId.match(/[a-z0-9]+/g)) return fail();
+		showPreloader('loading template');
+		cloudMine.get(templateId).on('success', function(data) {
+			if (!(data instanceof Object)) return fail();
+			data = data[templateId];
+			if (typeof(data) !== 'string') return fail();
+			templateEditor.setValue(data);
+			hidePreloader();
+		}).on('error', fail);
 	}
 
 	function renderExamples(examplesList, treeViewTpl, callback) {
@@ -190,6 +197,7 @@ $(document).ready(function() {
 		var selected = $('.-ui-treeView-item-selected', treeView);
 		selected.removeClass('-ui-treeView-item-selected');
 		treeItem.addClass('-ui-treeView-item-selected');
+		window.location.hash = '';
 		var treeItemId = treeItem.data('id');
 		var exampleData = examples[treeItemId].data;
 		templateEditor.setValue(exampleData);
@@ -212,27 +220,10 @@ $(document).ready(function() {
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-
-				var hash = window.location.hash.split('#').pop();
-
-				if (hash) {
-
-					showPreloader('loading template');
-					if (!ws) ws = new cloudmine.WebService({
-						appid: 'a52c8c78a297414ba60979c75fef4317',
-						apikey: 'b8b315ebc5e4430197c9b49666e5bac3'
-					});
-
-					ws.get(hash).on('success', function(data, response) {
-						templateEditor.setValue(data[hash]);
-						hidePreloader();
-					});
-
-				} else {
+				loadTemplate(function() {
 					$('.-ui-treeView-item').first().trigger('mousedown');
 					hidePreloader();
-				}
-
+				});
 			});
 		});
 	});
