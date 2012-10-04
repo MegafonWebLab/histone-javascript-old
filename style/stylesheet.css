@@ -122,6 +122,12 @@ html, body {
 	background-image: url('../media/save.png');
 }
 
+.toolbar-share {
+	background-position: left top;
+	background-repeat: no-repeat;
+	background-image: url('../media/share.png');
+}
+
 .toolbar-button:active {
 	background-position: left bottom;
 }

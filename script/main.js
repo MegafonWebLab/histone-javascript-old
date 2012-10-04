@@ -155,6 +155,11 @@ $(document).ready(function() {
 		}).on('error', hidePreloader);
 	}
 
+	function shareTemplate() {
+		var text = encodeURIComponent('Check it out: ' + window.location.href);
+		window.open('https://twitter.com/intent/tweet?text=' + text, '_blank');
+	}
+
 	function loadTemplate(fail) {
 		var templateId = window.location.hash.split('#').pop();
 		if (!templateId || !templateId.match(/[a-z0-9]+/g)) return fail();
@@ -216,6 +221,7 @@ $(document).ready(function() {
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
 				$('.toolbar-save').on('click', saveTemplate);
+				$('.toolbar-share').on('click', shareTemplate);
 				$('.toolbar-execute').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
