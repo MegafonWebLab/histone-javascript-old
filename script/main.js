@@ -10,6 +10,7 @@ $(document).ready(function() {
 	var textResultEl = $('.text-area', resultEl);
 	var htmlResultEl = $('.html-area', resultEl);
 	var astResultEl = $('.ast-area', resultEl);
+	var storagePrefix = 'megafonweblab_github_com';
 	var preloaderEl = $('.preloader-layer, .preloader-image');
 
 	var templateEditor = CodeMirror.fromTextArea(
@@ -30,6 +31,7 @@ $(document).ready(function() {
 		var old = new Date().getTime();
 		var now = new Date().getTime();
 		while (old === now) now = new Date().getTime();
+		if (typeof(prefix) !== 'string') prefix = '';
 		return (prefix + now.toString(16));
 	}
 
@@ -132,34 +134,38 @@ $(document).ready(function() {
 		}, thisObj);
 	}
 
-	function saveGist() {
-		showPreloader('saving example');
-		var template = templateEditor.getValue();
-		$.post('https://api.github.com/gists', JSON.stringify({
-			'public': true, 'files': {
-				'template': {
-					'content': template
-				}
-			}
-		}), function(gistData) {
-			window.location.hash = gistData.id;
-			hidePreloader();
-		});
+	function generateGistID(gistID) {
+		return [storagePrefix, gistID].join('_');
 	}
 
-	function loadGist(gistID, success, fail) {
-		if (gistID && gistID.match('^[0-9]+$')) {
+	function saveGist() {
+		showPreloader('saving example');
+		var gistID = uniqueId();
+		window.remoteStorage.setItem(
+			generateGistID(gistID),
+			templateEditor.getValue(),
+			function() {
+				window.location.hash = gistID;
+				hidePreloader();
+			}
+		);
+	}
+
+	function loadGist(fail) {
+		var gistID = window.location.hash.split('#').pop();
+		if (!gistID || !gistID.match('^[0-9a-zA-Z]+$')) return fail();
+		try {
 			showPreloader('loading template');
-			var callbackID = uniqueId('loadGist');
-			window[callbackID] = function(data) {
-				delete window[callbackID];
-				success(data, fail);
-			};
-			$.jsonp({url: [
-				'https://api.github.com/gists/', gistID,
-				'?callback=' + callbackID
-			].join('')});
-		} else fail();
+			window.remoteStorage.getItem(
+				generateGistID(gistID),
+				function(gistData) {
+					if (typeof(gistData) === 'string') {
+						templateEditor.setValue(gistData);
+						hidePreloader();
+					} else return fail();
+				}
+			);
+		} catch (e) { fail(); }
 	}
 
 	function renderExamples(examplesList, treeViewTpl, callback) {
@@ -208,25 +214,16 @@ $(document).ready(function() {
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
 			renderExamples(result, treeViewTpl, function() {
-				// $('.toolbar-save').on('click', saveGist);
+				$('.toolbar-save').on('click', saveGist);
 				$('.toolbar-execute').on('click', processTemplate);
 				$('.change-result-format').on('click', swapResultFormat);
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-				// var gistID = window.location.hash.split('#').pop();
-				// loadGist(gistID, function(result, fail) {
-				// 	try {
-				// 		result = result.data.files;
-				// 		result = result.template.content;
-				// 		templateEditor.setValue(result);
-				// 		processTemplate();
-				// 		hidePreloader();
-				// 	} catch (e) { fail(); }
-				// }, function() {
+				loadGist(function() {
 					$('.-ui-treeView-item').first().trigger('mousedown');
 					hidePreloader();
-				// });
+				});
 			});
 		});
 	});
