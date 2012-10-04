@@ -212,8 +212,27 @@ $(document).ready(function() {
 				$('.-ui-treeView-item').on('mousedown', treeViewItemClick);
 				resultFormatEl.on('change', updateResultFormat);
 				hlLine = templateEditor.setLineClass(0, 'activeline');
-				$('.-ui-treeView-item').first().trigger('mousedown');
-				hidePreloader();
+
+				var hash = window.location.hash.split('#').pop();
+
+				if (hash) {
+
+					showPreloader('loading template');
+					if (!ws) ws = new cloudmine.WebService({
+						appid: 'a52c8c78a297414ba60979c75fef4317',
+						apikey: 'b8b315ebc5e4430197c9b49666e5bac3'
+					});
+
+					ws.get(hash).on('success', function(data, response) {
+						templateEditor.setValue(data[hash]);
+						hidePreloader();
+					});
+
+				} else {
+					$('.-ui-treeView-item').first().trigger('mousedown');
+					hidePreloader();
+				}
+
 			});
 		});
 	});
