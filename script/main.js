@@ -164,6 +164,7 @@ $(document).ready(function() {
 			data = data[templateId];
 			if (typeof(data) !== 'string') return fail();
 			templateEditor.setValue(data);
+			processTemplate();
 			hidePreloader();
 		}).on('error', fail);
 	}
