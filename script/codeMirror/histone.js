@@ -1,7 +1,19 @@
 CodeMirror.defineMode('histone', function(config, parserConfig) {
 
-	var keyFuncs = [
-		// global functions
+	var reservedWords = [
+		'is', 'or', 'and', 'not', 'mod',
+		'null', 'true', 'false', 'call',
+		'import', 'if', 'elseif', 'else',
+		'for', 'in', 'var', 'macro', 'isNot'
+	];
+
+	var reservedVars =  [
+		'this',
+		'global',
+		'self'
+	];
+
+	var globalFunctions = [
 		'dayOfWeek',
 		'daysInMonth',
 		'include',
@@ -11,22 +23,15 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 		'min',
 		'range',
 		'uniqueId',
-		// control structures
-		'macro',
-		'call',
-		'import',
-		'var',
-		'for',
-		'if'
+		'resolveURI',
+		'baseURI',
+		'clientType',
+		'userAgent'
 	];
 
-	var last;
+	//qualifier - use for operators
 
-	var regs = {
-		operatorChars: /[+\-*&%=<>!?]/,
-		validIdentifier: /[a-zA-Z0-9\_]/,
-		stringChar: /[\'\"]/
-	};
+	var last;
 
 	var leftDelim = (typeof config.mode.leftDelimiter != 'undefined') ? config.mode.leftDelimiter : '{{';
 	var rightDelim = (typeof config.mode.rightDelimiter != 'undefined') ? config.mode.rightDelimiter : '}}';
@@ -43,7 +48,13 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 		if (stream.match(leftDelim, true)) {
 			if (stream.eat('*')) {
 				return chain(inBlock('comment', '*' + rightDelim));
-			} else {
+			}
+
+			else if (stream.eat('%')) {
+				return chain(inBlock('string', '%' + rightDelim));
+			}
+
+			else {
 				state.tokenize = inHistone;
 				return 'tag';
 			}
@@ -61,73 +72,45 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 			return ret('tag', null);
 		}
 
-		var ch = stream.next();
-		if (ch == '$') {
-			stream.eatWhile(regs.validIdentifier);
-			return ret('variable-2', 'variable');
-		} else if (ch == '.') {
-			return ret('operator', 'property');
-		} else if (regs.stringChar.test(ch)) {
-			state.tokenize = inAttribute(ch);
-			return ret('string', 'string');
-		} else if (regs.operatorChars.test(ch)) {
-			stream.eatWhile(regs.operatorChars);
-			return ret('operator', 'operator');
-		} else if (ch == '[' || ch == ']') {
-			return ret('bracket', 'bracket');
-		} else if (/\d/.test(ch)) {
-			stream.eatWhile(/\d/);
-			return ret('number', 'number');
-		} else {
-			if (state.last == 'variable') {
-				if (ch == '@') {
-					stream.eatWhile(regs.validIdentifier);
-					return ret('property', 'property');
-				} else if (ch == '|') {
-					stream.eatWhile(regs.validIdentifier);
-					return ret('qualifier', 'modifier');
-				}
-			} else if (state.last == 'whitespace') {
-				stream.eatWhile(regs.validIdentifier);
-				return ret('attribute', 'modifier');
-			} else if (state.last == 'property') {
-				stream.eatWhile(regs.validIdentifier);
-				return ret('property', null);
-			} else if (/\s/.test(ch)) {
-				last = 'whitespace';
-				return null;
-			}
-			var str = '';
-			if (ch != '/') {
-				str += ch;
-			}
-			var c = '';
-			while ((c = stream.eat(regs.validIdentifier))) {
-				str += c;
-			}
-			var i, j;
-			for (i=0, j=keyFuncs.length; i<j; i++) {
-				if (keyFuncs[i] == str) {
-					return ret('keyword', 'keyword');
-				}
-			}
-			if (/\s/.test(ch)) {
-				return null;
-			}
-			return ret('tag', 'tag');
-		}
-	}
+		var f;
 
-	function inAttribute(quote) {
-		return function(stream, state) {
-			while (!stream.eol()) {
-				if (stream.next() == quote) {
-					state.tokenize = inHistone;
-					break;
-				}
+		if (f = stream.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)/)) {
+			if (reservedWords.indexOf(f[0]) !== -1) {
+				return ret('keyword', 'keyword');
 			}
-			return 'string';
-		};
+			else if (reservedVars.indexOf(f[0]) !== -1) {
+				return ret('keyword', 'keyword');
+			}
+			else if (globalFunctions.indexOf(f[0]) !== -1) {
+				return ret('builtin', 'builtin');
+			}
+			else {
+				return ret('variable-2', 'variable');
+			}
+		}
+
+		else if (stream.match(/^('(?:[^'\\]|\\.)*')/) ||
+			stream.match(/^("(?:[^"\\]|\\.)*")/)) {
+			return ret('string', 'string');
+		}
+
+		else if (stream.match(/^(?:[0-9]*\.)?[0-9]+[eE][\+\-]?[0-9]+/) ||
+			stream.match(/^([0-9]*\.[0-9]+)/) ||
+			stream.match(/^([0-9]+)/)) {
+			return ret('number', 'number');
+		}
+
+		else if (stream.match(/^([\[\]\(\)])/) ||
+			stream.match(/^(<=|>=|>|<|\?|=|:|,|\.|\+|\-|\*|\/)/)) {
+			return ret('qualifier', 'qualifier');
+		}
+
+
+		else {
+			var ch = stream.next();
+		}
+
+		return null;
 	}
 
 	function inBlock(style, terminator) {
@@ -143,7 +126,7 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 		};
 	}
 
-	return {
+	var histoneOverlay = {
 		electricChars: '',
 		startState: function() {
 			return {
@@ -158,6 +141,10 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 			return style;
 		}
 	};
+
+	return CodeMirror.overlayMode(CodeMirror.getMode(
+		config, parserConfig.backdrop || 'text/html'
+	), histoneOverlay);
 });
 
 CodeMirror.defineMIME('text/x-histone', 'histone');

@@ -21,7 +21,6 @@ $(document).ready(function() {
 
 	var templateEditor = CodeMirror.fromTextArea(
 		$('.template')[0], {
-			theme: 'elegant',
 			mode: 'histone',
 			indentUnit: 4,
 			lineNumbers: true,
