@@ -85,7 +85,7 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 				return ret('builtin', 'builtin');
 			}
 			else {
-				return ret('variable-2', 'variable');
+				return ret('variable', 'variable');
 			}
 		}
 

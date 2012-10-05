@@ -221,8 +221,9 @@ html, body {
 }
 
 .left-column .CodeMirror-gutter {
-	background-color: white;
 	border-right: none;
+	background-color: #F9F8F5;
+	border-right: 1px solid #DDDDDD;
 }
 
 .left-column .CodeMirror-gutter-text {
