@@ -379,8 +379,8 @@ html, body {
 	background-color: #93A0B8;
 	background-repeat: repeat-x;
 	background-position: left top;
-	text-shadow: 1px 1px 1px #7F93AA;
-	background-image: url('../media/selbg.png');
+	text-shadow: 1px 1px 1px #65778A;
+	background-image: url('../media/selbg.png?x');
 }
 
 .-ui-treeView-item-children {
