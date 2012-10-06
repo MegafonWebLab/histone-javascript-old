@@ -190,9 +190,7 @@ $(document).ready(function() {
 		treeViewTpl.render(function(html) {
 			sideBar.html(html);
 			callback();
-		}, {
-			items: examples
-		});
+		}, {items: examples});
 	}
 
 	function treeViewItemClick() {
