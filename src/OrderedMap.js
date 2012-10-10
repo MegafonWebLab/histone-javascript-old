@@ -17,6 +17,16 @@
 
 define(['./Utils.js'], function(Utils) {
 
+	function indexOf(array, start) {
+		if (Array.prototype.indexOf) {
+			return array.indexOf(start);
+		}
+		for (var i = (start || 0), j = this.length; i < j; i++) {
+			if (this[i] === array) { return i; }
+		}
+		return -1;
+	}
+
 	var OrderedMap = function() {
 
 		var maxIndex = -1;
@@ -72,7 +82,7 @@ define(['./Utils.js'], function(Utils) {
 			if (!Utils.isString(key) &&
 				!Utils.isNumber(key)) return false;
 			var key = String(key);
-			return (keys.indexOf(key) !== -1);
+			return indexOf(keys, key) !== -1;
 		};
 
 		this.join = function(separator) {
@@ -84,7 +94,7 @@ define(['./Utils.js'], function(Utils) {
 			if (!Utils.isString(key) &&
 				!Utils.isNumber(key)) return;
 			var key = String(key);
-			var keyIndex = keys.indexOf(key);
+			var keyIndex = indexOf(keys, key);
 			if (keyIndex === -1) return;
 			return values[keyIndex];
 		};
@@ -92,7 +102,7 @@ define(['./Utils.js'], function(Utils) {
 		this.set = function(key, value) {
 			if (Utils.isString(key) || Utils.isNumber(key)) {
 				var key = String(key);
-				var keyIndex = keys.indexOf(key);
+				var keyIndex = indexOf(keys, key);
 				if (keyIndex === -1) {
 					if (Utils.isNumeric(key) &&
 						key > maxIndex) {
@@ -113,7 +123,7 @@ define(['./Utils.js'], function(Utils) {
 			if (!Utils.isString(key) &&
 				!Utils.isNumber(key)) return this;
 			var key = String(key);
-			var keyIndex = keys.indexOf(key);
+			var keyIndex = indexOf(keys, key);
 			if (keyIndex === -1) return this;
 			keys.splice(keyIndex, 1);
 			values.splice(keyIndex, 1);
