@@ -330,10 +330,22 @@
 		{{var timeLine = loadJSON(url, true)}}
 
 		{{for entry in timeLine}}
-		<div style="margin: 1px; border: 1px solid red; padding: 5px;">
+			<div style="margin: 1px; border: 1px solid red; padding: 5px;">
 				{{entry.text}}
 			</div>
 		{{/for}}
+	]]></example>
+
+	<example name="global.loadJSON() for GitHub API"><![CDATA[
+		{{var url = 'https://api.github.com/users/angrycoding/repos/'}}
+		{{var repositories = loadJSON(url, true)}}
+
+		{{for repo in repositories}}
+			<div style="margin: 1px; border: 1px solid red; padding: 5px;">
+				<a href="#{{repo.name}}">{{repo.name}}</a>
+				<div>{{repo.description}}</div>
+			</div>
+		{{/for*}}
 	]]></example>
 
 	<example name="global.include()"><![CDATA[
