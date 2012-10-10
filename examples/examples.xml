@@ -318,6 +318,24 @@
 		</div>
 	]]></example>
 
+	<example name="global.loadJSON() for JSONP"><![CDATA[
+		{{var url = [
+			'https://api.twitter.com/1/',
+			'statuses/user_timeline.json?',
+			'include_rts=true&',
+			'screen_name=_ruslan&',
+			'count=30'
+		].join('')}}
+
+		{{var timeLine = loadJSON(url, true)}}
+
+		{{for entry in timeLine}}
+		<div style="margin: 1px; border: 1px solid red; padding: 5px;">
+				{{entry.text}}
+			</div>
+		{{/for}}
+	]]></example>
+
 	<example name="global.include()"><![CDATA[
 		{{* process template from examples/include.tpl file *}}
 		{{var url = 'examples/include.tpl'}}
