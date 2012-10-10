@@ -184,7 +184,7 @@ $(document).ready(function() {
 			examples.push({
 				title: exampleName,
 				data: exampleData,
-				id: examples.length,
+				id: examples.length
 			});
 		});
 		treeViewTpl.render(function(html) {
