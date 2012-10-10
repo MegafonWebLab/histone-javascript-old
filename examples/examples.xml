@@ -345,7 +345,7 @@
 				<a href="#{{repo.name}}">{{repo.name}}</a>
 				<div>{{repo.description}}</div>
 			</div>
-		{{/for*}}
+		{{/for}}
 	]]></example>
 
 	<example name="global.include()"><![CDATA[
