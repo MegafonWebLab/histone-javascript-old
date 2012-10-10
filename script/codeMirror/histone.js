@@ -29,7 +29,20 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 		'userAgent'
 	];
 
-	//qualifier - use for operators
+	function indexOf(array, find, i) {
+		if (Array.prototype.indexOf) {
+			return array.indexOf(find, i);
+		}
+		if (i===undefined) i= 0;
+		if (i < 0) i += array.length;
+		if (i < 0) i = 0;
+		for (var c = array.length; i < c; i++) {
+			if (i in array && array[i] === find) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 	var last;
 
@@ -75,13 +88,13 @@ CodeMirror.defineMode('histone', function(config, parserConfig) {
 		var f;
 
 		if (f = stream.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)/)) {
-			if (reservedWords.indexOf(f[0]) !== -1) {
+			if (indexOf(reservedWords, f[0]) !== -1) {
 				return ret('keyword', 'keyword');
 			}
-			else if (reservedVars.indexOf(f[0]) !== -1) {
+			else if (indexOf(reservedVars, f[0]) !== -1) {
 				return ret('keyword', 'keyword');
 			}
-			else if (globalFunctions.indexOf(f[0]) !== -1) {
+			else if (indexOf(globalFunctions, f[0]) !== -1) {
 				return ret('builtin', 'builtin');
 			}
 			else {
