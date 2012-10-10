@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 
-define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
-	function(Utils, OrderedMap, Parser, CallStack) {
+define([
+	'./JSON.js',
+	'./Utils.js',
+	'./Parser.js',
+	'./CallStack.js',
+	'./OrderedMap.js',
+	'./AJAXRequest.js'
+], function(JSON, Utils, Parser, CallStack, OrderedMap, AJAXRequest) {
 
 	var resourceCache = {};
 	var URIResolver = null;
@@ -96,42 +102,22 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 		return '';
 	}
 
-	function doRequest(uri, success, fail, props) {
-		try {
-			var xhr = new XMLHttpRequest();//text.createXhr();
-			xhr.open('GET', uri + '?' + Math.random(), true);
-
-			xhr.onreadystatechange = function (evt) {
-				if (xhr.readyState !== 4) return;
-
-				// intelligent guess!
-				var contentType = xhr.getResponseHeader('Content-type');
-
-				var status = xhr.status;
-				if (status > 399 && status < 600) fail();
-				else {
-					success(xhr.responseText, contentType);
-				}
-			};
-			xhr.send(null);
-		} catch (e) { fail(); }
-	}
-
-	function resolveURIDefault(requestURI, baseURI, ret, requestProps) {
+	function resolveURIDefault(requestURI, baseURI, ret,
+		requestProps, isJSONP) {
 		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
 		if (!resourceCache.hasOwnProperty(resourceURI)) {
-			doRequest(resourceURI, function(resourceData) {
+			AJAXRequest(resourceURI, function(resourceData) {
 				resourceData = ret(resourceData, resourceURI);
 				if (!Utils.isUndefined(resourceData)) {
 					resourceCache[resourceURI] = resourceData;
 				}
 			}, function() {
 				ret(undefined, resourceURI);
-			}, requestProps);
+			}, requestProps, isJSONP);
 		} else ret(resourceCache[resourceURI], resourceURI);
 	}
 
-	function resolveURI(requestURI, baseURI, ret, requestProps) {
+	function resolveURI(requestURI, baseURI, ret, requestProps, isJSONP) {
 		try {
 			if (Utils.isFunction(URIResolver) && URIResolver(
 				requestURI, baseURI, function(resourceData, resourceURI) {
@@ -139,7 +125,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 				ret(resourceData, resourceURI);
 			}, requestProps) === true) return;
 		} catch (e) {}
-		resolveURIDefault(requestURI, baseURI, ret, requestProps);
+		resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP);
 	}
 
 	function js2internal(value) {
@@ -636,6 +622,12 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 			template = parserInstance.parse(template, baseURI);
 		} else if (template instanceof Template) {
 			return template;
+		} else if (Utils.isDOMElement(template)) {
+			return Histone(
+				template.text ||
+				template.textContent,
+				baseURI
+			);
 		} else if (!Utils.isArray(template)) {
 			template = String(template);
 			throw('"' + template + '" is not a string');
@@ -916,20 +908,25 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 		},
 
 		loadJSON: function(value, args, ret) {
-			var requestURI = args[0];
-			var requestProps = args[1];
+			var requestURI = args.shift();
+			var requestProps = (!Utils.isBoolean(args[0]) && args.shift());
+			var isJSONP = (Utils.isBoolean(args[0]) && args[0]);
 			var baseURI = this.getBaseURI();
-			resolveURI(requestURI, baseURI, function(resouceData) {
-				if (!Utils.isString(resouceData)) {
-					resouceData = js2internal(resouceData);
-					return ret(resouceData);
+			resolveURI(requestURI, baseURI, function(data) {
+				if (!Utils.isString(data)) {
+					data = js2internal(data);
+					return ret(data);
+				}
+				if (isJSONP) {
+					data = data.replace(/^\s*[$A-Z_][0-9A-Z_$]*\(\s*/i, '');
+					data = data.replace(/\s*\)\s*$/, '');
 				}
 				try {
-					resouceData = JSON.parse(resouceData);
-					resouceData = js2internal(resouceData);
-					ret(resouceData);
+					data = JSON.parse(data);
+					data = js2internal(data);
+					ret(data);
 				} catch (e) { ret(); }
-			}, requestProps);
+			}, requestProps, isJSONP);
 		},
 
 		loadText: function(value, args, ret) {
@@ -1037,7 +1034,7 @@ define(['./Utils.js', './OrderedMap.js', './Parser.js', './CallStack.js'],
 	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
 		requestURI = Utils.uri.resolve(requestURI, window.location.href);
-		doRequest(requestURI, function(resourceData, contentType) {
+		AJAXRequest(requestURI, function(resourceData, contentType) {
 			if (contentType === 'application/json') try {
 				resourceData = JSON.parse(resourceData);
 			} catch (e) {}
