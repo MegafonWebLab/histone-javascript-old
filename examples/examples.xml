@@ -337,7 +337,7 @@
 	]]></example>
 
 	<example name="global.loadJSON() for GitHub API"><![CDATA[
-		{{var url = 'https://api.github.com/users/angrycoding/repos/'}}
+		{{var url = 'https://api.github.com/users/angrycoding/repos'}}
 		{{var repositories = loadJSON(url, true)}}
 
 		{{for repo in repositories}}
