@@ -137,8 +137,12 @@ define(function() {
 	 * @return {boolean} Returns true if the value is HTML DOM element.
 	 */
 	function isDOMElement(value) {
-		if (!isObject(value)) return false;
-		return (value.nodeType === 1);
+		try {
+			return value instanceof HTMLElement;
+		} catch (exception) { return (
+			typeof(value) === 'object' &&
+			value.nodeType === 1
+		); }
 	}
 
 	/**
