@@ -100,7 +100,6 @@ define(['./Utils.js'], function(Utils) {
 				!Utils.isNumber(key)) return;
 			var key = String(key);
 			var keyIndex = indexOf(keys, key);
-			alert(keyIndex);
 			if (keyIndex === -1) return;
 			return values[keyIndex];
 		};
