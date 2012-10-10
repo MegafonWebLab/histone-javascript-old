@@ -132,6 +132,16 @@ define(function() {
 	}
 
 	/**
+	 * Returns true if the value is HTML DOM element.
+	 * @param {*} value Value to check.
+	 * @return {boolean} Returns true if the value is HTML DOM element.
+	 */
+	function isDOMElement(value) {
+		if (!isObject(value)) return false;
+		return (value.nodeType === 1);
+	}
+
+	/**
 	 * Returns value's base type (according to the base types list).
 	 * @param {*} value Value to check.
 	 * @return {string|*} Returns value's base type name.
@@ -284,6 +294,7 @@ define(function() {
 		isObject: isObject,
 		isFunction: isFunction,
 		isNumeric: isNumeric,
+		isDOMElement: isDOMElement,
 		getBaseType: getBaseType,
 
 		uniqueId: uniqueId,
