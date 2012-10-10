@@ -17,12 +17,17 @@
 
 define(['./Utils.js'], function(Utils) {
 
-	function indexOf(array, start) {
+	function indexOf(array, find, i) {
 		if (Array.prototype.indexOf) {
-			return array.indexOf(start);
+			return array.indexOf(find, i);
 		}
-		for (var i = (start || 0), j = this.length; i < j; i++) {
-			if (this[i] === array) { return i; }
+		if (i===undefined) i= 0;
+		if (i < 0) i += array.length;
+		if (i < 0) i = 0;
+		for (var c = array.length; i < c; i++) {
+			if (i in array && array[i] === find) {
+				return i;
+			}
 		}
 		return -1;
 	}
@@ -95,6 +100,7 @@ define(['./Utils.js'], function(Utils) {
 				!Utils.isNumber(key)) return;
 			var key = String(key);
 			var keyIndex = indexOf(keys, key);
+			alert(keyIndex);
 			if (keyIndex === -1) return;
 			return values[keyIndex];
 		};
