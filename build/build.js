@@ -30,7 +30,8 @@ function buildDependencies(fileName, exportAs, callback) {
 	var result = '';
 	var dependencyPaths = {};
 
-	var buildFileList = function(fileName, exportAs) {
+	var buildFileList = function(fileName, order, exportAs) {
+		if (order === undefined) order = 0;
 		var inputFile = readFile(fileName);
 		new Function('define', inputFile)(function() {
 
@@ -41,9 +42,13 @@ function buildDependencies(fileName, exportAs, callback) {
 
 			if (!dependencyPaths.hasOwnProperty(fileName)) {
 				if (callback instanceof Function) callback(fileName);
-				dependencyPaths[fileName] = {exportAs: {},
+				dependencyPaths[fileName] = {
+					order: order,
+					exportAs: {},
 					body: definition
 				};
+			} else {
+				dependencyPaths[fileName].order++;
 			}
 
 			if (exportAs && !dependencyPaths[fileName]
@@ -55,7 +60,7 @@ function buildDependencies(fileName, exportAs, callback) {
 			for (var c = 0; c < dependencies.length; c++) {
 				var dependencyPath = dependencies[c];
 				dependencyPath = Files.resolvePath(dependencyPath, fileName);
-				buildFileList(dependencyPath, defArgs[c]);
+				buildFileList(dependencyPath, order + 1, defArgs[c]);
 			}
 
 		});
@@ -64,8 +69,19 @@ function buildDependencies(fileName, exportAs, callback) {
 	buildFileList(fileName);
 	dependencyPaths[fileName].exportAs[exportAs] = true;
 
+	var dependencies = [];
 	for (var dependencyPath in dependencyPaths) {
 		var dependency = dependencyPaths[dependencyPath];
+		// dependency.path = dependencyPath;
+		dependencies.push(dependency);
+	}
+
+	dependencies.sort(function(a, b) {
+		return (a.order < b.order);
+	});
+
+	while (dependencies.length) {
+		var dependency = dependencies.shift();
 		var exportAs = null;
 		for (var exportVar in dependency.exportAs) {
 			result += 'var ';
@@ -83,6 +99,26 @@ function buildDependencies(fileName, exportAs, callback) {
 			result += '\n';
 		}
 	}
+
+	// for (var dependencyPath in dependencyPaths) {
+	// 	var dependency = dependencyPaths[dependencyPath];
+	// 	var exportAs = null;
+	// 	for (var exportVar in dependency.exportAs) {
+	// 		result += 'var ';
+	// 		result += exportVar;
+	// 		if (!exportAs) {
+	// 			result += ' = (';
+	// 			result += Utils.setFunctionArguments(dependency.body);
+	// 			result += ')();';
+	// 			exportAs = exportVar;
+	// 		} else {
+	// 			result += ' = ';
+	// 			result += exportAs;
+	// 			result += ';';
+	// 		}
+	// 		result += '\n';
+	// 	}
+	// }
 
 	var header = '(typeof requirejs === "function" && ';
 	header += 'typeof define === "function" &&\n';
@@ -103,5 +139,5 @@ var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
 	print('processing dependency:', path);
 });
 print('compiling:', OUTPUT_PATH);
-result = Compiler.compile(result);
+// result = Compiler.compile(result);
 Files.write(OUTPUT_PATH, result);
