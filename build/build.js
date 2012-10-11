@@ -72,7 +72,6 @@ function buildDependencies(fileName, exportAs, callback) {
 	var dependencies = [];
 	for (var dependencyPath in dependencyPaths) {
 		var dependency = dependencyPaths[dependencyPath];
-		// dependency.path = dependencyPath;
 		dependencies.push(dependency);
 	}
 
@@ -99,26 +98,6 @@ function buildDependencies(fileName, exportAs, callback) {
 			result += '\n';
 		}
 	}
-
-	// for (var dependencyPath in dependencyPaths) {
-	// 	var dependency = dependencyPaths[dependencyPath];
-	// 	var exportAs = null;
-	// 	for (var exportVar in dependency.exportAs) {
-	// 		result += 'var ';
-	// 		result += exportVar;
-	// 		if (!exportAs) {
-	// 			result += ' = (';
-	// 			result += Utils.setFunctionArguments(dependency.body);
-	// 			result += ')();';
-	// 			exportAs = exportVar;
-	// 		} else {
-	// 			result += ' = ';
-	// 			result += exportAs;
-	// 			result += ';';
-	// 		}
-	// 		result += '\n';
-	// 	}
-	// }
 
 	var header = '(typeof requirejs === "function" && ';
 	header += 'typeof define === "function" &&\n';
