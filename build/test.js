@@ -186,7 +186,11 @@ function runTestCase(testCase, testCaseURL) {
 
 Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
 
-	if (file.type === 'folder') return false;
+	if (file.type === 'folder') {
+		if (file.name === 'functions') return true;
+		return false;
+	}
+
 	var fileType = file.name.split('.').pop();
 	if (fileType !== 'json') return;
 
