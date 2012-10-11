@@ -17,9 +17,9 @@
 
 load('Histone.js');
 var Files = require('Files');
+var Utils = require('Utils');
 var testResult = 0;
 var registeredFunctions = [];
-
 
 function printMessage(type, message) {
 	var message = JSON.stringify(message);
@@ -184,7 +184,10 @@ function runTestCase(testCase, testCaseURL) {
 
 };
 
-Files.readDir('histone-acceptance-tests/src/main/acceptance', function(file) {
+var testsDir = Utils.getEnv('tests');
+if (!testsDir) testsDir = 'histone-acceptance-tests/src/main/acceptance';
+
+Files.readDir(testsDir, function(file) {
 
 	if (file.type === 'folder') {
 		if (file.name === 'functions') return true;
