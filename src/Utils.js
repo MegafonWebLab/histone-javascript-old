@@ -245,7 +245,7 @@ define(function() {
 			if (ts = baseUri.scheme) res += (ts + ':');
 			if (ts = relUri.authority) {
 				res += ('//' + ts);
-				if (ts = removeDotSegments(relUri.path)) res += ts;
+				if (ts = removeDotSegments(relUri.path || '')) res += ts;
 				if (ts = relUri.query) res += ('?' + ts);
 			} else {
 				if (ts = baseUri.authority) res += ('//' + ts);
@@ -258,7 +258,7 @@ define(function() {
 				} else {
 					if (ts = baseUri.path) res += ts;
 					if ((ts = relUri.query) ||
-						(ts = baseUri.query)) res += ts;
+						(ts = baseUri.query)) res += ('?' + ts);
 				}
 			}
 		}
