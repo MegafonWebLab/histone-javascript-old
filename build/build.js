@@ -139,5 +139,5 @@ var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
 	print('processing dependency:', path);
 });
 print('compiling:', OUTPUT_PATH);
-// result = Compiler.compile(result);
+result = Compiler.compile(result);
 Files.write(OUTPUT_PATH, result);
