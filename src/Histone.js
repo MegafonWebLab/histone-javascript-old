@@ -952,6 +952,18 @@ define([
 			});
 		},
 
+		rand: function(value, args, ret) {
+			var min = parseFloat(args[0]);
+			var max = parseFloat(args[1]);
+			if (!Utils.isNumber(min) || min % 1 !== 0) {
+				min = 0;
+			}
+			if (!Utils.isNumber(max) || max % 1 !== 0) {
+				max = Math.pow(2, 32) - 1;
+			}
+			ret(Math.floor(Math.random() * (max - min + 1)) + min);
+		},
+
 		min: function(value, values, ret) {
 			var count = values.length;
 			var minValue = undefined;
