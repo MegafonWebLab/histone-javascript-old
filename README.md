@@ -3,14 +3,14 @@ Histone template engine [![Build Status](https://secure.travis-ci.org/MegafonWeb
 
 Histone — powerful and flexible template engine, which can be used for
 HTML - code generation as well as any other kind of text - documents.
-Histone implementations exists for the web - browser (supported Safari,
-Google Chrome, Mozilla FireFox, Opera and Internet Explorer 6 or higher) as well as for the server
-(Java and PHP), it allows you to use same templates on the server and on the
-client. Built - in extension mechanism allows you to extend default template
-engine features, by adding your own methods and properties for the particular
-project. Templates has clean and simple syntax and can be stored either as
-source code or as compiled code that can be executed with the maximum
-performance wherever it's needed.
+Histone implementations exists for JavaScript (**web - browsers** Safari,
+Google Chrome, Mozilla FireFox, Opera and Internet Explorer 6 or higher,
+**Node.js** and **Mozilla Rhino**) as well as for the Java and PHP, it
+allows you to use same templates on the server and on the client.
+Built - in extension mechanism allows you to extend default template engine
+features, by adding your own methods and properties for the particular project.
+Templates has clean and simple syntax and can be stored either as source code or
+as compiled code that can be executed with the maximum performance wherever it's needed.
 
 See live demo here:
 [http://megafonweblab.github.com/histone-javascript/](http://megafonweblab.github.com/histone-javascript/)
@@ -32,14 +32,14 @@ or just download ZIP - archive from this webpage.
 Building Histone
 --------------------------------------
 
-Enter the directory and build Histone by running ant without arguments:
+Enter the directory and build Histone by running **ant** without arguments:
 
 ```bash
 cd histone-javascript
 ant
 ```
 
-This will produce Histone.js in the same folder.
+This will produce minified **Histone.js** in the same folder.
 
 Running automated tests
 --------------------------------------
@@ -56,7 +56,7 @@ This will build Histone.js, obtain latest test files from
 and test Histone against them, using [Mozilla Rhino Javascript engine](https://developer.mozilla.org/en-US/docs/Rhino).
 You can also check current build status on [Travis CI continuous integration server](https://travis-ci.org/#!/MegafonWebLab/histone-javascript).
 
-Using Histone
+Using Histone in the web - browser
 --------------------------------------
 
 In case if you use Histone as RequireJS module:
@@ -94,7 +94,7 @@ In case if you prefer to use pure JavaScript - library:
 </script>
 ```
 
-Histone depends on JSON serialization and deserialization, so in case if you are
+**NOTE**: Histone depends on JSON serialization and deserialization, so in case if you are
 planning to use Histone in **Internet Explorer 7 or lower** (where JSON
 implementation is missing), you'll have to include a script that implements it
  (you can find more information on [http://json.org/](http://json.org/)). Histone
@@ -108,6 +108,24 @@ playground application uses [JSON implementation developed by Douglas Crockford]
 <![endif]-->
 <!-- include Histone library -->
 <script type="text/javascript" src="Histone.js"></script>
+```
+
+Using Histone in Node.js
+--------------------------------------
+
+Using Histone in Node.js projects is trivial, just load Histone module,
+create a Template instance and call render when needed:
+
+```javascript
+// load Histone module
+var Histone = require('./Histone.js');
+// create Template instance
+var template = Histone('2 x 2 = {{2 * 2}}');
+// render template
+template.render(function(result) {
+    // output the result
+    console.info(result);
+});
 ```
 
 Passing JavaScript - variables
