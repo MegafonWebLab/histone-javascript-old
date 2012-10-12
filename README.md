@@ -134,7 +134,7 @@ To run the example, put the code into a file example.js and execute it with the 
 
 ```bash
 > node example.js
-2 x 2 = {{2 * 2}}
+2 x 2 = 4
 ```
 
 Passing JavaScript - variables
