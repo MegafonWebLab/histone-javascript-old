@@ -68,14 +68,10 @@ $(document).ready(function() {
 
 	function setResult(result) {
 		textResultEl.val(result);
-		// alert(
-			// MAKe A FUNCTION THAT MAKES JSONP REQUEST!!!!
-			// SHARE ON TWITTER
-			// iframe stuff
-			// htmlResultEl[0].contentWindow.document.open();
-			// htmlResultEl[0].contentWindow.document.write(result);
-			// $(htmlResultEl[0].contentWindow.document.body).html(result);
-			// );
+		// iframe stuff
+		// htmlResultEl[0].contentWindow.document.open();
+		// htmlResultEl[0].contentWindow.document.write(result);
+		// $(htmlResultEl[0].contentWindow.document.body).html(result);
 		htmlResultEl.html(result);
 	}
 

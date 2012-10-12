@@ -120,6 +120,22 @@
 		{{hello('Histone')}}
 	]]></example>
 
+	<example name="number.log()"><![CDATA[
+		{{* using log, floor, pow and toFixed functions *}}
+		{{macro byteFormat(bytes)}}
+			{{var s = ['B', 'Kb', 'MB', 'GB', 'TB', 'PB']}}
+			{{var e = (bytes.log() / 1024.log()).floor()}}
+			{{(bytes / 1024.pow(e)).toFixed(2) + s[e]}}
+		{{/macro}}
+
+		{{for power in range(1, 5)}}
+			<div>
+				{{var bytes = 1094.pow(power)}}
+				{{bytes}} bytes = {{byteFormat(bytes)}}
+			</div>
+		{{/for}}
+	]]></example>
+
 	<example name="number.toChar()"><![CDATA[
 		{{* using toChar() function to convert character code into a character *}}
 		{{var codes = [
@@ -257,6 +273,13 @@
 		<div>There are {{daysInMonth(2012, 2)}} days in {{months[1]}} 2012</div>
 	]]></example>
 
+	<example name="global.rand()"><![CDATA[
+		{{* generate 10 random numbers between -10 and 10 *}}
+		{{for index in range(1, 30)}}
+			<div>{{index}}. rand(-10, 10) is {{rand(-10, 10)}}</div>
+		{{/for}}
+	]]></example>
+
 	<example name="global.range()"><![CDATA[
 		<div>
 			{{* creating a array with 30 elements in it *}}
@@ -276,9 +299,9 @@
 	]]></example>
 
 	<example name="global.uniqueId()"><![CDATA[
-		{{* generate 10 unique identifiers *}}
+		{{* generate 30 unique identifiers *}}
 		{{for index in range(1, 30)}}
-			<div>{{index}}. uniquId is {{uniqueId()}}</div>
+			<div>{{index}}. uniquId() is {{uniqueId()}}</div>
 		{{/for}}
 	]]></example>
 
