@@ -99,14 +99,18 @@ function buildDependencies(fileName, exportAs, callback) {
 		}
 	}
 
-	var header = '(typeof requirejs === "function" && ';
-	header += 'typeof define === "function" &&\n';
-	header += '\tdefine.amd instanceof Object ? define : ';
-	header += 'function(definition, global) {\n';
-	header += '\t\tglobal["' + FUNCTION_NAME + '"] = definition();\n';
-	header += '\t}\n';
-	header += ')(function() {\n';
-
+	var header = '(\n';
+		header += '\ttypeof requirejs === "function" &&\n';
+		header += '\ttypeof define === "function" &&\n';
+		header += '\tdefine.amd instanceof Object\n';
+	header += '? define : function(definition, global) {\n';
+		header += '\tvar definition = definition();\n';
+		header += '\tif (typeof process === "object" &&\n';
+		header += '\t\ttypeof process.versions === "object" &&\n';
+		header += '\t\ttypeof process.versions.node === "string") {\n';
+			header += '\t\t\tmodule.exports = definition;\n';
+		header += '\t\t} else global["' + FUNCTION_NAME + '"] = definition;\n'
+	header += '})(function() {\n';
 	result = header + result;
 	result += 'return ' + FUNCTION_NAME + ';';
 	result += '}, function() { return this; }.call(null));'
