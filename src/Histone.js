@@ -166,8 +166,9 @@ define([
 		if (Utils.isObject(value) && value instanceof OrderedMap) {
 			handler = Histone.Map;
 		}
-
-		if (handler.hasOwnProperty(name)) return handler[name];
+		if (Object.prototype.hasOwnProperty.call(handler, name)) {
+			return handler[name];
+		}
 		if (Histone.Type.hasOwnProperty(name)) return Histone.Type[name];
 		if (isProp && handler.hasOwnProperty('')) return handler[''];
 	}
