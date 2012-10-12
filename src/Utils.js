@@ -217,11 +217,11 @@ define(function() {
 	function URIParse(uri) {
 		var result = uri.match(URL_PARSER_REGEXP);
 		return {
-			'scheme': (result[1] || null),
-			'authority': (result[2] || null),
-			'path': (result[3] || null),
-			'query': (result[4] || null),
-			'fragment': (result[5] || null)
+			'scheme': (result[1] || ''),
+			'authority': (result[2] || ''),
+			'path': (result[3] || ''),
+			'query': (result[4] || ''),
+			'fragment': (result[5] || '')
 		};
 	}
 
