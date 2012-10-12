@@ -274,10 +274,22 @@
 	]]></example>
 
 	<example name="global.rand()"><![CDATA[
-		{{* generate 10 random numbers between -10 and 10 *}}
-		{{for index in range(1, 30)}}
-			<div>{{index}}. rand(-10, 10) is {{rand(-10, 10)}}</div>
-		{{/for}}
+		{{* using random() function to generate random pattern *}}
+		{{var colors = ['white', 'red', 'blue', 'green', 'black', 'orange']}}
+		{{var maxColor = colors.size() - 1}}
+
+		<div style="position: relative; background-color: black; width: 300px; height: 300px;">
+			{{for c in range(0, 300)}}
+				{{var color = colors[rand(0, maxColor)]}}
+				<div style="{{[
+					'position: absolute',
+					'width: 3px', 'height: 3px',
+					'top:' + rand(0, 297) + 'px',
+					'left:' + rand(0, 297) + 'px',
+					'background-color:' + color
+				].join(';')}}"></div>
+			{{/for}}
+		</div>
 	]]></example>
 
 	<example name="global.range()"><![CDATA[
