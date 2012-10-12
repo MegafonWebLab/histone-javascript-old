@@ -233,4 +233,4 @@ Important links
 * [Documentation](http://weblab.megafon.ru/wiki/display/HistoneDocEN/Documentation)
 * [Follow us on twitter](https://twitter.com/intent/follow?screen_name=MegafonWebLab)
 * [Syntax highlighters](https://github.com/MegafonWebLab/histone-syntax-highlighting)
-* [Contributors](http://weblab.megafon.ru/histone/contributors/#JavaScript)
+* [Contributors](http://weblab.megafon.ru/histone/en/contributors/#JavaScript)
