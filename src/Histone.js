@@ -16,13 +16,12 @@
  */
 
 define([
-	'./JSON.js',
 	'./Utils.js',
 	'./Parser.js',
 	'./CallStack.js',
 	'./OrderedMap.js',
 	'./AJAXRequest.js'
-], function(JSON, Utils, Parser, CallStack, OrderedMap, AJAXRequest) {
+], function(Utils, Parser, CallStack, OrderedMap, AJAXRequest) {
 
 	var resourceCache = {};
 	var URIResolver = null;
