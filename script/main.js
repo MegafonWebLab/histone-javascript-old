@@ -14,6 +14,8 @@ $(document).ready(function() {
 	var astResultEl = $('.ast-area', resultEl);
 	var preloaderEl = $('.preloader-layer, .preloader-image');
 
+	if ($('.ie6-message')[0].offsetHeight) return;
+
 	var cloudMine = new cloudmine.WebService({
 		appid: 'a52c8c78a297414ba60979c75fef4317',
 		apikey: 'b8b315ebc5e4430197c9b49666e5bac3'
