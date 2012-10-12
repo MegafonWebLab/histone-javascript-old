@@ -30,7 +30,7 @@ define([
 		typeof Packages !== 'undefined' ? 'rhino' :
 		typeof process  !== 'undefined' ? 'node' :
 		typeof window !== 'undefined' ? 'browser' :
-		'server-side-javascript'
+		'unknown'
 	);
 	var userAgent = (
 		clientType === 'javascript/browser' ?
