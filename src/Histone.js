@@ -723,7 +723,9 @@ define([
 		pow: function(value, args, ret) {
 			var exp = args[0];
 			if (!Utils.isNumber(exp)) return ret();
-			ret(Math.pow(value, exp));
+			var result = Math.pow(value, exp);
+			if (isNaN(result)) return ret();
+			ret(result);
 		},
 
 		log: function(value, args, ret) {
