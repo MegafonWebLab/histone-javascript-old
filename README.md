@@ -94,6 +94,22 @@ In case if you prefer to use pure JavaScript - library:
 </script>
 ```
 
+Histone depends on JSON serialization and deserialization, so in case if you are
+planning to use Histone in Microsoft Internet Explorer 7 or lower (where JSON
+implementation is missing), you'll have to include a script that implements it.
+You can find more information on [http://json.org/](http://json.org/). Histone
+playground application uses [JSON implementation developed by Douglas Crockford]
+(https://github.com/douglascrockford/JSON-js).
+
+```html
+<!--[if lte IE 7]>
+	<!-- include JSON - implementation -->
+	<script type="text/javascript" src="json2.js"></script>
+<![endif]-->
+<!-- include Histone library -->
+<script type="text/javascript" src="Histone.js"></script>
+```
+
 Passing JavaScript - variables
 --------------------------------------
 
