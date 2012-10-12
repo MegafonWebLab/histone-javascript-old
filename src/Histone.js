@@ -730,10 +730,13 @@ define([
 
 		log: function(value, args, ret) {
 			if (value <= 0) return ret();
-			var base = args[0];
+			var result, base = args[0];
 			if (Utils.isNumber(base) && base > 0) {
-				ret(Math.log(value) / Math.log(base));
-			} else ret(Math.log(value));
+				result = Math.log(value) / Math.log(base);
+			} else result = Math.log(value);
+			if (isNaN(result)) return ret();
+			if (!isFinite(result)) return ret();
+			ret(result);
 		}
 
 	};
