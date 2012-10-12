@@ -6,6 +6,7 @@ html, body {
 	position: absolute;
 	font-size: 13px;
 	font-family: 'Lucida Grande', Tahoma;
+	overflow: hidden
 }
 
 .preloader-layer {
@@ -68,6 +69,8 @@ html, body {
 	list-style-type: none;
 	vertical-align: middle;
 	display: inline-block;
+	//display: inline;
+	//zoom: 1;
 }
 
 .histone-logo {
@@ -134,6 +137,8 @@ html, body {
 
 .change-result-format {
 	cursor: pointer;
+	//position: relative;
+	//top: -3px;
 }
 
 .toolbar-right {
@@ -223,6 +228,7 @@ html, body {
 .left-column .CodeMirror-gutter {
 	border-right: none;
 	background-color: white;
+	height: auto !important;
 }
 
 .left-column .CodeMirror-gutter-text {
@@ -328,6 +334,8 @@ html, body {
 	padding-right: 8px;
 	display: inline-block;
 	position: relative;
+	//display: inline;
+	//zoom: 1;
 }
 
 .-ui-treeView-item-arrow,
