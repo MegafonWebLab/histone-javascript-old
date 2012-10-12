@@ -24,7 +24,7 @@ In order to build Histone, you need to have [Apache ANT](http://ant.apache.org)
 First, clone a copy of the Histone JavaScript git repo by running:
 
 ```bash
-git clone git://github.com/MegafonWebLab/histone-javascript.git
+> git clone git://github.com/MegafonWebLab/histone-javascript.git
 ```
 
 or just download ZIP - archive from this webpage.
@@ -35,8 +35,8 @@ Building Histone
 Enter the directory and build Histone by running **ant** without arguments:
 
 ```bash
-cd histone-javascript
-ant
+> cd histone-javascript
+> ant
 ```
 
 This will produce minified **Histone.js** in the same folder.
@@ -47,8 +47,8 @@ Running automated tests
 Enter the directory and execute test target:
 
 ```bash
-cd histone-javascript
-ant test
+> cd histone-javascript
+> ant test
 ```
 
 This will build Histone.js, obtain latest test files from
@@ -110,6 +110,8 @@ playground application uses [JSON implementation developed by Douglas Crockford]
 <script type="text/javascript" src="Histone.js"></script>
 ```
 
+To run the examples, put the code into a file index.html and open it with your web - browser.
+
 Using Histone in Node.js
 --------------------------------------
 
@@ -126,6 +128,13 @@ template.render(function(result) {
     // output the result
     console.info(result);
 });
+```
+
+To run the example, put the code into a file example.js and execute it with the node program:
+
+```bash
+> node example.js
+2 x 2 = {{2 * 2}}
 ```
 
 Passing JavaScript - variables
