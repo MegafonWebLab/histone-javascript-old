@@ -20,23 +20,32 @@ define([
 	'./Parser.js',
 	'./CallStack.js',
 	'./OrderedMap.js',
-	'./AJAXRequest.js'
-], function(Utils, Parser, CallStack, OrderedMap, AJAXRequest) {
+	'./drivers/AJAXDriver.js',
+	'./drivers/NodeDriver.js',
+	'./drivers/RhinoDriver.js'
+], function(
+	Utils, Parser, CallStack, OrderedMap,
+	AJAXDriver, NodeDriver, RhinoDriver) {
 
 	var resourceCache = {};
 	var URIResolver = null;
 	var parserInstance = null;
-	var clientType = 'javascript/' + (
-		typeof Packages !== 'undefined' ? 'rhino' :
-		typeof process  !== 'undefined' ? 'node' :
-		typeof window !== 'undefined' ? 'browser' :
-		'unknown'
-	);
+
+	var envType = Utils.getEnvType();
+	var clientType = ('javascript/' + envType);
+
 	var userAgent = (
 		clientType === 'javascript/browser' ?
 		window.navigator.userAgent :
 		''
 	);
+
+	var NetworkRequest = (null ||
+		envType === 'node' && NodeDriver ||
+		envType === 'rhino' && RhinoDriver ||
+		envType === 'browser' && AJAXDriver
+	);
+
 
 	function nodeToBoolean(value) {
 		switch (Utils.getBaseType(value)) {
@@ -105,7 +114,7 @@ define([
 		requestProps, isJSONP) {
 		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
 		if (!resourceCache.hasOwnProperty(resourceURI)) {
-			AJAXRequest(resourceURI, function(resourceData) {
+			NetworkRequest(resourceURI, function(resourceData) {
 				resourceData = ret(resourceData, resourceURI);
 				if (!Utils.isUndefined(resourceData)) {
 					resourceCache[resourceURI] = resourceData;
@@ -924,7 +933,7 @@ define([
 				}
 				if (isJSONP) {
 					data = data.replace(/^\s*[$A-Z_][0-9A-Z_$]*\(\s*/i, '');
-					data = data.replace(/\s*\)\s*$/, '');
+					data = data.replace(/\s*\);?\s*$/, '');
 				}
 				try {
 					data = JSON.parse(data);
@@ -1051,7 +1060,7 @@ define([
 	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
 		requestURI = Utils.uri.resolve(requestURI, window.location.href);
-		AJAXRequest(requestURI, function(resourceData, contentType) {
+		NetworkRequest(requestURI, function(resourceData, contentType) {
 			if (contentType === 'application/json') try {
 				resourceData = JSON.parse(resourceData);
 			} catch (e) {}

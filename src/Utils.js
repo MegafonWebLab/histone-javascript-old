@@ -279,6 +279,13 @@ define(function() {
 		return result;
 	}
 
+	function getEnvType() {
+		if (typeof Packages !== 'undefined') return 'rhino';
+		if (typeof process  !== 'undefined') return 'node';
+		if (typeof window !== 'undefined') return 'browser';
+		return 'unknown';
+	}
+
 	return {
 		T_UNDEFINED: T_UNDEFINED,
 		T_NULL: T_NULL,
@@ -302,6 +309,7 @@ define(function() {
 		getBaseType: getBaseType,
 
 		uniqueId: uniqueId,
+		getEnvType: getEnvType,
 		forEachAsync: forEachAsync,
 
 		uri: {

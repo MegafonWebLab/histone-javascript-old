@@ -66,12 +66,12 @@ function unregisterFunctions() {
 	}
 }
 
-Histone.setURIResolver(function(requestURI, baseURI, ret, requestProps) {
-	var requestURI = Files.resolvePath(requestURI, baseURI);
-	var fileContents = readFile(requestURI);
-	ret(fileContents, requestURI);
-	return true;
-});
+// Histone.setURIResolver(function(requestURI, baseURI, ret, requestProps) {
+// 	var requestURI = Files.resolvePath(requestURI, baseURI);
+// 	var fileContents = readFile(requestURI);
+// 	ret(fileContents, requestURI);
+// 	return true;
+// });
 
 function runTestCase(testCase, testCaseURL) {
 	var template, actualException,
