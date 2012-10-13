@@ -206,10 +206,8 @@ $(document).ready(function() {
 	}
 
 	require([
-		'https://raw.github.com/MegafonWebLab/' +
-		'histone-javascript/master/src/Histone.js',
-		'https://raw.github.com/MegafonWebLab/' +
-		'histone-javascript/master/src/Histone.js!../templates/treeView.tpl'
+		'./script/Histone.js',
+		'./script/Histone.js!../templates/treeView.tpl'
 	], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
 		showPreloader('loading examples');
