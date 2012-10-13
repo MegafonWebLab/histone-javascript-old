@@ -1,4 +1,4 @@
-define(function() {
+define(['../Utils.js'], function() {
 
 	var XMLHttpFactories = [
 		function () {return new XMLHttpRequest()},
