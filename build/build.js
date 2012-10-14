@@ -79,8 +79,6 @@ function buildDependencies(fileName, exportAs, callback) {
 		return (b.order - a.order);
 	});
 
-	Utils.print(dependencies);
-
 	while (dependencies.length) {
 		var dependency = dependencies.shift();
 		var exportAs = null;
