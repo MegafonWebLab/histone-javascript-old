@@ -75,11 +75,11 @@ function buildDependencies(fileName, exportAs, callback) {
 		dependencies.push(dependency);
 	}
 
-	Utils.print(dependencies);
-
 	dependencies.sort(function(a, b) {
 		return (a.order < b.order);
 	});
+
+	Utils.print(dependencies);
 
 	while (dependencies.length) {
 		var dependency = dependencies.shift();
