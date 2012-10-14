@@ -295,7 +295,6 @@ define(function() {
 		T_FUNCTION: T_FUNCTION,
 		T_ARRAY: T_ARRAY,
 		T_OBJECT: T_OBJECT,
-
 		isUndefined: isUndefined,
 		isNull: isNull,
 		isBoolean: isBoolean,
@@ -307,11 +306,9 @@ define(function() {
 		isNumeric: isNumeric,
 		isDOMElement: isDOMElement,
 		getBaseType: getBaseType,
-
 		uniqueId: uniqueId,
 		getEnvType: getEnvType,
 		forEachAsync: forEachAsync,
-
 		uri: {
 			parse: URIParse,
 			resolve: URIResolve,
