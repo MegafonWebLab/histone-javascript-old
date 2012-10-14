@@ -21,8 +21,6 @@ var Utils = require('Utils');
 var testResult = 0;
 var registeredFunctions = [];
 
-print(readFile('Histone.js'));
-
 function printMessage(type, message) {
 	var message = JSON.stringify(message);
 	message = message.substr(1);

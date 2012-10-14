@@ -75,6 +75,8 @@ function buildDependencies(fileName, exportAs, callback) {
 		dependencies.push(dependency);
 	}
 
+	Utils.print(dependencies);
+
 	dependencies.sort(function(a, b) {
 		return (a.order < b.order);
 	});
@@ -122,5 +124,5 @@ var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
 	print('processing dependency:', path);
 });
 print('compiling:', OUTPUT_PATH);
-// result = Compiler.compile(result);
+result = Compiler.compile(result);
 Files.write(OUTPUT_PATH, result);
