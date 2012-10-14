@@ -305,10 +305,12 @@ define(function() {
 		isFunction: isFunction,
 		isNumeric: isNumeric,
 		isDOMElement: isDOMElement,
+
 		getBaseType: getBaseType,
 		uniqueId: uniqueId,
 		getEnvType: getEnvType,
 		forEachAsync: forEachAsync,
+
 		uri: {
 			parse: URIParse,
 			resolve: URIResolve,
