@@ -31,8 +31,13 @@ define([
 	var URIResolver = null;
 	var parserInstance = null;
 
+	print('START');
+	print('UTILS =', Utils);
+	print('UTILS.getEnvType =', Utils.getEnvType);
+
 	var envType = Utils.getEnvType();
 	var clientType = ('javascript/' + envType);
+	print('UTILS.envType =', envType);
 
 	var userAgent = (
 		clientType === 'javascript/browser' ?
