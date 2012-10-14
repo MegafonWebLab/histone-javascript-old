@@ -2,6 +2,7 @@ define(['../Utils.js'], function(Utils) {
 
 	return function(requestURI, success, fail, requestProps, isJSONP) {
 		var requestObj = Utils.uri.parse(requestURI);
+		print('RHINO:', requestURI);
 		try {
 			if (requestObj.scheme === 'http' ||
 				requestObj.scheme === 'https') {
