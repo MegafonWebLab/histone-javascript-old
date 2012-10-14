@@ -76,7 +76,7 @@ function buildDependencies(fileName, exportAs, callback) {
 	}
 
 	dependencies.sort(function(a, b) {
-		return (a.order < b.order);
+		return (b.order - a.order);
 	});
 
 	Utils.print(dependencies);
