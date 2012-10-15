@@ -33,19 +33,13 @@ define([
 
 	var envType = Utils.getEnvType();
 	var clientType = ('javascript/' + envType);
+	var userAgent = Utils.getEnvInfo();
 
-	var userAgent = (
-		clientType === 'javascript/browser' ?
-		window.navigator.userAgent :
-		''
-	);
-
-	var NetworkRequest = (null ||
+	var NetworkRequest = (
 		envType === 'node' && NodeDriver ||
 		envType === 'rhino' && RhinoDriver ||
 		envType === 'browser' && AJAXDriver
 	);
-
 
 	function nodeToBoolean(value) {
 		switch (Utils.getBaseType(value)) {

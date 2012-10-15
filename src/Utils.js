@@ -20,6 +20,9 @@ define(function() {
 	var UID_TIME_LAST = 0;
 	var UID_TIME_DIFF = 0;
 
+	var ENV_TYPE = null;
+	var ENV_INFO = null;
+
 	var T_UNDEFINED = 1;
 	var T_NULL = 2;
 	var T_BOOLEAN = 3;
@@ -280,10 +283,29 @@ define(function() {
 	}
 
 	function getEnvType() {
-		if (typeof Packages !== 'undefined') return 'rhino';
-		if (typeof process  !== 'undefined') return 'node';
-		if (typeof window !== 'undefined') return 'browser';
-		return 'unknown';
+		if (ENV_TYPE !== null) return ENV_TYPE;
+		return (typeof process  !== 'undefined' && (ENV_TYPE = 'node') ||
+			typeof Packages !== 'undefined' && (ENV_TYPE = 'rhino') ||
+			typeof window !== 'undefined' && (ENV_TYPE = 'browser') ||
+			(ENV_TYPE = 'unknown'));
+	}
+
+	function getEnvInfo() {
+		if (ENV_INFO !== null) return ENV_INFO;
+		var envType = getEnvType();
+		if (envType === 'node') return (ENV_INFO = process.versions);
+		if (envType === 'browser') return (ENV_INFO = window.navigator.userAgent);
+		if (envType === 'rhino') {
+			var System = java.lang.System;
+			return (ENV_INFO = {
+				'os.arch': String(System.getProperty('os.arch')),
+				'os.name': String(System.getProperty('os.name')),
+				'os.version': String(System.getProperty('os.version')),
+				'java.vendor': String(System.getProperty('java.vendor')),
+				'java.version': String(System.getProperty('java.version')),
+				'java.vendor.url': String(System.getProperty('java.vendor.url'))
+			});
+		}
 	}
 
 	return {
@@ -308,7 +330,10 @@ define(function() {
 
 		getBaseType: getBaseType,
 		uniqueId: uniqueId,
+
 		getEnvType: getEnvType,
+		getEnvInfo: getEnvInfo,
+
 		forEachAsync: forEachAsync,
 
 		uri: {
