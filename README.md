@@ -146,11 +146,10 @@ First of all you'll have to download latest **js.jar** from [Mozilla Rhino offic
 (https://developer.mozilla.org/en-US/docs/Rhino).
 Unless like Node.js, Mozilla Rhino supports two ways of loading external modules, first one
 is using **load()** function (loads the file, and executes it in the global context, so the module should
-export all it's vars into global namespace), and the second one is using CommonJS module loading. At
-the moment Histone can only be loaded using load function:
+export all it's vars into global namespace):
 
 ```javascript
-// load Histone module
+// load Histone module, export into global namespace
 load('Histone.js');
 // create template instance
 var template = Histone('2 x 2 = {{2 * 2}}');
@@ -167,6 +166,33 @@ To run the example, put the code into a file example.js and execute it with the 
 > java -jar js.jar example.js
 2 x 2 = 4
 ```
+
+Histone can also be loaded as CommonJS module:
+
+```javascript
+// load Histone as CommonJS module
+var Histone = require('./Histone.js');
+// create template instance
+var template = Histone('2 x 2 = {{2 * 2}}');
+// render template
+template.render(function(result) {
+    // output the result
+    print(result);
+});
+```
+
+Mozilla Rhino doesn't support CommonJS by default, so in order to use it, you'll have to
+explicitely turn it on in the commmand line. To run this example, put the code into a file
+example.js and execute it with the java program:
+
+```bash
+> java -jar js.jar -main example.js
+2 x 2 = 4
+```
+
+You can find more information about Mozilla Rhino CommonJS support here:
+[http://www.angrycoding.com/2011/09/mozilla-rhino-commonjs-module-support.html]
+(http://www.angrycoding.com/2011/09/mozilla-rhino-commonjs-module-support.html)
 
 Creating template from a string
 --------------------------------------
