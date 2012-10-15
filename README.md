@@ -5,12 +5,14 @@ Histone — powerful and flexible template engine, which can be used for
 HTML - code generation as well as any other kind of text - documents.
 Histone implementations exists for JavaScript (**web - browsers** Safari,
 Google Chrome, Mozilla FireFox, Opera and Internet Explorer 6 or higher,
-**Node.js** and **Mozilla Rhino**) as well as for the Java and PHP, it
-allows you to use same templates on the server and on the client.
-Built - in extension mechanism allows you to extend default template engine
-features, by adding your own methods and properties for the particular project.
-Templates has clean and simple syntax and can be stored either as source code or
-as compiled code that can be executed with the maximum performance wherever it's needed.
+**Node.js** and **Mozilla Rhino**) as well as for the [Java]
+(https://github.com/MegafonWebLab/histone-java) and [PHP]
+(https://github.com/MegafonWebLab/histone-php), it allows you to use same
+templates on the server and on the client. Built - in extension mechanism allows
+you to extend default template engine features, by adding your own methods and
+properties for the particular project. Templates has clean and simple syntax and
+can be stored either as source code or as compiled code that can be executed with
+the maximum performance wherever it's needed.
 
 See live demo here:
 [http://megafonweblab.github.com/histone-javascript/](http://megafonweblab.github.com/histone-javascript/)
