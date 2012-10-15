@@ -166,6 +166,77 @@ To run the example, put the code into a file example.js and execute it with the 
 2 x 2 = 4
 ```
 
+Creating template from a string
+--------------------------------------
+
+This is the most common way of instantiating templates, just pass template string while calling
+Histone function as a first argument. Optional second argument can contain template's baseURI
+(which is going to be used for resolving template's dependencies):
+
+```javascript
+// create template instance
+var template = Histone('baseURI = {{baseURI}}', 'templates/template.tpl');
+// render template
+template.render(function(result) {
+    // output the result
+    console.info(result);
+});
+```
+
+Creating template from DOM element
+--------------------------------------
+
+In case if you are using Histone in the web - browser, you might want to store your
+template in the script tag. Histone provides you with convinient method for instantiating
+template by passing a reference to the DOM element that contains a template (so you don't
+need to extract it yourself):
+
+```html
+<!-- use script tag to store our template -->
+<script id="template" type="text/html+template">
+    2 x 2 = {{2 * 2}}
+</script>
+
+<script type="text/javascript">
+    // create template instance
+    var template = Histone(document.getElementById('template'));
+    // render template
+    template.render(function(result) {
+        // output the result
+        alert(result);
+    });
+</script>
+```
+
+Creating template from it's abstract syntax tree (AST)
+--------------------------------------
+
+String manipulations are very slow and heavy operations in every programming language.
+When you are calling Histone function with the template argument passed as a string,
+Histone has to parse your template before processing it, which is okay when you're
+developing something but not very good for the production environments, where
+performance is a key factor. Every template has **getAST()** method that allows
+you to obtain it's abstract syntax tree (template's internal representation),
+which can be used to construct the template using Histone function. This will
+let you to skip template parsing process and do only it's execution, which
+is way more faster than doing this all together:
+
+```javascript
+// constucting template from a string
+var template = Histone('2 x 2 = {{2 * 2}}');
+// obtaining template's AST: ["2 x 2 = ",[11,[101,2],[101,2]]]
+var templateAST = template.getAST();
+// alert template AST
+alert(JSON.stringify(templateAST));
+// constructing template from AST
+var template = Histone(["2 x 2 = ",[11,[101,2],[101,2]]]);
+// render template
+template.render(function(result) {
+    // output the result
+    alert(result);
+});
+```
+
 Passing JavaScript - variables
 --------------------------------------
 
