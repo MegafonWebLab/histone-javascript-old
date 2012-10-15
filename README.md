@@ -137,6 +137,35 @@ To run the example, put the code into a file example.js and execute it with the 
 2 x 2 = 4
 ```
 
+Using Histone in Mozilla Rhino
+--------------------------------------
+
+First of all you'll have to download latest **js.jar** from [Mozilla Rhino official website]
+(https://developer.mozilla.org/en-US/docs/Rhino).
+Unless like Node.js, Mozilla Rhino supports two ways of loading external modules, first one
+is using **load()** function (loads the file, and executes it in the global context, so the module should
+export all it's vars into global namespace), and the second one is using CommonJS module loading. At
+the moment Histone can only be loaded using load function:
+
+```javascript
+// load Histone module
+load('Histone.js');
+// create template instance
+var template = Histone('2 x 2 = {{2 * 2}}');
+// render template
+template.render(function(result) {
+    // output the result
+    print(result);
+});
+```
+
+To run the example, put the code into a file example.js and execute it with the java program:
+
+```bash
+> java -jar js.jar example.js
+2 x 2 = 4
+```
+
 Passing JavaScript - variables
 --------------------------------------
 
