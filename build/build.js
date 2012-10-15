@@ -105,9 +105,10 @@ function buildDependencies(fileName, exportAs, callback) {
 		header += '\tdefine.amd instanceof Object\n';
 	header += '? define : function(definition, global) {\n';
 		header += '\tvar definition = definition();\n';
-		header += '\tif (typeof process === "object" &&\n';
-		header += '\t\ttypeof process.versions === "object" &&\n';
-		header += '\t\ttypeof process.versions.node === "string") {\n';
+		header += '\tif (typeof process === "object" ||\n';
+		header += '\t\ttypeof Packages !== "undefined" &&\n';
+		header += '\t\ttypeof module !== "undefined" &&\n';
+		header += '\t\tglobal.module.id !== module.id) {\n';
 			header += '\t\t\tmodule.exports = definition;\n';
 		header += '\t\t} else global["' + FUNCTION_NAME + '"] = definition;\n'
 	header += '})(function() {\n';
@@ -122,5 +123,5 @@ var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
 	print('processing dependency:', path);
 });
 print('compiling:', OUTPUT_PATH);
-result = Compiler.compile(result);
+// result = Compiler.compile(result);
 Files.write(OUTPUT_PATH, result);
