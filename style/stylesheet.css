@@ -1,4 +1,4 @@
-html, body {
+html, body, .wrapper {
 	padding: 0px;
 	margin: 0px;
 	width: 100%;
@@ -68,6 +68,10 @@ html, body {
 	display: block;
 }
 
+.loading .wrapper {
+	-webkit-filter: blur(2px);
+}
+
 .toolbar {
 	margin: 0px;
 	position: absolute;
@@ -133,7 +137,12 @@ html, body {
 	font-weight: bold;
 	padding-left: 40px;
 	padding-right: 5px;
+	-webkit-filter: grayscale(30%) brightness(-5%);
 	text-shadow: 1px 1px 1px white;
+}
+
+.toolbar-button:hover {
+	-webkit-filter: grayscale(0%) brightness(0%);
 }
 
 .toolbar-execute {
@@ -155,6 +164,7 @@ html, body {
 }
 
 .toolbar-button:active {
+	-webkit-filter: brightness(-5%);
 	background-position: left bottom;
 }
 

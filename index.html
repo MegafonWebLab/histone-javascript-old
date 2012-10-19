@@ -36,42 +36,44 @@
 		<div class="ie6-message-text"></div>
 		<div class="preloader-layer"></div>
 		<div class="preloader-image">loading interface</div>
-		<ul class="toolbar">
-			<li class="toolbar-right">
-				<span class="change-result-format">
-					show result as
-				</span>
-				<select class="result-format">
-					<option value="html">HTML</option>
-					<option value="text">Text</option>
-					<option value="ast">AST</option>
-				</select>
-			<li class="toolbar-divider toolbar-right">
-			<li class="histone-logo">
-			<li class="histone-label">Histone
-			<li class="toolbar-divider">
-			<li class="toolbar-button toolbar-execute">Execute
-			<li class="toolbar-divider">
-			<li class="toolbar-button toolbar-save">Save snippet
-			<li class="toolbar-divider">
-			<li class="toolbar-button toolbar-share">Share snippet
-			<li class="toolbar-divider">
-		</ul>
-		<div class="sidebar"></div>
-		<div class="workspace-wrapper">
-			<div class="workspace">
-				<div class="left-column">
-					<div class="code-type">Template source</div>
-					<textarea class="template"></textarea>
+		<div class="wrapper">
+			<ul class="toolbar">
+				<li class="toolbar-right">
+					<span class="change-result-format">
+						show result as
+					</span>
+					<select class="result-format">
+						<option value="html">HTML</option>
+						<option value="text">Text</option>
+						<option value="ast">AST</option>
+					</select>
+				<li class="toolbar-divider toolbar-right">
+				<li class="histone-logo">
+				<li class="histone-label">Histone
+				<li class="toolbar-divider">
+				<li class="toolbar-button toolbar-execute">Execute
+				<li class="toolbar-divider">
+				<li class="toolbar-button toolbar-save">Save snippet
+				<li class="toolbar-divider">
+				<li class="toolbar-button toolbar-share">Share snippet
+				<li class="toolbar-divider">
+			</ul>
+			<div class="sidebar"></div>
+			<div class="workspace-wrapper">
+				<div class="workspace">
+					<div class="left-column">
+						<div class="code-type">Template source</div>
+						<textarea class="template"></textarea>
+					</div>
+					<div class="right-column result-html">
+						<div class="code-type">Result</div>
+						<div class="html-area"></div>
+						<textarea readonly="yes" class="ast-area"></textarea>
+						<textarea readonly="yes" class="text-area"></textarea>
+					</div>
 				</div>
-				<div class="right-column result-html">
-					<div class="code-type">Result</div>
-					<div class="html-area"></div>
-					<textarea readonly="yes" class="ast-area"></textarea>
-					<textarea readonly="yes" class="text-area"></textarea>
-				</div>
+				<div class="console"></div>
 			</div>
-			<div class="console"></div>
 		</div>
 	</body>
 </html>
