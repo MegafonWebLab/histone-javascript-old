@@ -886,6 +886,36 @@ define([
 			ret(result);
 		},
 
+		toQuery: function(value, args, ret) {
+			var qName, qValue;
+			var queryString = [];
+			var numPrefix = args[0];
+			var separator = args[1];
+			var value = value.toObject();
+			value = Utils.objectFlatten(value);
+
+			if (!Utils.isString(numPrefix)) numPrefix = '';
+			if (!Utils.isString(separator)) separator = '&';
+
+			if (Utils.isArray(value)) {
+				for (qName = 0; qName < value.length; qName++) {
+					qValue = nodeToString(value[qName]);
+					qValue = encodeURIComponent(qValue);
+					queryString.push(numPrefix + qName + '=' + qValue);
+				}
+			} else if (Utils.isObject(value)) {
+				for (qName in value) {
+					if (!value.hasOwnProperty(qName)) continue;
+					qValue = nodeToString(value[qName]);
+					qValue = encodeURIComponent(qValue);
+					if (Utils.isNumeric(qName)) qName = (numPrefix + qName);
+					queryString.push(qName + '=' + qValue);
+				}
+			}
+
+			ret(queryString.join(separator));
+		},
+
 		toJSON: function(value, args, ret) {
 			ret(JSON.stringify(value.toObject()));
 		}
