@@ -886,7 +886,7 @@ define([
 			ret(result);
 		},
 
-		toQuery: function(value, args, ret) {
+		toQueryString: function(value, args, ret) {
 			var qName, qValue;
 			var queryString = [];
 			var numPrefix = args[0];
@@ -899,14 +899,18 @@ define([
 
 			if (Utils.isArray(value)) {
 				for (qName = 0; qName < value.length; qName++) {
-					qValue = nodeToString(value[qName]);
+					qValue = value[qName];
+					if (Utils.isUndefined(qValue)) continue;
+					qValue = nodeToString(qValue);
 					qValue = encodeURIComponent(qValue);
 					queryString.push(numPrefix + qName + '=' + qValue);
 				}
 			} else if (Utils.isObject(value)) {
 				for (qName in value) {
 					if (!value.hasOwnProperty(qName)) continue;
-					qValue = nodeToString(value[qName]);
+					qValue = value[qName];
+					if (Utils.isUndefined(qValue)) continue;
+					qValue = nodeToString(qValue);
 					qValue = encodeURIComponent(qValue);
 					if (Utils.isNumeric(qName)) qName = (numPrefix + qName);
 					queryString.push(qName + '=' + qValue);
