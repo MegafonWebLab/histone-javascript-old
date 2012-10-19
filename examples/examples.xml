@@ -388,6 +388,34 @@
 		{{/if}}
 	]]></example>
 
+	<example name="global.loadJSON() for Wikipedia API"><![CDATA[
+		{{var search = 'template'}}
+
+		{{var url = 'http://en.wikipedia.org/w/api.php?' + [
+			'limit': 50,
+			'search': search,
+			'format': 'json',
+			'action': 'opensearch'
+		].toQueryString()}}
+
+		{{var searchResults = loadJSON(url, true)}}
+
+		{{if searchResults[1].size()}}
+			<div style="margin-bottom: 7px;">
+				<strong>Search results for "{{search}}"</strong>:
+			</div>
+			{{for searchResult in searchResults[1]}}
+				<div style="border: 1px solid red; margin-bottom: 1px; padding: 4px;">
+					{{searchResult}}
+				</div>
+			{{/for}}
+		{{else}}
+			<div style="margin-bottom: 7px;">
+				<strong>No results for "{{search}}"</strong>
+			</div>
+		{{/if}}
+	]]></example>
+
 	<example name="global.include()"><![CDATA[
 		{{* process template from examples/include.tpl file *}}
 		{{var url = 'examples/include.tpl'}}
