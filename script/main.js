@@ -36,9 +36,9 @@ $(document).ready(function() {
 			autofocus: true,
 			onCursorActivity: onCursorActivity,
 			extraKeys: {
-				'Shift-Cmd-S': saveTemplate,
-				'Shift-Cmd-W': shareTemplate,
+				'Cmd-S': saveTemplate,
 				'Cmd-Enter': processTemplate,
+				'Shift-Cmd-S': shareTemplate,
 				'Shift-Cmd-Enter': swapResultFormat
 			}
 		}
