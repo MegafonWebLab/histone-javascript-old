@@ -44,6 +44,11 @@ $(document).ready(function() {
 		}
 	);
 
+	Mousetrap.bind('command+s', saveTemplate);
+	Mousetrap.bind('command+enter', processTemplate);
+	Mousetrap.bind('command+shift+s', shareTemplate);
+	Mousetrap.bind('command+shift+enter', swapResultFormat);
+
 	function onCursorActivity() {
 		var currentLine = templateEditor.getCursor().line;
 		templateEditor.setLineClass(hlLine, null, null);
