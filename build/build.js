@@ -106,7 +106,8 @@ function buildDependencies(fileName, exportAs, callback) {
 	header += '? define : function(definition, global) {\n';
 		header += '\tvar definition = definition();\n';
 		header += '\tif (typeof process === "object" ||\n';
-		header += '\t\ttypeof Packages !== "undefined" &&\n';
+		header += '\t\ttypeof Packages === "object" &&\n';
+		header += '\t\ttypeof JavaImporter === "function" &&\n';
 		header += '\t\ttypeof module !== "undefined" &&\n';
 		header += '\t\tglobal.module.id !== module.id) {\n';
 			header += '\t\t\tmodule.exports = definition;\n';
