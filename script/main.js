@@ -34,7 +34,13 @@ $(document).ready(function() {
 			indentWithTabs: true,
 			matchBrackets: true,
 			autofocus: true,
-			onCursorActivity: onCursorActivity
+			onCursorActivity: onCursorActivity,
+			extraKeys: {
+				'Shift-Cmd-S': saveTemplate,
+				'Shift-Cmd-W': shareTemplate,
+				'Cmd-Enter': processTemplate,
+				'Shift-Cmd-Enter': swapResultFormat
+			}
 		}
 	);
 
@@ -111,6 +117,7 @@ $(document).ready(function() {
 		} else {
 			setResultFormat('html');
 		}
+		return false;
 	}
 
 	function updateResultFormat() {
@@ -125,7 +132,6 @@ $(document).ready(function() {
 	}
 
 	function processTemplate() {
-		templateEditor.focus();
 		var thisObj = window.location;
 		var baseURI = window.location.href;
 		var template = templateEditor.getValue();
@@ -133,7 +139,7 @@ $(document).ready(function() {
 			template = Histone(template, baseURI);
 		} catch (exception) {
 			setError(exception.toString());
-			return;
+			return false;
 		}
 		setError('');
 		var templateAST = template.getAST();
@@ -143,6 +149,7 @@ $(document).ready(function() {
 		template.render(function(result) {
 			setResult(result);
 		}, thisObj);
+		return false;
 	}
 
 	function saveTemplate() {
@@ -154,11 +161,13 @@ $(document).ready(function() {
 			window.location.hash = templateId;
 			hidePreloader();
 		}).on('error', hidePreloader);
+		return false;
 	}
 
 	function shareTemplate() {
 		var text = encodeURIComponent('Check it out: ' + window.location.href);
 		window.open('https://twitter.com/intent/tweet?text=' + text, '_blank');
+		return false;
 	}
 
 	function loadTemplate(fail) {
