@@ -328,9 +328,18 @@ html, body, .wrapper {
 	border-top: 1px solid #DDDDDD;
 }
 
-.activeline {
-	background: #EFEFEF !important;
+.CodeMirror .activeline {
+	background-color: #EDEDED;
 }
+
+.CodeMirror div.CodeMirror-selected {
+	background-color: #E1EDFF;
+}
+
+.CodeMirror .CodeMirror-focused div.CodeMirror-selected {
+	background-color: #C4DCFF;
+}
+
 
 .-ui-treeView {
 	zoom: 1;
@@ -421,7 +430,7 @@ html, body, .wrapper {
 	background-repeat: repeat-x;
 	background-position: left top;
 	text-shadow: 1px 1px 1px #65778A;
-	background-image: url('../media/selbg.png?x');
+	background-image: url('../media/selbg.png');
 }
 
 .-ui-treeView-item-children {
