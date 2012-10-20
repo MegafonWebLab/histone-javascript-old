@@ -285,9 +285,11 @@ define(function() {
 	function getEnvType() {
 		if (ENV_TYPE !== null) return ENV_TYPE;
 		return (typeof process  !== 'undefined' && (ENV_TYPE = 'node') ||
-			typeof Packages !== 'undefined' && (ENV_TYPE = 'rhino') ||
+			typeof Packages === 'object' &&
+			typeof JavaImporter === 'function' && (ENV_TYPE = 'rhino') ||
 			typeof window !== 'undefined' && (ENV_TYPE = 'browser') ||
-			(ENV_TYPE = 'unknown'));
+			(ENV_TYPE = 'unknown')
+		);
 	}
 
 	function getEnvInfo() {
