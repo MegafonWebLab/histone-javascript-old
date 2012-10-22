@@ -99,25 +99,41 @@ function buildDependencies(fileName, exportAs, callback) {
 		}
 	}
 
-	var header = '(\n';
-		header += '\ttypeof requirejs === "function" &&\n';
-		header += '\ttypeof define === "function" &&\n';
-		header += '\tdefine.amd instanceof Object\n';
-	header += '? define : function(definition, global) {\n';
-		header += '\tvar definition = definition();\n';
-		header += '\tif (typeof process === "object" ||\n';
-		header += '\t\ttypeof Packages === "object" &&\n';
-		header += '\t\ttypeof JavaImporter === "function" &&\n';
-		header += '\t\ttypeof module !== "undefined" &&\n';
-		header += '\t\tglobal.module.id !== module.id) {\n';
-			header += '\t\t\tmodule.exports = definition;\n';
-		header += '\t\t} else global["' + FUNCTION_NAME + '"] = definition;\n'
-	header += '})(function() {\n';
-	result = header + result;
-	result += 'return ' + FUNCTION_NAME + ';';
-	result += '}, function() { return this; }.call(null));'
+	var moduleHeader = function(definition, namespace, global) {
 
-	return result;
+		function useExports() {
+			return (typeof process === 'object' ||
+			typeof Packages === 'object' &&
+			typeof JavaImporter === 'function' &&
+			typeof module !== "undefined" &&
+			global.module.id !== module.id);
+		}
+
+		function useDefine() {
+			if (typeof requirejs === 'function' &&
+				typeof define === 'function' && define.amd) {
+				var script = document.head.getElementsByTagName('script');
+				script = Array.prototype.pop.call(script);
+				return script.hasAttribute('data-requiremodule');
+			}
+		}
+
+		if (useDefine()) {
+			define(definition);
+		} else if (useExports()) {
+			module.exports = definition();
+		} else {
+			global[namespace] = definition();
+		}
+
+	};
+
+	var module = ('(' + moduleHeader.toString() + ')(function() {');
+		module += result;
+		module += 'return ' + FUNCTION_NAME + ';';
+	module += '}, "' + FUNCTION_NAME + '", function() { return this; }.call(null));';
+
+	return module;
 }
 
 var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
