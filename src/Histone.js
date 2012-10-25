@@ -119,6 +119,15 @@ define([
 		} else ret(resourceCache[resourceURI], resourceURI);
 	}
 
+	function resourceToTpl(resourceData) {
+		if (Utils.isString(resourceData) &&
+			resourceData.match(/^\s*\[\s*\[\s*"HISTONE"/)) {
+			try { resourceData = JSON.parse(resourceData); }
+			catch (e) {}
+		}
+		return resourceData;
+	}
+
 	function resolveURI(requestURI, baseURI, ret, requestProps, isJSONP) {
 		try {
 			if (Utils.isFunction(URIResolver) && URIResolver(
@@ -499,14 +508,13 @@ define([
 
 	function processImport(requestURI, stack, ret) {
 		var baseURI = stack.getBaseURI();
-
 		if (!stack.imports) stack.imports = {};
 		var importHash = (requestURI + '#' + baseURI);
 		if (stack.imports.hasOwnProperty(importHash)) return ret();
 		stack.imports[importHash] = true;
-
 		resolveURI(requestURI, baseURI, function(resourceData, resourceURI) {
 			try {
+				resourceData = resourceToTpl(resourceData);
 				resourceData = Histone(resourceData, resourceURI);
 				stack.setBaseURI(resourceURI);
 				processAST(resourceData.getAST(), stack,
@@ -992,6 +1000,7 @@ define([
 			resolveURI(requestURI, baseURI, function(
 				resourceData, resourceURI) {
 				try {
+					resourceData = resourceToTpl(resourceData);
 					resourceData = Histone(resourceData, resourceURI);
 					resourceData.render(ret, js2internal(context));
 					return resourceData;
@@ -1093,10 +1102,8 @@ define([
 	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
 		requestURI = Utils.uri.resolve(requestURI, window.location.href);
-		NetworkRequest(requestURI, function(resourceData, contentType) {
-			if (contentType === 'application/json') try {
-				resourceData = JSON.parse(resourceData);
-			} catch (e) {}
+		NetworkRequest(requestURI, function(resourceData) {
+			resourceData = resourceToTpl(resourceData);
 			load(Histone(resourceData, requestURI));
 		}, null);
 	};
