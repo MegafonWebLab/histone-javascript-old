@@ -6,10 +6,10 @@ define(['../Utils.js'], function(Utils) {
 			if (requestObj.scheme === 'http' ||
 				requestObj.scheme === 'https') {
 				var data = readUrl(requestURI);
-				success(data, requestURI);
+				success(data);
 			} else if (requestObj.scheme === '') {
 				var data = readFile(requestURI);
-				success(data, requestURI);
+				success(data);
 			} else fail();
 		} catch (exception) { fail(); }
 	};
