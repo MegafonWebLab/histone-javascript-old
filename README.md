@@ -252,12 +252,12 @@ is way more faster than doing this all together:
 ```javascript
 // constucting template from a string
 var template = Histone('2 x 2 = {{2 * 2}}');
-// obtaining template's AST: ["2 x 2 = ",[11,[101,2],[101,2]]]
+// obtaining template's AST: [["HISTONE"], ["2 x 2 = ", [11, [101, 2], [101, 2]]]]
 var templateAST = template.getAST();
 // alert template AST
 alert(JSON.stringify(templateAST));
 // constructing template from AST
-var template = Histone(["2 x 2 = ",[11,[101,2],[101,2]]]);
+var template = Histone([["HISTONE"], ["2 x 2 = ", [11, [101, 2], [101, 2]]]]);
 // render template
 template.render(function(result) {
     // output the result
