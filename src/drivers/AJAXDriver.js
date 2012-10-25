@@ -63,8 +63,7 @@ define(['../Utils.js'], function(Utils) {
 				if (request.readyState !== 4) return;
 				var status = request.status;
 				if (status > 399 && status < 600) return fail();
-				var contentType = request.getResponseHeader('Content-type');
-				success(request.responseText, contentType);
+				success(request.responseText);
 			};
 
 			if (Utils.isObject(postData)) {
