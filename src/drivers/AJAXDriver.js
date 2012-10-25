@@ -116,18 +116,24 @@ define(['../Utils.js'], function(Utils) {
 			(requestURI.fragment ? '#' + requestURI.fragment : '')
 		);
 
-		window[callbackId] = success;
+		var cleanup = removeCallback.bind(this, callbackId);
+
+		window[callbackId] = function(response) {
+			cleanup();
+			success(response);
+		};
+
 
 		var scriptElement = document.createElement('script');
 		scriptElement.setAttribute('id', callbackId);
 		scriptElement.setAttribute('src', requestURI);
 		scriptElement.setAttribute('type', 'text/javascript');
 
-		var removeCallback = removeCallback.bind(this, callbackId);
-		scriptElement.onload = removeCallback;
 		scriptElement.onerror = function() {
-			removeCallback(); fail();
+			cleanup();
+			fail();
 		};
+
 		// scriptElement.onerror =
 		// scriptElement.onreadystatechange =
 		// removeCallback.bind(this, callbackId);
