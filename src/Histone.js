@@ -509,7 +509,7 @@ define([
 			try {
 				resourceData = Histone(resourceData, resourceURI);
 				stack.setBaseURI(resourceURI);
-				processNodes(resourceData.getAST(), stack,
+				processAST(resourceData.getAST(), stack,
 					function(resourceData) {
 						stack.setBaseURI(baseURI);
 						ret('');
@@ -587,6 +587,11 @@ define([
 		}, function() { ret(result); });
 	}
 
+	function processAST(nodes, stack, ret) {
+		var signature = nodes[0];
+		processNodes(nodes[1], stack, ret);
+	}
+
 	function Template(templateAST, baseURI) {
 
 		if (!Utils.isString(baseURI)) {
@@ -601,14 +606,14 @@ define([
 			var context = js2internal(context);
 			var stack = new CallStack(context);
 			stack.setBaseURI(baseURI);
-			processNodes(templateAST, stack, ret);
+			processAST(templateAST, stack, ret);
 		};
 
 		this.call = function(name, args, ret, context) {
 			var stack = new CallStack(context);
 			var context = js2internal(context);
 			stack.setBaseURI(baseURI);
-			processNodes(templateAST, stack, function() {
+			processAST(templateAST, stack, function() {
 				var handler = stack.getMacro(name);
 				if (!handler) return ret();
 				callMacro(handler, args, stack, function(value) {

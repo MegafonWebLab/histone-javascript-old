@@ -123,7 +123,8 @@ function runTestCase(testCase, testCaseURL) {
 
 	if (template && testCase.expectedAST instanceof Array) {
 		isProcessed = true;
-		actualAST = JSON.stringify(template.getAST());
+		actualAST = template.getAST();
+		actualAST = JSON.stringify(actualAST[1]);
 		var expectedAST = JSON.stringify(testCase.expectedAST);
 		if (expectedAST !== actualAST) {
 			testResult = 1;
