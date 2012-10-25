@@ -3,7 +3,7 @@ Histone template engine [![Build Status](https://secure.travis-ci.org/MegafonWeb
 
 Histone — powerful and flexible template engine, which can be used for
 HTML - code generation as well as any other kind of text - documents.
-Histone implementations exists for JavaScript (**web - browsers** Safari,
+Histone implementations exists for JavaScript ( **web - browsers** Safari,
 Google Chrome, Mozilla FireFox, Opera and Internet Explorer 6 or higher,
 **Node.js** and **Mozilla Rhino**) as well as for the [Java]
 (https://github.com/MegafonWebLab/histone-java) and [PHP]
