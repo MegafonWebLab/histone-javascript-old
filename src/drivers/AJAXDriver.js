@@ -93,6 +93,7 @@ define(['../Utils.js'], function(Utils) {
 	}
 
 	function doJSONPRequest(requestURI, success, fail, requestProps) {
+
 		var requestQuery = [];
 		var requestURI = Utils.uri.parse(requestURI);
 		var requestParams = Utils.uri.parseQuery(requestURI.query);
@@ -115,14 +116,18 @@ define(['../Utils.js'], function(Utils) {
 			(requestURI.fragment ? '#' + requestURI.fragment : '')
 		);
 
-		window[callbackId] =success;
+		window[callbackId] = success;
 
 		var scriptElement = document.createElement('script');
 		scriptElement.setAttribute('id', callbackId);
 		scriptElement.setAttribute('src', requestURI);
 		scriptElement.setAttribute('type', 'text/javascript');
 
-		// scriptElement.onload =
+		var removeCallback = removeCallback.bind(this, callbackId);
+		scriptElement.onload = removeCallback;
+		scriptElement.onerror = function() {
+			removeCallback(); fail();
+		};
 		// scriptElement.onerror =
 		// scriptElement.onreadystatechange =
 		// removeCallback.bind(this, callbackId);
