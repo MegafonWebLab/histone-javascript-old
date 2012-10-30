@@ -16,6 +16,7 @@
  */
 
 define([
+	'module',
 	'./Utils.js',
 	'./Parser.js',
 	'./CallStack.js',
@@ -24,6 +25,7 @@ define([
 	'./drivers/NodeDriver.js',
 	'./drivers/RhinoDriver.js'
 ], function(
+	module,
 	Utils, Parser, CallStack, OrderedMap,
 	AJAXDriver, NodeDriver, RhinoDriver) {
 
@@ -1102,10 +1104,17 @@ define([
 	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
 		requestURI = Utils.uri.resolve(requestURI, window.location.href);
-		NetworkRequest(requestURI, function(resourceData) {
-			resourceData = resourceToTpl(resourceData);
-			load(Histone(resourceData, requestURI));
-		}, null);
+		var requestType = (requestURI.split('?').shift().split('.').pop());
+		if (requestType === 'js') {
+			require.config({'map': {
+				'*': {'Histone': module.id}
+			}})([requestURI], load);
+		} else {
+			NetworkRequest(requestURI, function(resourceData) {
+				resourceData = resourceToTpl(resourceData);
+				load(Histone(resourceData, requestURI));
+			}, null);
+		}
 	};
 
 	Histone.setURIResolver = function(callback) {

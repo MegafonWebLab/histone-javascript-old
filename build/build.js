@@ -59,8 +59,10 @@ function buildDependencies(fileName, exportAs, callback) {
 			var defArgs = Utils.getFunctionArguments(definition);
 			for (var c = 0; c < dependencies.length; c++) {
 				var dependencyPath = dependencies[c];
-				dependencyPath = Files.resolvePath(dependencyPath, fileName);
-				buildFileList(dependencyPath, order + 1, defArgs[c]);
+				if (dependencyPath !== 'module') {
+					dependencyPath = Files.resolvePath(dependencyPath, fileName);
+					buildFileList(dependencyPath, order + 1, defArgs[c]);
+				}
 			}
 
 		});
@@ -119,16 +121,16 @@ function buildDependencies(fileName, exportAs, callback) {
 		}
 
 		if (useDefine()) {
-			define(definition);
+			define(['module'], definition);
 		} else if (useExports()) {
-			module.exports = definition();
+			module.exports = definition(module);
 		} else {
 			global[namespace] = definition();
 		}
 
 	};
 
-	var module = ('(' + moduleHeader.toString() + ')(function() {');
+	var module = ('(' + moduleHeader.toString() + ')(function(module) {');
 		module += result;
 		module += 'return ' + FUNCTION_NAME + ';';
 	module += '}, "' + FUNCTION_NAME + '", function() { return this; }.call(null));';
