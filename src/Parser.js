@@ -17,10 +17,10 @@
 
 define(['./Tokenizer.js'], function(Tokenizer) {
 
-	// tokenizer instance
-	var tokenizer;
 	// escape sequence regexp
 	var escapeSequence;
+	// tokenizer instance
+	var tokenizer, nestLevel;
 	// define contexts
 	var T_CTX_TPL = 0, T_CTX_EXP = 1, T_CTX_CMT = 2, T_CTX_LIT = 3;
 	// define tokens
@@ -34,6 +34,8 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 	T_STRING, T_ID, T_IGNORE;
 
 	function initialize() {
+		// set nest level
+		nestLevel = 0;
 		// instantiate tokenizer
 		tokenizer = new Tokenizer();
 		// comment tokens
@@ -43,8 +45,8 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 		T_LITERAL_START = tokenizer.addLiteral('{{%', T_CTX_TPL);
 		T_LITERAL_END = tokenizer.addLiteral('%}}', T_CTX_LIT);
 		// block tokens
-		T_BLOCK_START = tokenizer.addLiteral('{{', T_CTX_TPL),
-		T_BLOCK_END = tokenizer.addLiteral('}}', T_CTX_EXP),
+		T_BLOCK_START = tokenizer.addToken('{{', [T_CTX_TPL, T_CTX_EXP]),
+		T_BLOCK_END = tokenizer.addToken('}}', [T_CTX_TPL, T_CTX_EXP]),
 		// operator tokens
 		T_IS = tokenizer.addLiteral('is\\b', T_CTX_EXP),
 		T_OR = tokenizer.addLiteral('or\\b', T_CTX_EXP);
@@ -104,8 +106,18 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 		tokenizer.addTransition(T_COMMENT_END, T_CTX_TPL);
 		tokenizer.addTransition(T_LITERAL_START, T_CTX_LIT);
 		tokenizer.addTransition(T_LITERAL_END, T_CTX_TPL);
-		tokenizer.addTransition(T_BLOCK_START, T_CTX_EXP);
-		tokenizer.addTransition(T_BLOCK_END, T_CTX_TPL);
+		// initialize special transitions
+		tokenizer.addTransition(T_BLOCK_START, function() {
+			var result = (nestLevel % 2 ? T_CTX_TPL : T_CTX_EXP);
+			nestLevel++;
+			return result;
+		});
+		tokenizer.addTransition(T_BLOCK_END, function() {
+			if (nestLevel === 0) return T_CTX_TPL;
+			var result = (nestLevel % 2 ? T_CTX_TPL : T_CTX_EXP);
+			nestLevel--;
+			return result;
+		});
 	}
 
 	function extractStringData(string) {
@@ -258,6 +270,20 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 					}
 				}
 				return expression;
+			}
+
+			else if (tokenizer.next(T_BLOCK_START)) {
+				var statements = [];
+				while (!tokenizer.next(Tokenizer.T_EOF)) {
+					if (tokenizer.next(T_BLOCK_START)) {
+						statements.push(parseStatement());
+					} else if (tokenizer.next(T_BLOCK_END)) {
+						return [Parser.T_STATEMENTS, statements];
+					} else if (!tokenizer.test(Tokenizer.T_EOF)) {
+						statements.push(tokenizer.next().value);
+					}
+				}
+				throw new ParseError('}}');
 			}
 
 			else throw new ParseError('expression');
@@ -533,32 +559,46 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 			if (!name) throw new ParseError('identifier');
 
 			var args = [];
-			if (tokenizer.next(T_LPAREN)) {
-				if (!tokenizer.next(T_RPAREN)) {
-					while (true) {
-						args.push(parseExpression());
-						if (!tokenizer.next(T_COMMA)) break;
-					}
+
+			do {
+
+				if (tokenizer.next(T_LPAREN)) {
 					if (!tokenizer.next(T_RPAREN)) {
-						throw new ParseError(')');
+						while (true) {
+							args.push(parseExpression());
+							if (!tokenizer.next(T_COMMA)) break;
+						}
+						if (!tokenizer.next(T_RPAREN)) {
+							throw new ParseError(')');
+						}
 					}
 				}
-			}
-			if (!tokenizer.next(T_BLOCK_END)) {
-				throw new ParseError('}}');
-			}
+
+				if (!tokenizer.next(T_BLOCK_END)) {
+					throw new ParseError('}}');
+				}
 
 
-			args.push([
-				Parser.T_STATEMENTS,
-				parseStatements(T_DIV)
-			]);
+				args.push([
+					Parser.T_STATEMENTS,
+					parseStatements(T_DIV, T_COLON)
+				]);
 
-			if (!tokenizer.next(T_DIV) ||
-				!tokenizer.next(T_CALL) ||
-				!tokenizer.next(T_BLOCK_END)) {
-				throw new ParseError('{{/call}}');
-			}
+				if (tokenizer.next(T_COLON)) {
+					if (tokenizer.next(T_CALL)) continue;
+					throw new ParseError('call');
+				}
+
+
+				if (tokenizer.next(T_DIV)) {
+					if (!tokenizer.next(T_CALL) ||
+						!tokenizer.next(T_BLOCK_END)) {
+						throw new ParseError('{{/call}}');
+					}
+					break;
+				}
+
+			} while (true);
 
 			return [Parser.T_CALL, null, name.value, args];
 		}
@@ -580,6 +620,18 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 				throw new ParseError('}}');
 			}
 			return expression;
+		}
+
+		function parseStatement() {
+			return (
+				parseIfStatement() ||
+				parseForStatement() ||
+				parseVarStatement() ||
+				parseMacroStatement() ||
+				parseCallStatement() ||
+				parseImportStatement() ||
+				parseExpressionStatement()
+			);
 		}
 
 		function parseStatements() {
@@ -627,19 +679,11 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 					// skip empty instructions
 					if (tokenizer.next(T_BLOCK_END)) continue;
 					// parse statements
-					statements.push(
-						parseIfStatement() ||
-						parseForStatement() ||
-						parseVarStatement() ||
-						parseMacroStatement() ||
-						parseCallStatement() ||
-						parseImportStatement() ||
-						parseExpressionStatement()
-					);
+					statements.push(parseStatement());
 				}
 
 				// parse text fragments
-				else if (tokenizer.test(Tokenizer.T_FRAGMENT)) {
+				else if (!tokenizer.test(Tokenizer.T_EOF)) {
 					statements.push(tokenizer.next().value);
 				}
 			}
