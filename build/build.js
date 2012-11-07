@@ -107,8 +107,10 @@ function buildDependencies(fileName, exportAs, callback) {
 			return (typeof process === 'object' ||
 			typeof Packages === 'object' &&
 			typeof JavaImporter === 'function' &&
-			typeof module !== "undefined" &&
-			global.module.id !== module.id);
+			typeof module !== "undefined" && (
+				!global.module ||
+				global.module.id !== module.id
+			));
 		}
 
 		function useDefine() {
