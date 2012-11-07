@@ -103,22 +103,32 @@ define(function() {
 			currentTokenType = currentToken.type;
 			if (!transitions.hasOwnProperty(currentTokenType)) return;
 			var newContext = transitions[currentTokenType];
+			if (typeof newContext === 'function') newContext = newContext();
 			if (currentContext === newContext) return;
 			tokenDefinitions[newContext][0].lastIndex =
 			tokenDefinitions[currentContext][0].lastIndex;
 			currentContext = newContext;
 		}
 
-		function addTokens(tokens, kind, context) {
+		function addTokens(tokens, kind, contexts) {
 			if (typeof(tokens) !== 'object') tokens = [tokens];
-			if (context === undefined) context = 0;
-			if (!tokenStrings[context]) tokenStrings[context] = [];
-			if (!tokenDefinitions[context]) {
-				tokenDefinitions[context] = [[], []];
-			}
+			if (contexts === undefined) contexts = 0;
+			if (!(contexts instanceof Array)) contexts = [contexts];
+
 			lastTokenId++;
-			tokenStrings[context].push('(' + tokens.join('|') + ')');
-			tokenDefinitions[context][1].push([kind, lastTokenId]);
+
+			for (var c = 0; c < contexts.length; c++) {
+
+				var context = contexts[c];
+
+				if (!tokenStrings[context]) tokenStrings[context] = [];
+				if (!tokenDefinitions[context]) {
+					tokenDefinitions[context] = [[], []];
+				}
+				tokenStrings[context].push('(' + tokens.join('|') + ')');
+				tokenDefinitions[context][1].push([kind, lastTokenId]);
+			}
+
 			return lastTokenId;
 		}
 
