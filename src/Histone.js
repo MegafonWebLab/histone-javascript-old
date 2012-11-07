@@ -461,11 +461,10 @@ define([
 		stack.save();
 		stack.setBaseURI(newBaseURI);
 		stack.putVar('self', js2internal(selfObj));
-		for (var c = 0, arity = Math.min(
-			args.length, macroArgs.length
-		); c < arity; c++) stack.putVar(
-			macroArgs[c], js2internal(args[c])
-		);
+		for (var c = 0, arity = macroArgs.length; c < arity; c++) {
+			if (c >= args.length) stack.putVar(macroArgs[c], undefined);
+			else stack.putVar(macroArgs[c], js2internal(args[c]));
+		}
 		return processNodes(macroBody, stack, function(result) {
 			stack.setBaseURI(oldBaseURI);
 			stack.restore();
@@ -526,7 +525,7 @@ define([
 					}
 				);
 				return resourceData;
-			} catch (e) { ret(); }
+			} catch (e) { ret(); throw e; }
 		});
 	}
 
@@ -1006,7 +1005,7 @@ define([
 					resourceData = Histone(resourceData, resourceURI);
 					resourceData.render(ret, js2internal(context));
 					return resourceData;
-				} catch (e) { ret(); }
+				} catch (e) { ret(); throw e; }
 			});
 		},
 
