@@ -525,7 +525,7 @@ define([
 					}
 				);
 				return resourceData;
-			} catch (e) { ret(); throw e; }
+			} catch (e) { ret(); }
 		});
 	}
 
@@ -1005,7 +1005,7 @@ define([
 					resourceData = Histone(resourceData, resourceURI);
 					resourceData.render(ret, js2internal(context));
 					return resourceData;
-				} catch (e) { ret(); throw e; }
+				} catch (e) { ret(); }
 			});
 		},
 

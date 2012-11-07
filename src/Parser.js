@@ -34,8 +34,6 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 	T_STRING, T_ID, T_IGNORE;
 
 	function initialize() {
-		// set nest level
-		nestLevel = 0;
 		// instantiate tokenizer
 		tokenizer = new Tokenizer();
 		// comment tokens
@@ -283,6 +281,7 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 						statements.push(tokenizer.next().value);
 					}
 				}
+
 				throw new ParseError('}}');
 			}
 
@@ -559,46 +558,32 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 			if (!name) throw new ParseError('identifier');
 
 			var args = [];
-
-			do {
-
-				if (tokenizer.next(T_LPAREN)) {
+			if (tokenizer.next(T_LPAREN)) {
+				if (!tokenizer.next(T_RPAREN)) {
+					while (true) {
+						args.push(parseExpression());
+						if (!tokenizer.next(T_COMMA)) break;
+					}
 					if (!tokenizer.next(T_RPAREN)) {
-						while (true) {
-							args.push(parseExpression());
-							if (!tokenizer.next(T_COMMA)) break;
-						}
-						if (!tokenizer.next(T_RPAREN)) {
-							throw new ParseError(')');
-						}
+						throw new ParseError(')');
 					}
 				}
-
-				if (!tokenizer.next(T_BLOCK_END)) {
-					throw new ParseError('}}');
-				}
-
-
-				args.push([
-					Parser.T_STATEMENTS,
-					parseStatements(T_DIV, T_COLON)
-				]);
-
-				if (tokenizer.next(T_COLON)) {
-					if (tokenizer.next(T_CALL)) continue;
-					throw new ParseError('call');
-				}
+			}
+			if (!tokenizer.next(T_BLOCK_END)) {
+				throw new ParseError('}}');
+			}
 
 
-				if (tokenizer.next(T_DIV)) {
-					if (!tokenizer.next(T_CALL) ||
-						!tokenizer.next(T_BLOCK_END)) {
-						throw new ParseError('{{/call}}');
-					}
-					break;
-				}
+			args.push([
+				Parser.T_STATEMENTS,
+				parseStatements(T_DIV)
+			]);
 
-			} while (true);
+			if (!tokenizer.next(T_DIV) ||
+				!tokenizer.next(T_CALL) ||
+				!tokenizer.next(T_BLOCK_END)) {
+				throw new ParseError('{{/call}}');
+			}
 
 			return [Parser.T_CALL, null, name.value, args];
 		}
@@ -635,6 +620,7 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 		}
 
 		function parseStatements() {
+			var lastFragment = -1;
 			var statements = [], statement;
 			while (!tokenizer.next(Tokenizer.T_EOF)) {
 
@@ -659,7 +645,11 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 					if (!tokenizer.next(T_LITERAL_END)) {
 						throw new ParseError('%}}');
 					}
-					statements.push(literalStr);
+
+					if (lastFragment === -1) {
+						lastFragment = statements.length;
+						statements.push(literalStr);
+					} else statements[lastFragment] += literalStr;
 				}
 
 				// parse instructions
@@ -678,19 +668,24 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 					}
 					// skip empty instructions
 					if (tokenizer.next(T_BLOCK_END)) continue;
+					lastFragment = -1;
 					// parse statements
 					statements.push(parseStatement());
 				}
 
 				// parse text fragments
 				else if (!tokenizer.test(Tokenizer.T_EOF)) {
-					statements.push(tokenizer.next().value);
+					if (lastFragment === -1) {
+						lastFragment = statements.length;
+						statements.push(tokenizer.next().value);
+					} else statements[lastFragment] += tokenizer.next().value;
 				}
 			}
 			return statements;
 		}
 
 		this.parse = function(templateStr, baseURI) {
+			nestLevel = 0;
 			fileName = (baseURI || 'template');
 			if (!tokenizer) initialize();
 			tokenizer.tokenize(templateStr, T_CTX_TPL);
