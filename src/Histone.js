@@ -603,31 +603,38 @@ define([
 
 	function Template(templateAST, baseURI) {
 
-		if (!Utils.isString(baseURI)) {
-			baseURI = '.';
-		}
+		if (!Utils.isString(baseURI)) baseURI = '.';
 
 		this.getAST = function() {
 			return templateAST;
 		};
 
-		this.render = function(ret, context) {
-			var context = js2internal(context);
-			var stack = new CallStack(context);
+		this.render = function() {
+			var context = undefined;
+			var ret = null, stack = null;
+			var callArgs = [], callName = null;
+			var args = Array.prototype.slice.call(arguments);
+			if (Utils.isString(args[0])) callName = args.shift();
+			if (callName !== null && !Utils.isFunction(args[0])) {
+				callArgs = args.shift();
+				if (!Utils.isArray(callArgs)) callArgs = [callArgs];
+			}
+			if (Utils.isFunction(args[0])) ret = args.shift();
+			if (args[0] instanceof CallStack) {
+				stack = args.shift();
+			} else {
+				context = js2internal(args[0]);
+				stack = new CallStack(context);
+			}
 			stack.setBaseURI(baseURI);
-			processAST(templateAST, stack, ret);
-		};
-
-		this.call = function(name, args, ret, context) {
-			var stack = new CallStack(context);
-			var context = js2internal(context);
-			stack.setBaseURI(baseURI);
-			processAST(templateAST, stack, function() {
-				var handler = stack.getMacro(name);
-				if (!handler) return ret();
-				callMacro(handler, args, stack, function(value) {
-					ret(internal2js(value));
-				});
+			processAST(templateAST, stack, function(result) {
+				if (callName !== null) {
+					var callHandler = stack.getMacro(callName);
+					if (!callHandler) return ret(undefined, stack);
+					callMacro(callHandler, callArgs, stack, function(value) {
+						ret(internal2js(value), stack);
+					});
+				} else ret(result, stack);
 			});
 		};
 
@@ -1103,17 +1110,16 @@ define([
 	Histone.load = function(name, req, load, config) {
 		var requestURI = req.toUrl(name);
 		requestURI = Utils.uri.resolve(requestURI, window.location.href);
-		var requestType = (requestURI.split('?').shift().split('.').pop());
+		var requestObj = Utils.uri.parse(requestURI);
+		var requestType = requestObj.path.split('.').pop();
 		if (requestType === 'js') {
 			require.config({'map': {
 				'*': {'Histone': module.id}
 			}})([requestURI], load);
-		} else {
-			NetworkRequest(requestURI, function(resourceData) {
-				resourceData = resourceToTpl(resourceData);
-				load(Histone(resourceData, requestURI));
-			}, null);
-		}
+		} else NetworkRequest(requestURI, function(resourceData) {
+			resourceData = resourceToTpl(resourceData);
+			load(Histone(resourceData, requestURI));
+		});
 	};
 
 	Histone.setURIResolver = function(callback) {
