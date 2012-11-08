@@ -284,13 +284,31 @@ Calling template's macros
 --------------------------------------
 
 It's possible to process a macro, that is defined in the template,
-without the rest of it:
+without the rest of it. In order to do that, just pass the name of the macro that you are
+about to call as a first argument to render method:
+
+```javascript
+// create Template instance
+var template = Histone('*** {{macro foo}} Hello world! {{/macro}} ***');
+// process template's macro
+template.render(
+    // macro's name
+    'foo',
+    // result handler
+    function(result) {
+        // output the result
+        alert(result);
+    }
+);
+```
+
+It's also possible to pass argument(s) into the macro that you wish to call:
 
 ```javascript
 // create Template instance
 var template = Histone('*** {{macro foo}} {{self.arguments.toJSON()}} {{/macro}} ***');
 // process template's macro
-template.call(
+template.render(
     // macro's name
     'foo',
     // macro's arguments
