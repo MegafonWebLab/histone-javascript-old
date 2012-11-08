@@ -47,8 +47,10 @@ define([
 		var requestURI = Utils.uri.resolve(selector.shift(), baseURI);
 		selector = selector.join('#');
 		NetworkRequest(requestURI, function(resourceData) {
-			resourceData = JSON.parse(resourceData);
-			load(evalSelector(resourceData, selector));
+			try {
+				resourceData = JSON.parse(resourceData);
+				load(evalSelector(resourceData, selector));
+			} catch (e) { load(undefined); }
 		}, function() { load(undefined); });
 	};
 
@@ -57,8 +59,10 @@ define([
 		var requestURI = req.toUrl(selector.shift());
 		selector = selector.join('#');
 		NetworkRequest(requestURI, function(resourceData) {
-			resourceData = JSON.parse(resourceData);
-			load(evalSelector(resourceData, selector));
+			try {
+				resourceData = JSON.parse(resourceData);
+				load(evalSelector(resourceData, selector));
+			} catch (e) { load(undefined); }
 		}, function() { load(undefined); });
 	};
 
