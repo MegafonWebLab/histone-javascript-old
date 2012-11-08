@@ -76,6 +76,28 @@ define(function() {
 		this.stackPointer--;
 	};
 
+	CallStack.prototype.clone = function() {
+		var callStack = new CallStack(this.context);
+		var key, iterator = (this.stackPointer + 1);
+		var tVars = this.vars;
+		var tMacros = this.macros;
+		var cVars = new Array(iterator);
+		var cMacros = new Array(iterator);
+		while (iterator--) {
+			cVars[iterator] = {};
+			cMacros[iterator] = {};
+			for (key in tVars[iterator]) {
+				cVars[iterator][key] = tVars[iterator][key];
+			}
+			for (key in tMacros[iterator]) {
+				cMacros[iterator][key] = tMacros[iterator][key];
+			}
+		}
+		callStack.vars = cVars;
+		callStack.macros = cMacros;
+		return callStack;
+	};
+
 	return CallStack;
 
 });
