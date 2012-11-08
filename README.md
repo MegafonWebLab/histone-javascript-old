@@ -321,6 +321,31 @@ template.render(
 );
 ```
 
+Reusing templates
+--------------------------------------
+
+You can reuse macros and variables that is defined in one template in the other template, so you don't
+have to do it each time when you need it. For example you can move most used snippets into the base template
+and then use it every time in work template. See the example:
+
+```javascript
+// create base Template instance (we are going to reuse it)
+var baseTpl = Histone('{{macro hello(name)}} Hello {{name}}! {{/macro}}');
+// create work Template instance
+var workTpl = Histone('{{hello("world")}}');
+// render base template
+baseTpl.render(function(result, stack) {
+    // render work template
+    workTpl.render(function(result) {
+        // output the result
+        alert(result);
+    },
+    // pass stack instance (result of processing base template)
+    stack
+    );
+});
+```
+
 Dependency management
 --------------------------------------
 
