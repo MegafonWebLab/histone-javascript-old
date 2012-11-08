@@ -23,15 +23,19 @@ define([
 	'./OrderedMap.js',
 	'./drivers/AJAXDriver.js',
 	'./drivers/NodeDriver.js',
-	'./drivers/RhinoDriver.js'
+	'./drivers/RhinoDriver.js',
+	'!./JSONLoader.js!../package.json#version'
 ], function(
 	module,
 	Utils, Parser, CallStack, OrderedMap,
-	AJAXDriver, NodeDriver, RhinoDriver) {
+	AJAXDriver, NodeDriver, RhinoDriver,
+	packageVersion
+) {
 
 	var resourceCache = {};
 	var URIResolver = null;
 	var parserInstance = null;
+	var AST_HEADER = ['HISTONE', packageVersion];
 
 	var envType = Utils.getEnvType();
 	var clientType = ('javascript/' + envType);
@@ -644,6 +648,7 @@ define([
 		if (Utils.isString(template)) {
 			if (!parserInstance) parserInstance = new Parser();
 			template = parserInstance.parse(template, baseURI);
+			template = [AST_HEADER, template];
 		} else if (template instanceof Template) {
 			return template;
 		} else if (Utils.isDOMElement(template)) {
@@ -949,6 +954,7 @@ define([
 
 	Histone.Global = {
 
+		version: packageVersion,
 		clientType: clientType,
 		userAgent: userAgent,
 

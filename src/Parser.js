@@ -689,7 +689,7 @@ define(['./Tokenizer.js'], function(Tokenizer) {
 			fileName = (baseURI || 'template');
 			if (!tokenizer) initialize();
 			tokenizer.tokenize(templateStr, T_CTX_TPL);
-			return [['HISTONE'], parseStatements()];
+			return parseStatements();
 		};
 	};
 
