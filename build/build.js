@@ -25,124 +25,159 @@ var FUNCTION_NAME = 'Histone';
 var INPUT_PATH = Utils.getEnv('input');
 var OUTPUT_PATH = Utils.getEnv('output');
 
-function buildDependencies(fileName, exportAs, callback) {
-
-	var result = '';
-	var dependencyPaths = {};
-
-	var buildFileList = function(fileName, order, exportAs) {
-		if (order === undefined) order = 0;
-		var inputFile = readFile(fileName);
-		new Function('define', inputFile)(function() {
-
-			var dependencies = [];
-			var args = Array.prototype.slice.call(arguments);
-			var definition = args.pop();
-			if (args.length) dependencies = args.pop();
-
-			if (!dependencyPaths.hasOwnProperty(fileName)) {
-				if (callback instanceof Function) callback(fileName);
-				dependencyPaths[fileName] = {
-					order: order,
-					exportAs: {},
-					body: definition
-				};
-			} else {
-				dependencyPaths[fileName].order++;
-			}
-
-			if (exportAs && !dependencyPaths[fileName]
-				['exportAs'].hasOwnProperty(exportAs)) {
-				dependencyPaths[fileName]['exportAs'][exportAs] = true;
-			}
-
-			var defArgs = Utils.getFunctionArguments(definition);
-			for (var c = 0; c < dependencies.length; c++) {
-				var dependencyPath = dependencies[c];
-				if (dependencyPath !== 'module') {
-					dependencyPath = Files.resolvePath(dependencyPath, fileName);
-					buildFileList(dependencyPath, order + 1, defArgs[c]);
-				}
-			}
-
-		});
-	};
-
-	buildFileList(fileName);
-	dependencyPaths[fileName].exportAs[exportAs] = true;
-
-	var dependencies = [];
-	for (var dependencyPath in dependencyPaths) {
-		var dependency = dependencyPaths[dependencyPath];
-		dependencies.push(dependency);
+function moduleHeader(definition, namespace, global) {
+	function useExports() {
+		return (typeof process === 'object' ||
+		typeof Packages === 'object' &&
+		typeof JavaImporter === 'function' &&
+		typeof module !== "undefined" && (
+			!global.module ||
+			global.module.id !== module.id
+		));
 	}
 
-	dependencies.sort(function(a, b) {
+	function useDefine() {
+		if (typeof requirejs === 'function' &&
+			typeof define === 'function' && define.amd) {
+			var script = document.head.getElementsByTagName('script');
+			script = Array.prototype.pop.call(script);
+			return script.hasAttribute('data-requiremodule');
+		}
+	}
+
+	if (useDefine()) {
+		define(['module'], definition);
+	} else if (useExports()) {
+		module.exports = definition(module);
+	} else {
+		global[namespace] = definition();
+	}
+}
+
+function executePlugin(pluginPath, pluginArgs, baseURI) {
+	var pluginStr = '';
+	print('processing plugin:', pluginPath);
+	var pluginBody = makeBundle(pluginPath, 'PLUGIN');
+	pluginBody = new Function(pluginBody + ' return PLUGIN;')();
+	pluginBody.build(pluginArgs, baseURI, function(result) {
+		pluginStr = result;
+	});
+	return pluginStr;
+}
+
+function makeBundle(fileName, exportAs) {
+
+	var bundleStr = '';
+	var dependencies = {};
+
+	function storeDependency(fileName, exportAs, definition, order) {
+		if (!dependencies.hasOwnProperty(fileName)) {
+			print('processing dependency:', fileName);
+			dependencies[fileName] = {
+				order: order,
+				exportAs: {},
+				body: definition
+			};
+		} else dependencies[fileName].order++;
+		if (exportAs && !dependencies[fileName]
+			['exportAs'].hasOwnProperty(exportAs)) {
+			dependencies[fileName]['exportAs'][exportAs] = true;
+		}
+	}
+
+	function buildDependencies(fileName, callback, order, exportAs) {
+		if (order === undefined) order = 0;
+		var fileContents = readFile(fileName);
+		new Function('define', fileContents)(function() {
+			var dependencyNames = [], dependencyPaths = [];
+			var args = Array.prototype.slice.call(arguments);
+			if (Utils.isArray(args[0])) dependencyPaths = args.shift();
+			var definition = args.shift();
+			if (Utils.isFunction(definition)) {
+				dependencyNames = Utils.getFunctionArguments(definition);
+				definition = Utils.setFunctionArguments(definition);
+			}
+			storeDependency(fileName, exportAs, definition, order);
+			for (var c = 0; c < dependencyPaths.length; c++) {
+				var dependencyPath = dependencyPaths[c];
+				if (dependencyPath === 'module') continue;
+				if (dependencyPath.indexOf('!') !== -1 &&
+					Utils.isFunction(callback)) {
+					var pluginPath = dependencyPath;
+					if (pluginPath[0] === '!') {
+						pluginPath = pluginPath.substr(1);
+					}
+					pluginPath = pluginPath.split('!');
+					var pluginArgs = pluginPath.slice(1).join('!');
+					pluginPath = pluginPath.shift();
+					pluginPath = Files.resolvePath(pluginPath, fileName);
+					fileContents = callback(pluginPath, pluginArgs, fileName);
+					storeDependency(
+						pluginPath,
+						dependencyNames[c],
+						fileContents, order + 1
+					);
+				} else {
+					buildDependencies(
+						Files.resolvePath(dependencyPath, fileName),
+						callback, order + 1, dependencyNames[c]
+					);
+				}
+			}
+		});
+	}
+
+	buildDependencies(fileName, executePlugin);
+	dependencies[fileName]['exportAs'][exportAs] = true;
+
+	var dependencyData = [];
+	for (var dependencyPath in dependencies) {
+		var dependency = dependencies[dependencyPath];
+		dependencyData.push(dependency);
+	}
+
+	dependencyData.sort(function(a, b) {
 		return (b.order - a.order);
 	});
 
-	while (dependencies.length) {
-		var dependency = dependencies.shift();
+	while (dependencyData.length) {
 		var exportAs = null;
+		var dependency = dependencyData.shift();
 		for (var exportVar in dependency.exportAs) {
-			result += 'var ';
-			result += exportVar;
+			bundleStr += 'var ';
+			bundleStr += exportVar;
 			if (!exportAs) {
-				result += ' = (';
-				result += Utils.setFunctionArguments(dependency.body);
-				result += ')();';
+				if (Utils.isFunction(dependency.body)) {
+					bundleStr += ' = (';
+					bundleStr += Utils.setFunctionArguments(dependency.body);
+					bundleStr += ')();';
+				} else {
+					bundleStr += ' = (';
+					bundleStr += JSON.stringify(dependency.body);
+					bundleStr += ');'
+				}
 				exportAs = exportVar;
 			} else {
-				result += ' = ';
-				result += exportAs;
-				result += ';';
+				bundleStr += ' = ';
+				bundleStr += exportAs;
+				bundleStr += ';';
 			}
-			result += '\n';
+			bundleStr += '\n';
 		}
 	}
 
-	var moduleHeader = function(definition, namespace, global) {
+	return bundleStr;
+}
 
-		function useExports() {
-			return (typeof process === 'object' ||
-			typeof Packages === 'object' &&
-			typeof JavaImporter === 'function' &&
-			typeof module !== "undefined" && (
-				!global.module ||
-				global.module.id !== module.id
-			));
-		}
-
-		function useDefine() {
-			if (typeof requirejs === 'function' &&
-				typeof define === 'function' && define.amd) {
-				var script = document.head.getElementsByTagName('script');
-				script = Array.prototype.pop.call(script);
-				return script.hasAttribute('data-requiremodule');
-			}
-		}
-
-		if (useDefine()) {
-			define(['module'], definition);
-		} else if (useExports()) {
-			module.exports = definition(module);
-		} else {
-			global[namespace] = definition();
-		}
-
-	};
-
+function compileBundle(fileName, exportAs) {
 	var module = ('(' + moduleHeader.toString() + ')(function(module) {');
-		module += result;
-		module += 'return ' + FUNCTION_NAME + ';';
-	module += '}, "' + FUNCTION_NAME + '", function() { return this; }.call(null));';
-
+	module += makeBundle(fileName, exportAs);
+	module += 'return ' + exportAs + ';';
+	module += '}, "' + exportAs + '", function() { return this; }.call(null));';
 	return module;
 }
 
-var result = buildDependencies(INPUT_PATH, FUNCTION_NAME, function(path) {
-	print('processing dependency:', path);
-});
+var bundleStr = compileBundle(INPUT_PATH, FUNCTION_NAME);
 print('compiling:', OUTPUT_PATH);
-result = Compiler.compile(result);
-Files.write(OUTPUT_PATH, result);
+bundleStr = Compiler.compile(bundleStr);
+Files.write(OUTPUT_PATH, bundleStr);
