@@ -435,7 +435,7 @@
 		<div>baseURI = "{{baseURI}}"</div>
 		<div>clientType = "{{clientType}}"</div>
 		<div>userAgent = "{{userAgent}}"</div>
-		<div>clientInfo = "{{clientInfo.toJSON()}}"</div>
+		<div>clientInfo = {{clientInfo.toJSON()}}</div>
 	]]></example>
 
 </examples>
