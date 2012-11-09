@@ -16,26 +16,19 @@
  */
 
 define([
-	'module',
-	'./Utils.js',
-	'./Parser.js',
-	'./CallStack.js',
-	'./OrderedMap.js',
-	'./drivers/AJAXDriver.js',
-	'./drivers/NodeDriver.js',
-	'./drivers/RhinoDriver.js',
-	'!./JSONLoader.js!../package.json#version'
+	'module', './ClientInfo.js',
+	'./Utils.js', './Parser.js', './CallStack.js', './OrderedMap.js',
+	'./drivers/AJAXDriver.js', './drivers/NodeDriver.js', './drivers/RhinoDriver.js'
 ], function(
-	module,
+	module, clientInfo,
 	Utils, Parser, CallStack, OrderedMap,
-	AJAXDriver, NodeDriver, RhinoDriver,
-	packageVersion
+	AJAXDriver, NodeDriver, RhinoDriver
 ) {
 
 	var resourceCache = {};
 	var URIResolver = null;
 	var parserInstance = null;
-	var AST_HEADER = ['HISTONE', packageVersion];
+	var AST_HEADER = ['HISTONE', clientInfo];
 
 	var envType = Utils.getEnvType();
 	var clientType = ('javascript/' + envType);
@@ -954,8 +947,8 @@ define([
 
 	Histone.Global = {
 
-		version: packageVersion,
 		clientType: clientType,
+		clientInfo: clientInfo,
 		userAgent: userAgent,
 
 		baseURI: function(value, args, ret) {
