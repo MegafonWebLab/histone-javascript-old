@@ -643,13 +643,10 @@ define([
 			template = parserInstance.parse(template, baseURI);
 			template = [AST_HEADER, template];
 		} else if (template instanceof Template) {
-			return template;
+			template = template.getAST();
 		} else if (Utils.isDOMElement(template)) {
-			return Histone(
-				template.text ||
-				template.textContent,
-				baseURI
-			);
+			template = (template.text || template.textContent);
+			return Histone(template, baseURI);
 		} else if (!Utils.isArray(template)) {
 			template = String(template);
 			throw('"' + template + '" is not a string');
