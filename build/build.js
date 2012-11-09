@@ -113,7 +113,7 @@ function makeBundle(fileName, exportAs) {
 					pluginPath = Files.resolvePath(pluginPath, fileName);
 					fileContents = callback(pluginPath, pluginArgs, fileName);
 					storeDependency(
-						pluginPath,
+						dependencyPath,
 						dependencyNames[c],
 						fileContents, order + 1
 					);
