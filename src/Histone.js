@@ -22,8 +22,7 @@ define([
 ], function(
 	module, clientInfo,
 	Utils, Parser, CallStack, OrderedMap,
-	AJAXDriver, NodeDriver, RhinoDriver
-) {
+	AJAXDriver, NodeDriver, RhinoDriver) {
 
 	var resourceCache = {};
 	var URIResolver = null;
