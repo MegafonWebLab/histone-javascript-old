@@ -15,17 +15,16 @@
  * limitations under the License.
  */
 
-var [Utils, Files, Compiler] = [
-	require('Utils'),
-	require('Files'),
-	require('Compiler')
-];
+var Utils = require('Utils');
+var Files = require('Files');
+var ClosureCompiler = require('ClosureCompiler');
 
 var FUNCTION_NAME = 'Histone';
 var INPUT_PATH = Utils.getEnv('input');
 var OUTPUT_PATH = Utils.getEnv('output');
 
 function moduleHeader(definition, namespace, global) {
+
 	function useExports() {
 		return (typeof process === 'object' ||
 		typeof Packages === 'object' &&
@@ -110,7 +109,7 @@ function makeBundle(fileName, exportAs) {
 					pluginPath = pluginPath.split('!');
 					var pluginArgs = pluginPath.slice(1).join('!');
 					pluginPath = pluginPath.shift();
-					pluginPath = Files.resolvePath(pluginPath, fileName);
+					pluginPath = Utils.resolveURI(pluginPath, fileName);
 					fileContents = callback(pluginPath, pluginArgs, fileName);
 					storeDependency(
 						dependencyPath,
@@ -119,7 +118,7 @@ function makeBundle(fileName, exportAs) {
 					);
 				} else {
 					buildDependencies(
-						Files.resolvePath(dependencyPath, fileName),
+						Utils.resolveURI(dependencyPath, fileName),
 						callback, order + 1, dependencyNames[c]
 					);
 				}
@@ -179,5 +178,5 @@ function compileBundle(fileName, exportAs) {
 
 var bundleStr = compileBundle(INPUT_PATH, FUNCTION_NAME);
 print('compiling:', OUTPUT_PATH);
-bundleStr = Compiler.compile(bundleStr);
+bundleStr = ClosureCompiler.processString(bundleStr);
 Files.write(OUTPUT_PATH, bundleStr);
