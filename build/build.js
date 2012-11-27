@@ -40,7 +40,11 @@ function moduleHeader(definition, namespace, global) {
 			typeof define === 'function' && define.amd) {
 			var script = document.head.getElementsByTagName('script');
 			script = Array.prototype.pop.call(script);
-			return script.hasAttribute('data-requiremodule');
+			return (
+				script instanceof Object &&
+				script.hasAttribute instanceof Function &&
+				script.hasAttribute('data-requiremodule')
+			);
 		}
 	}
 
