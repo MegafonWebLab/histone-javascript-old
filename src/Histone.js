@@ -870,6 +870,100 @@ define([
 			ret(value.join(separator));
 		},
 
+		resize: function(value, args, ret) {
+			var newLength = args[0];
+			var result = value.clone();
+			var keys = result.keys();
+
+			var currLength = keys.length;
+			if (!Utils.isNumber(newLength) ||
+				newLength === currLength) {
+				return ret(result);
+			}
+
+			if (newLength > currLength) {
+				for (var c = 0; c < newLength - currLength; c++) {
+					result.set(null, 0);
+				}
+			} else if (newLength < currLength) {
+				var index = (currLength - newLength);
+				while (index--) {
+					result.remove(keys.pop());
+				}
+			}
+
+			return ret(result);
+		},
+
+		min: function(value, args, ret) {
+			var val, result;
+			var values = value.values();
+			for (var c = 0; c < values.length; c++) {
+				val = values[c];
+				if (!Utils.isNumber(val)) continue;
+				if (result === undefined ||
+					result > val) result = val;
+			}
+			ret(result);
+		},
+
+		max: function(value, args, ret) {
+			var val, result;
+			var values = value.values();
+			for (var c = 0; c < values.length; c++) {
+				val = values[c];
+				if (!Utils.isNumber(val)) continue;
+				if (result === undefined ||
+					result < val) result = val;
+			}
+			ret(result);
+		},
+
+		search: function(value, args, ret) {
+			var needle = args[0];
+			var offset = args[1];
+
+			var keys = value.keys();
+			var values = value.values();
+
+			if (!Utils.isNumber(offset)) {
+				offset = 0;
+			}
+
+			if (offset >= 0 && offset > values.length ||
+				offset < 0 && Math.abs(offset) > values.length) {
+				return ret(undefined);
+			}
+
+			if (offset >= 0) {
+				for (var c = offset; c < values.length; c++) {
+					if (values[c] !== needle) continue;
+					return ret(keys[c]);
+				}
+			} else if (offset < 0) {
+				offset = values.length + offset;
+				for (var c = offset; c >= 0; c--) {
+					if (values[c] !== needle) continue;
+					return ret(keys[c]);
+				}
+			}
+
+
+			ret(undefined);
+		},
+
+		set: function(value, args, ret) {
+			var key = args[0];
+			var val = args[1];
+			var value = value.clone();
+			if (!Utils.isString(key) &&
+				!Utils.isNumeric(key)) {
+				return ret(value);
+			}
+			value.set(key, val);
+			ret(value);
+		},
+
 		keys: function(value, args, ret) {
 			ret(value.keys());
 		},

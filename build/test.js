@@ -184,8 +184,7 @@ if (!testsDir) testsDir = 'histone-acceptance-tests/src/main/acceptance';
 Files.readDir(testsDir, function(file) {
 
 	if (file.type === 'folder') {
-		if (file.name === 'functions') return true;
-		return false;
+		return (file.name !== 'testresources');
 	}
 
 	var fileType = file.name.split('.').pop();
