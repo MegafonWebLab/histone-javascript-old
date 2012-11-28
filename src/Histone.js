@@ -872,6 +872,7 @@ define([
 
 		resize: function(value, args, ret) {
 			var newLength = args[0];
+			var fillValue = args[1];
 			var result = value.clone();
 			var keys = result.keys();
 
@@ -883,7 +884,7 @@ define([
 
 			if (newLength > currLength) {
 				for (var c = 0; c < newLength - currLength; c++) {
-					result.set(null, 0);
+					result.set(null, fillValue);
 				}
 			} else if (newLength < currLength) {
 				var index = (currLength - newLength);
@@ -893,30 +894,6 @@ define([
 			}
 
 			return ret(result);
-		},
-
-		min: function(value, args, ret) {
-			var val, result;
-			var values = value.values();
-			for (var c = 0; c < values.length; c++) {
-				val = values[c];
-				if (!Utils.isNumber(val)) continue;
-				if (result === undefined ||
-					result > val) result = val;
-			}
-			ret(result);
-		},
-
-		max: function(value, args, ret) {
-			var val, result;
-			var values = value.values();
-			for (var c = 0; c < values.length; c++) {
-				val = values[c];
-				if (!Utils.isNumber(val)) continue;
-				if (result === undefined ||
-					result < val) result = val;
-			}
-			ret(result);
 		},
 
 		search: function(value, args, ret) {
@@ -1117,28 +1094,60 @@ define([
 			ret(Math.floor(Math.random() * (max - min + 1)) + min);
 		},
 
-		min: function(value, values, ret) {
-			var count = values.length;
-			var minValue = undefined;
-			for (var c = 0; c < count; c++) {
-				if (Utils.isNumber(values[c]) && (
-					Utils.isUndefined(minValue) ||
-					values[c] < minValue
-				)) minValue = values[c];
+		min: function(value, args, ret) {
+
+			function findMinimal(values) {
+				var objKey, objValues;
+				var count = values.length;
+				var currValue, minValue = undefined;
+				for (var c = 0; c < count; c++) {
+					currValue = values[c];
+					if (Utils.isObject(currValue)) {
+						if (!Utils.isArray(currValue)) {
+							objValues = [];
+							for (objKey in currValue)
+								objValues.push(currValue[objKey]);
+							currValue = objValues;
+						}
+						currValue = findMinimal(currValue);
+					}
+					if (Utils.isNumber(currValue) && (
+						Utils.isUndefined(minValue) ||
+						currValue < minValue
+					)) minValue = currValue;
+				}
+				return minValue;
 			}
-			ret(minValue);
+
+			ret(findMinimal(args));
 		},
 
-		max: function(value, values, ret) {
-			var count = values.length;
-			var maxValue = undefined;
-			for (var c = 0; c < count; c++) {
-				if (Utils.isNumber(values[c]) && (
-					Utils.isUndefined(maxValue) ||
-					values[c] > maxValue
-				)) maxValue = values[c];
+		max: function(value, args, ret) {
+
+			function findMaximal(values) {
+				var objKey, objValues;
+				var count = values.length;
+				var currValue, minValue = undefined;
+				for (var c = 0; c < count; c++) {
+					currValue = values[c];
+					if (Utils.isObject(currValue)) {
+						if (!Utils.isArray(currValue)) {
+							objValues = [];
+							for (objKey in currValue)
+								objValues.push(currValue[objKey]);
+							currValue = objValues;
+						}
+						currValue = findMaximal(currValue);
+					}
+					if (Utils.isNumber(currValue) && (
+						Utils.isUndefined(minValue) ||
+						currValue > minValue
+					)) minValue = currValue;
+				}
+				return minValue;
 			}
-			ret(maxValue);
+
+			ret(findMaximal(args));
 		},
 
 		range: function(value, args, ret) {

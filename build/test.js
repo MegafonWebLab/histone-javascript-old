@@ -178,34 +178,35 @@ function runTestCase(testCase, testCaseURL) {
 
 };
 
-var testsDir = Utils.getEnv('tests');
-if (!testsDir) testsDir = 'histone-acceptance-tests/src/main/acceptance';
-
-Files.readDir(testsDir, function(file) {
-
-	if (file.type === 'folder') {
-		return (file.name !== 'testresources');
-	}
-
-	var fileType = file.name.split('.').pop();
+function doTest(filePath) {
+	var fileType = filePath.split('.').pop();
 	if (fileType !== 'json') return;
 
-	var testSuites = readFile(file.path);
+	var testSuites = readFile(filePath);
 	testSuites = JSON.parse(testSuites);
 
 	while (testSuites.length) {
 		var testSuite = testSuites.shift();
 		var suiteName = testSuite.name;
 		var testCases = testSuite.cases;
-		print('\n[ "' + file.name + '" -> "' + suiteName + '"]\n');
+		print('\n[ "' + filePath + '" -> "' + suiteName + '"]\n');
 		while (testCases.length) {
 			runTestCase(
 				testCases.shift(),
-				file.path
+				filePath
 			);
 		}
 	}
+}
 
-});
+var testsDir = Utils.getEnv('tests');
+if (!testsDir) testsDir = 'histone-acceptance-tests/src/main/acceptance';
+
+if (Files.isDir(testsDir)) Files.readDir(testsDir, function(file) {
+	if (file.type === 'folder') {
+		return (file.name !== 'testresources');
+	}
+	doTest(file.path);
+}); else doTest(testsDir);
 
 quit(testResult);
