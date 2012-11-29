@@ -1213,8 +1213,7 @@ define([
 				'*': {'Histone': module.id}
 			}})([name], load);
 		} else {
-			var requestURI = req.toUrl(name);
-			requestURI = Utils.uri.resolve(requestURI, window.location.href);
+			var requestURI = Utils.uri.resolve(name, window.location.href);
 			NetworkRequest(requestURI, function(resourceData) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, requestURI));
