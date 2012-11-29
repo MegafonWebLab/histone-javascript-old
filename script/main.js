@@ -15,7 +15,7 @@ $(document).ready(function() {
 	var preloaderEl = $('.preloader-layer, .preloader-image');
 	var histoneBase = [
 		'https://raw.github.com/MegafonWebLab/',
-		'histone-javascript/master/src/Histone.js'
+		'histone-javascript/master/src/'
 	].join('');
 
 	if ($('.ie6-message')[0].offsetHeight) return;
@@ -223,8 +223,10 @@ $(document).ready(function() {
 		templateEditor.focus();
 	}
 
-	require([histoneBase,
-		histoneBase + '!../templates/treeView.tpl'
+	require.config({
+		baseUrl: histoneBase
+	})(['Histone',
+		'Histone!../templates/treeView.tpl'
 	], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
 		showPreloader('loading examples');
