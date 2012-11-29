@@ -1206,14 +1206,17 @@ define([
 	};
 
 	Histone.load = function(name, req, load, config) {
+
 		var requestObj = Utils.uri.parse(name);
 		var requestType = requestObj.path.split('.').pop();
 		if (requestType !== 'tpl') {
 
 			if (typeof curl === 'function') {
+
 				curl({paths: {'Histone': module.uri}});
 				req([req.toUrl(name)], load);
 				curl(config);
+
 			} else if (typeof require === 'function') {
 				require.config({
 					'map': {
@@ -1223,7 +1226,8 @@ define([
 			}
 
 		} else {
-			var requestURI = req.toUrl(name);
+			var requestURI = window.location.href;
+			requestURI = Utils.uri.resolve(name, requestURI);
 			NetworkRequest(requestURI, function(resourceData) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, requestURI));
