@@ -1206,18 +1206,20 @@ define([
 	};
 
 	Histone.load = function(name, req, load, config) {
-		var requestURI = req.toUrl(name);
-		requestURI = Utils.uri.resolve(requestURI, window.location.href);
-		var requestObj = Utils.uri.parse(requestURI);
+		var requestObj = Utils.uri.parse(name);
 		var requestType = requestObj.path.split('.').pop();
 		if (requestType === 'js') {
 			require.config({'map': {
 				'*': {'Histone': module.id}
-			}})([requestURI], load);
-		} else NetworkRequest(requestURI, function(resourceData) {
-			resourceData = resourceToTpl(resourceData);
-			load(Histone(resourceData, requestURI));
-		});
+			}})([name], load);
+		} else {
+			var requestURI = req.toUrl(name);
+			requestURI = Utils.uri.resolve(requestURI, window.location.href);
+			NetworkRequest(requestURI, function(resourceData) {
+				resourceData = resourceToTpl(resourceData);
+				load(Histone(resourceData, requestURI));
+			});
+		}
 	};
 
 	Histone.setURIResolver = function(callback) {
