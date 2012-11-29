@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['./Utils.js'], function(Utils) {
+define(['./Utils'], function(Utils) {
 
 	function indexOf(array, find, i) {
 		if (Array.prototype.indexOf) {

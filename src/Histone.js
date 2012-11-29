@@ -16,9 +16,9 @@
  */
 
 define([
-	'module', './ClientInfo.js',
-	'./Utils.js', './Parser.js', './CallStack.js', './OrderedMap.js',
-	'./drivers/AJAXDriver.js', './drivers/NodeDriver.js', './drivers/RhinoDriver.js'
+	'module', './ClientInfo',
+	'./Utils', './Parser', './CallStack', './OrderedMap',
+	'./drivers/AJAXDriver', './drivers/NodeDriver', './drivers/RhinoDriver'
 ], function(
 	module, clientInfo,
 	Utils, Parser, CallStack, OrderedMap,
@@ -1208,14 +1208,23 @@ define([
 	Histone.load = function(name, req, load, config) {
 		var requestObj = Utils.uri.parse(name);
 		var requestType = requestObj.path.split('.').pop();
-		if (requestType === 'js') {
-			require.config({'map': {
-				'*': {'Histone': module.id}
-			}})([name], load);
+		if (requestType !== 'tpl') {
+
+			if (typeof curl === 'function') {
+				curl({paths: {'Histone': module.uri}});
+				req([req.toUrl(name)], load);
+				curl(config);
+			} else if (typeof require === 'function') {
+				require.config({
+					'map': {
+						'*': {'Histone': module.id}
+					}
+				})([req.toUrl(name)], load);
+			}
+
 		} else {
-			var requestURI = window.location.href;
-			requestURI = Utils.uri.resolve(config.baseUrl, requestURI);
-			requestURI = Utils.uri.resolve(name, requestURI);
+			var baseUrl = (config.baseUrl || window.location.href);
+			var requestURI = Utils.uri.resolve(name, baseUrl);
 			NetworkRequest(requestURI, function(resourceData) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, requestURI));

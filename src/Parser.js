@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['./Tokenizer.js'], function(Tokenizer) {
+define(['./Tokenizer'], function(Tokenizer) {
 
 	// escape sequence regexp
 	var escapeSequence;

@@ -1,4 +1,4 @@
-define(['../Utils.js'], function(Utils) {
+define(['../Utils'], function(Utils) {
 
 	return function(requestURI, success, fail, requestProps, isJSONP) {
 		var requestObj = Utils.uri.parse(requestURI);

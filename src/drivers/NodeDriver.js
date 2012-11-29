@@ -1,4 +1,4 @@
-define(['../Utils.js'], function(Utils) {
+define(['../Utils'], function(Utils) {
 
 	var FSModule = null;
 	var HTTPModule = null;
