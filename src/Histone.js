@@ -1223,8 +1223,7 @@ define([
 			}
 
 		} else {
-			var baseUrl = (config.baseUrl || window.location.href);
-			var requestURI = Utils.uri.resolve(name, baseUrl);
+			var requestURI = req.toUrl(name);
 			NetworkRequest(requestURI, function(resourceData) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, requestURI));
