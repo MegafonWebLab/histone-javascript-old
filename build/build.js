@@ -104,6 +104,8 @@ function makeBundle(fileName, exportAs) {
 			for (var c = 0; c < dependencyPaths.length; c++) {
 				var dependencyPath = dependencyPaths[c];
 				if (dependencyPath === 'module') continue;
+				if (dependencyPath.slice(-3) !== '.js')
+					dependencyPath += '.js';
 				if (dependencyPath.indexOf('!') !== -1 &&
 					Utils.isFunction(callback)) {
 					var pluginPath = dependencyPath;
