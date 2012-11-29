@@ -219,10 +219,9 @@ $(document).ready(function() {
 		templateEditor.focus();
 	}
 
-	curl([
-		'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone',
-		'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone!templates/treeView.tpl'
-	], function(HistoneRef, treeViewTpl) {
+	require.config({
+		baseUrl: 'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/'
+	})(['Histone', 'Histone!templates/treeView.tpl'], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
