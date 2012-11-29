@@ -13,10 +13,6 @@ $(document).ready(function() {
 	var htmlResultEl = $('.html-area', resultEl);
 	var astResultEl = $('.ast-area', resultEl);
 	var preloaderEl = $('.preloader-layer, .preloader-image');
-	var histoneBase = [
-		'https://raw.github.com/MegafonWebLab/',
-		'histone-javascript/master/src/'
-	].join('');
 
 	if ($('.ie6-message')[0].offsetHeight) return;
 
@@ -223,10 +219,9 @@ $(document).ready(function() {
 		templateEditor.focus();
 	}
 
-	require.config({
-		baseUrl: histoneBase
-	})(['Histone',
-		'Histone!../templates/treeView.tpl'
+	curl([
+		'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone',
+		'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone!templates/treeView.tpl'
 	], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
 		showPreloader('loading examples');
