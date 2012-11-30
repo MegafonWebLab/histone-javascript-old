@@ -35,6 +35,14 @@
 		</fileset>
 	</path>
 
+	<target name="checkout" description="checkout acceptance tests" unless="test">
+		<exec executable="git" failonerror="true">
+			<arg value="clone" />
+			<arg value="git://github.com/MegafonWebLab/histone-acceptance-tests.git" />
+			<arg value="histone-acceptance-tests" />
+		</exec>
+	</target>
+
 	<target name="build" description="make production package">
 		<exec executable="java">
 			<arg value="-Dfile.encoding=UTF8" />
@@ -48,15 +56,9 @@
 		</exec>
 	</target>
 
-	<target name="test"
-		description="run tests" depends="build">
-		<delete dir="histone-acceptance-tests" />
+	<target name="test" description="run tests" depends="build, checkout">
 
-		<exec executable="git" failonerror="true">
-			<arg value="clone" />
-			<arg value="git://github.com/MegafonWebLab/histone-acceptance-tests.git" />
-			<arg value="histone-acceptance-tests" />
-		</exec>
+		<property name="test" location="histone-acceptance-tests/src/main/acceptance" />
 
 		<exec executable="java" failonerror="true">
 			<arg value="-Dfile.encoding=UTF8" />
@@ -65,12 +67,12 @@
 			<arg value="org.mozilla.javascript.tools.shell.Main" />
 			<arg line="-modules ${modulesDir}" />
 			<arg line="build/test-runner.js" />
-			<env key="tests" path="histone-acceptance-tests/src/main/acceptance" />
+			<env key="tests" path="${test}" />
 		</exec>
 
 		<exec executable="node" failonerror="true">
 			<arg line="build/test-runner.js" />
-			<env key="tests" path="histone-acceptance-tests/src/main/acceptance" />
+			<env key="tests" path="${test}" />
 		</exec>
 
 		<delete dir="histone-acceptance-tests" />
@@ -113,18 +115,6 @@
 			<arg line="rhino-require-load.js" />
 		</exec>
 
-	</target-->
-
-	<!--target name="test-static" description="test" depends="build">
-		<exec executable="java" failonerror="true">
-			<arg value="-Dfile.encoding=UTF8" />
-			<arg value="-classpath" />
-			<arg value="${toString:classPath}" />
-			<arg value="org.mozilla.javascript.tools.shell.Main" />
-			<arg line="-modules ${modulesDir}" />
-			<arg line="build/test.js" />
-			<env key="tests" path="${tests}" />
-		</exec>
 	</target-->
 
 </project>
