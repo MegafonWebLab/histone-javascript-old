@@ -1047,8 +1047,8 @@ define([
 					return ret(data);
 				}
 				if (isJSONP) {
-					data = data.replace(/^\s*[$A-Z_][0-9A-Z_$]*\(\s*/i, '');
-					data = data.replace(/\s*\);?\s*$/, '');
+					data = data.replace(/^\s*[$A-Z_][0-9A-Z_$]*\s*\(\s*/i, '');
+					data = data.replace(/\s*\)\s*;?\s*$/, '');
 				}
 				try {
 					data = JSON.parse(data);
