@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>tests</title>
+		<script type="text/javascript" src="curl.js"></script>
+		<script type="text/javascript">
+			var results = [];
+			results.push(typeof window.Histone === 'undefined');
+			curl(['../Histone'], function(Histone) {
+				results.push(typeof window.Histone === 'undefined');
+				Histone('{{2 * 2}}').render(function(result) {
+					results.push(typeof window.Histone === 'undefined');
+					results.push(result);
+					results = JSON.stringify(results);
+					document.write('PASSING = ' + (results === '[true,true,true,true,"4"]'));
+				});
+			});
+			results.push(typeof window.Histone === 'undefined');
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

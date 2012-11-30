@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>tests</title>
+		<script type="text/javascript" src="require.js"></script>
+		<script type="text/javascript" src="../Histone.js"></script>
+		<script type="text/javascript">
+			var results = [];
+			results.push(typeof window.Histone === 'function');
+			Histone('{{2 * 2}}').render(function(result) {
+				results.push(result);
+				results = JSON.stringify(results);
+				document.write('PASSING = ' + (results === '[true,"4"]'));
+			});
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
