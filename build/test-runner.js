@@ -82,7 +82,8 @@ var readDir = function(path, callback) {
 		for (var fileDescr = {}, c = 0; c < files.length; c++) {
 
 			var fileObj = absolutePath;
-			fileObj += '/';//FILE_SEPARATOR;
+			//FILE_SEPARATOR;
+			fileObj += '/';
 			fileObj += String(files[c]);
 			fileObj = new java.io.File(fileObj);
 
