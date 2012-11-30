@@ -36,24 +36,24 @@ function moduleHeader(definition, namespace, global) {
 	}
 
 	function useDefine() {
-		if (typeof requirejs === 'function' &&
-			typeof define === 'function' && define.amd) {
-			var script = document.head.getElementsByTagName('script');
-			script = Array.prototype.pop.call(script);
-			return (
-				script instanceof Object &&
-				script.hasAttribute instanceof Function &&
-				script.hasAttribute('data-requiremodule')
-			);
-		}
+		return ((typeof curl === 'function' ||
+			typeof requirejs === 'function'
+		) && typeof define === 'function' && define.amd);
+
 	}
 
-	if (useDefine()) {
-		define(['module'], definition);
-	} else if (useExports()) {
-		module.exports = definition(module);
-	} else {
+	if (!useExports()) {
+
 		global[namespace] = definition();
+
+		if (!useDefine()) return;
+
+		define(['module'], definition.bind(this, function() {
+			delete global[namespace];
+		}));
+
+	} else {
+		module.exports = definition(null, module);
 	}
 }
 
@@ -175,7 +175,8 @@ function makeBundle(fileName, exportAs) {
 }
 
 function compileBundle(fileName, exportAs) {
-	var module = ('(' + moduleHeader.toString() + ')(function(module) {');
+	var module = ('(' + moduleHeader.toString() + ')(function(cleanup, module) {');
+	module += 'if (cleanup instanceof Function) cleanup();';
 	module += makeBundle(fileName, exportAs);
 	module += 'return ' + exportAs + ';';
 	module += '}, "' + exportAs + '", function() { return this; }.call(null));';
