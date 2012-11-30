@@ -814,13 +814,13 @@ define([
 				value.match(regExp) !== null);
 		},
 
-		match: function(value, args, ret) {
-			var regExp = args[0];
-			if (!Utils.isString(regExp)) return ret(false);
-			var match = value.match(regExp);
-			if (Utils.isNull(match)) return ret(false);
-			ret(Array.prototype.slice.call(match, 0));
-		},
+		// match: function(value, args, ret) {
+		// 	var regExp = args[0];
+		// 	if (!Utils.isString(regExp)) return ret(false);
+		// 	var match = value.match(regExp);
+		// 	if (Utils.isNull(match)) return ret(false);
+		// 	ret(Array.prototype.slice.call(match, 0));
+		// },
 
 		toLowerCase: function(value, args, ret) {
 			ret(value.toLowerCase());
