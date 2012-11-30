@@ -1,5 +1,5 @@
 /**
- * rhino-test-runner.js - Histone template engine.
+ * test-runner.js - Histone template engine.
  * Copyright 2012 MegaFon
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
