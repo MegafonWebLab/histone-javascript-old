@@ -977,32 +977,28 @@ define([
 			var queryString = [];
 			var numPrefix = args[0];
 			var separator = args[1];
-			var value = value.toObject();
-			value = Utils.objectFlatten(value);
-
 			if (!Utils.isString(numPrefix)) numPrefix = '';
 			if (!Utils.isString(separator)) separator = '&';
-
-			if (Utils.isArray(value)) {
-				for (qName = 0; qName < value.length; qName++) {
-					qValue = value[qName];
-					if (Utils.isUndefined(qValue)) continue;
-					qValue = nodeToString(qValue);
-					qValue = encodeURIComponent(qValue);
-					queryString.push(numPrefix + qName + '=' + qValue);
+			(function evaluate(value, prefix) {
+				var c, key, val;
+				var keys = value.keys();
+				var length = keys.length;
+				var values = value.values();
+				for (c = 0; c < length; c++) {
+					key = prefix.concat(keys[c]);
+					val = values[c];
+					if (val instanceof OrderedMap) {
+						evaluate(val, key);
+					} else if (!Utils.isUndefined(val)) {
+						val = nodeToString(val);
+						val = encodeURIComponent(val);
+						if (Utils.isNumeric(key = key.shift() + (
+							key.length ? '[' + key.join('][') + ']' : ''
+						))) key = (numPrefix + key);
+						queryString.push(key + '=' + val);
+					}
 				}
-			} else if (Utils.isObject(value)) {
-				for (qName in value) {
-					if (!value.hasOwnProperty(qName)) continue;
-					qValue = value[qName];
-					if (Utils.isUndefined(qValue)) continue;
-					qValue = nodeToString(qValue);
-					qValue = encodeURIComponent(qValue);
-					if (Utils.isNumeric(qName)) qName = (numPrefix + qName);
-					queryString.push(qName + '=' + qValue);
-				}
-			}
-
+			})(value, []);
 			ret(queryString.join(separator));
 		},
 

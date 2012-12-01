@@ -310,47 +310,6 @@ define(function() {
 		}
 	}
 
-	function objectFlatten(object) {
-
-		var path = [], result = {};
-
-		function callback(key, value) {
-			if (!isObject(value)) {
-				key = path.concat(key);
-				var flatKey = key.shift();
-				if (key.length) {
-					flatKey += '[';
-					flatKey += key.join('][');
-					flatKey += ']';
-				}
-				result[flatKey] = value;
-			} else {
-				path.push(key);
-				objectFlatten(value);
-				path.pop();
-			}
-		}
-
-		function objectFlatten(object) {
-			if (isArray(object)) {
-				for (var key = 0; key < object.length; key++) {
-					callback(key, object[key]);
-				}
-			} else if (isObject(object)) {
-				for (var key in object) {
-					if (object.hasOwnProperty(key)) {
-						callback(key, object[key]);
-					}
-				}
-			} else return object;
-		}
-
-		objectFlatten(object);
-
-		return result;
-
-	}
-
 	return {
 		T_UNDEFINED: T_UNDEFINED,
 		T_NULL: T_NULL,
@@ -376,7 +335,6 @@ define(function() {
 		getEnvType: getEnvType,
 		getEnvInfo: getEnvInfo,
 		forEachAsync: forEachAsync,
-		objectFlatten: objectFlatten,
 
 		uri: {
 			parse: URIParse,

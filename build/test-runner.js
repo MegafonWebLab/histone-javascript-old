@@ -381,7 +381,6 @@ if (isDir(testPath)) {
 		if (file.type === 'folder') {
 			return (file.name !== 'testresources');
 		} else if (file.type === 'file') {
-			if (file.name === 'map.toQueryString.json') return;
 		}
 		files.push(file.path);
 	});
