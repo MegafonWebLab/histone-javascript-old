@@ -937,7 +937,9 @@ define([
 				!Utils.isNumeric(key)) {
 				return ret(value);
 			}
-			value.set(key, val);
+			if (Utils.isUndefined(val))
+				value.remove(key);
+			else value.set(key, val);
 			ret(value);
 		},
 

@@ -36,6 +36,7 @@
 	</path>
 
 	<target name="checkout" description="checkout acceptance tests" unless="test">
+		<delete dir="histone-acceptance-tests" />
 		<exec executable="git" failonerror="true">
 			<arg value="clone" />
 			<arg value="git://github.com/MegafonWebLab/histone-acceptance-tests.git" />
