@@ -28,7 +28,7 @@ var print = (print || function() {
 
 var readFile = (readFile || function(fileName) {
 	var fs = require('fs');
-	return fs.readFileSync(fileName);
+	return String(fs.readFileSync(fileName));
 });
 
 var quit = (quit || function(code) {
@@ -348,18 +348,39 @@ function runTestCase(testCase, testCaseURL, ret) {
 
 function doTest(filePath, ret) {
 	var fileType = filePath.split('.').pop();
-	if (fileType !== 'json') return ret();
-	var testSuites = readFile(filePath);
-	testSuites = JSON.parse(testSuites);
+	if (fileType === 'js') {
 
-	forEachAsync(testSuites, function(testSuite, ret) {
-		var suiteName = testSuite.name;
-		var testCases = testSuite.cases;
-		print('\n[ "' + filePath + '" -> "' + suiteName + '"]\n');
-		forEachAsync(testCases, function(testCase, ret) {
-			runTestCase(testCase, filePath, ret);
+		var myFile = readFile(filePath);
+		new Function('test, Histone', myFile)(function(testCase, name) {
+			testCounter++;
+			name = (typeof name === 'undefined' ? String(testCase) : name);
+			if (typeof testCase === 'function') testCase(function(result) {
+				if (result === true) {
+					successCases++;
+					printMessage('SUCCESS', name);
+				} else {
+					failedCases++;
+					printMessage('FAILING', name);
+				}
+				ret();
+			}); else {
+				skippedCases++;
+				printMessage('SKIPPED', name);
+			}
+		}, Histone);
+
+	} else if (fileType === 'json') {
+		var testSuites = readFile(filePath);
+		testSuites = JSON.parse(testSuites);
+		forEachAsync(testSuites, function(testSuite, ret) {
+			var suiteName = testSuite.name;
+			var testCases = testSuite.cases;
+			print('\n[ "' + filePath + '" -> "' + suiteName + '"]\n');
+			forEachAsync(testCases, function(testCase, ret) {
+				runTestCase(testCase, filePath, ret);
+			}, ret);
 		}, ret);
-	}, ret);
+	} else return ret();
 }
 
 function quitWithResult() {
