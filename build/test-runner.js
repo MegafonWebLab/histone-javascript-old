@@ -348,28 +348,29 @@ function runTestCase(testCase, testCaseURL, ret) {
 
 function doTest(filePath, ret) {
 	var fileType = filePath.split('.').pop();
-	if (fileType === 'js') {
+	// if (fileType === 'js') {
 
-		var myFile = readFile(filePath);
-		new Function('test, Histone', myFile)(function(testCase, name) {
-			testCounter++;
-			name = (typeof name === 'undefined' ? String(testCase) : name);
-			if (typeof testCase === 'function') testCase(function(result) {
-				if (result === true) {
-					successCases++;
-					printMessage('SUCCESS', name);
-				} else {
-					failedCases++;
-					printMessage('FAILING', name);
-				}
-				ret();
-			}); else {
-				skippedCases++;
-				printMessage('SKIPPED', name);
-			}
-		}, Histone);
+	// 	var myFile = readFile(filePath);
+	// 	new Function('test, Histone', myFile)(function(testCase, name) {
+	// 		testCounter++;
+	// 		name = (typeof name === 'undefined' ? String(testCase) : name);
+	// 		if (typeof testCase === 'function') testCase(function(result) {
+	// 			if (result === true) {
+	// 				successCases++;
+	// 				printMessage('SUCCESS', name);
+	// 			} else {
+	// 				failedCases++;
+	// 				printMessage('FAILING', name);
+	// 			}
+	// 			ret();
+	// 		}); else {
+	// 			skippedCases++;
+	// 			printMessage('SKIPPED', name);
+	// 		}
+	// 	}, Histone);
 
-	} else if (fileType === 'json') {
+	// } else
+	if (fileType === 'json') {
 		var testSuites = readFile(filePath);
 		testSuites = JSON.parse(testSuites);
 		forEachAsync(testSuites, function(testSuite, ret) {
