@@ -17,11 +17,12 @@
 
 var Utils = require('Utils');
 var Files = require('Files');
+var System = require('System');
 var ClosureCompiler = require('ClosureCompiler');
 
 var FUNCTION_NAME = 'Histone';
-var INPUT_PATH = Utils.getEnv('input');
-var OUTPUT_PATH = Utils.getEnv('output');
+var INPUT_PATH = System.getEnv('input');
+var OUTPUT_PATH = System.getEnv('output');
 
 function moduleHeader(definition, namespace, global) {
 
