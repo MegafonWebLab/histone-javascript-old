@@ -55,13 +55,31 @@ Enter the directory and execute test target:
 
 This will build Histone.js, obtain latest test files from
 [https://github.com/MegafonWebLab/histone-acceptance-tests.git](https://github.com/MegafonWebLab/histone-acceptance-tests.git)
-and test Histone against them, using [Mozilla Rhino Javascript engine](https://developer.mozilla.org/en-US/docs/Rhino).
-You can also check current build status on [Travis CI continuous integration server](https://travis-ci.org/#!/MegafonWebLab/histone-javascript).
+and test Histone against them, using [Mozilla Rhino Javascript engine](https://developer.mozilla.org/en-US/docs/Rhino) and
+[Node.js](http://nodejs.org/).
+
+In case if you're developing new functionality you might want to run tests locally, in this case you can specify the directory
+with the test cases using **test** property:
+
+```bash
+> cd histone-javascript
+> ant test -Dtest=../histone-acceptance-tests/src/main/acceptance/functions
+```
+
+you can also specify the file with the test cases instead of the whole directory:
+
+```bash
+> cd histone-javascript
+> ant test -Dtest=../histone-acceptance-tests/src/main/acceptance/functions/global.loadJSON.json
+```
+
+Automated tests are executed for every single commit and available here:
+[Travis CI continuous integration server](https://travis-ci.org/#!/MegafonWebLab/histone-javascript).
 
 Using Histone in the web - browser
 --------------------------------------
 
-In case if you use Histone as RequireJS module:
+Loading Histone as AMD module, using [RequireJS](http://requirejs.org/):
 
 ```html
 <!-- include RequireJS -->
@@ -69,6 +87,25 @@ In case if you use Histone as RequireJS module:
 <script type="text/javascript">
 	// load Histone module
 	require(['Histone'], function(Histone) {
+		// create Template instance
+		var template = Histone('2 x 2 = {{2 * 2}}');
+		// render template
+		template.render(function(result) {
+			// output the result
+			alert(result);
+		});
+	});
+</script>
+```
+
+Loading Histone as AMD module, using [Curl.js](http://davidwalsh.name/curljs):
+
+```html
+<!-- include Curl.js -->
+<script type="text/javascript" src="https://raw.github.com/cujojs/curl/master/dist/curl/curl.js"></script>
+<script type="text/javascript">
+	// load Histone module
+	curl(['Histone'], function(Histone) {
 		// create Template instance
 		var template = Histone('2 x 2 = {{2 * 2}}');
 		// render template
