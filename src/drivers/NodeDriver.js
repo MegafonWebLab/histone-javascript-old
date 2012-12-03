@@ -17,9 +17,45 @@
 
 define(['../Utils'], function(Utils) {
 
+	var URL = null;
 	var FSModule = null;
 	var HTTPModule = null;
 	var HTTPSModule = null;
+
+	function filterRequestHeaders(requestHeaders) {
+		var headers = {}, name, lName;
+		for (name in requestHeaders) {
+			lName = name.toLowerCase();
+			if (lName.substr(0, 4) === 'sec-') continue;
+			if (lName.substr(0, 6) === 'proxy-') continue;
+			switch (lName) {
+				case 'content-length':
+				case 'accept-charset':
+				case 'accept-encoding':
+				case 'access-control-request-headers':
+				case 'access-control-request-method':
+				case 'connection':
+				case 'content-length':
+				case 'cookie':
+				case 'cookie2':
+				case 'content-transfer-encoding':
+				case 'date':
+				case 'expect':
+				case 'host':
+				case 'keep-alive':
+				case 'origin':
+				case 'referer':
+				case 'te':
+				case 'trailer':
+				case 'transfer-encoding':
+				case 'upgrade':
+				case 'user-agent':
+				case 'via': break;
+				default: headers[name] = requestHeaders[name];
+			}
+		}
+		return headers;
+	}
 
 	function onResponse(requestObj, success, fail, requestProps, isJSONP, response) {
 		if (response.statusCode > 300 &&
@@ -41,7 +77,7 @@ define(['../Utils'], function(Utils) {
 	}
 
 	function doHTTPRequest(requestObj, success, fail, requestProps, isJSONP) {
-		var postData = '', query = requestObj.query;
+		var postData = '', query = (requestObj.query || '');
 		if (!Utils.isObject(requestProps)) requestProps = {};
 
 		if (isJSONP) {
@@ -53,14 +89,15 @@ define(['../Utils'], function(Utils) {
 		if (query) query = ('?' + query);
 
 		var requestOptions = {
-			host: requestObj.authority,
-			path: requestObj.path + query,
+			host: requestObj.hostname,
+			port: requestObj.port,
+			path: requestObj.pathname + query,
 			method: (
 				requestProps.hasOwnProperty('method') &&
 				Utils.isString(requestProps.method) &&
 				requestProps.method || 'GET'
 			),
-			headers: (
+			headers: filterRequestHeaders(
 				requestProps.hasOwnProperty('headers') &&
 				Utils.isObject(requestProps.headers) &&
 				requestProps.headers || {}
@@ -87,9 +124,9 @@ define(['../Utils'], function(Utils) {
 		}
 
 		var request = (
-			requestObj.scheme === 'http' && (
+			requestObj.protocol === 'http:' && (
 			HTTPModule = HTTPModule || require('http')
-		) || requestObj.scheme === 'https' && (
+		) || requestObj.protocol === 'https:' && (
 			HTTPSModule = HTTPSModule || require('https')
 		)).request(requestOptions, Function.prototype.bind.apply(
 			onResponse, Array.prototype.concat.apply(this, arguments)
@@ -101,12 +138,13 @@ define(['../Utils'], function(Utils) {
 	}
 
 	function NodeDriver(requestURI, success, fail, requestProps, isJSONP) {
-		var requestObj = Utils.uri.parse(requestURI);
+		var requestObj = (URL || require('url')).parse(requestURI);
+		var requestProtocol = (requestObj.protocol || '');
 		try {
-			if (requestObj.scheme === 'http' ||
-				requestObj.scheme === 'https') doHTTPRequest(
+			if (requestProtocol === 'http:' ||
+				requestProtocol === 'https:') doHTTPRequest(
 				requestObj, success, fail, requestProps, isJSONP
-			); else if (requestObj.scheme === '') {
+			); else if (requestProtocol === '') {
 				FSModule = (FSModule || require('fs'));
 				FSModule.readFile(requestURI, function(error, data) {
 					if (error) return fail();
