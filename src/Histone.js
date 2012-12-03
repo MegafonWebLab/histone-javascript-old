@@ -655,6 +655,8 @@ define([
 
 	Histone.OrderedMap = OrderedMap;
 
+	Histone.version = ClientInfo.version;
+
 	Histone.Type = {
 
 		isUndefined: function(value, args, ret) {
