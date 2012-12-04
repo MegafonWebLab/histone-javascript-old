@@ -17,19 +17,18 @@
 
 define(['../Utils'], function(Utils) {
 
-	var URL = null;
 	var FSModule = null;
 	var HTTPModule = null;
 	var HTTPSModule = null;
+	var URL = (Utils.getEnvType() === 'node' && require('url'));
 
 	function filterRequestHeaders(requestHeaders) {
-		var headers = {}, name, lName;
+		var headers = {}, name, value;
 		for (name in requestHeaders) {
-			lName = name.toLowerCase();
-			if (lName.substr(0, 4) === 'sec-') continue;
-			if (lName.substr(0, 6) === 'proxy-') continue;
-			switch (lName) {
-				case 'content-length':
+			value = name.toLowerCase();
+			if (value.substr(0, 4) === 'sec-') continue;
+			if (value.substr(0, 6) === 'proxy-') continue;
+			switch (value) {
 				case 'accept-charset':
 				case 'accept-encoding':
 				case 'access-control-request-headers':
@@ -51,7 +50,11 @@ define(['../Utils'], function(Utils) {
 				case 'upgrade':
 				case 'user-agent':
 				case 'via': break;
-				default: headers[name] = requestHeaders[name];
+				default:
+					value = requestHeaders[name];
+					if (!Utils.isUndefined(value)) {
+						headers[name] = String(value);
+					}
 			}
 		}
 		return headers;
@@ -60,16 +63,11 @@ define(['../Utils'], function(Utils) {
 	function onResponse(requestObj, success, fail, requestProps, isJSONP, response) {
 		if (response.statusCode > 300 &&
 			response.statusCode < 400 && response.headers.location) {
-			var toURI = Utils.uri.parse(response.headers.location);
-			if (!toURI.authority) toURI.authority = requestObj.authority;
-			return NodeDriver(
-				(toURI.scheme ? toURI.scheme + '://' : '') +
-				(toURI.authority ? toURI.authority : '') +
-				(toURI.path ? toURI.path : '') +
-				(toURI.query ? '?' + toURI.query : '') +
-				(toURI.fragment ? '#' + toURI.fragment : ''),
-				success, fail, requestProps, isJSONP
-			);
+			var toURI = URL.parse(response.headers.location);
+			if (!toURI.host) toURI.host = requestObj.host;
+			if (!toURI.protocol) toURI.protocol = requestObj.protocol;
+			return NodeDriver(URL.format(toURI),
+				success, fail, requestProps, isJSONP);
 		}
 		var data = '';
 		response.on('end', function() { success(data); });
@@ -80,7 +78,7 @@ define(['../Utils'], function(Utils) {
 		var postData = '', query = (requestObj.query || '');
 		if (!Utils.isObject(requestProps)) requestProps = {};
 
-		if (isJSONP) {
+		if (isJSONP && query.indexOf('callback=') === -1) {
 			if (query) query += '&';
 			query += 'callback=';
 			query += Utils.uniqueId('callback');
@@ -88,15 +86,19 @@ define(['../Utils'], function(Utils) {
 
 		if (query) query = ('?' + query);
 
+		var requestMethod = (
+			requestProps.hasOwnProperty('method') &&
+			Utils.isString(requestProps.method) &&
+			requestProps.method.toUpperCase() || 'GET'
+		);
+
 		var requestOptions = {
+
 			host: requestObj.hostname,
 			port: requestObj.port,
 			path: requestObj.pathname + query,
-			method: (
-				requestProps.hasOwnProperty('method') &&
-				Utils.isString(requestProps.method) &&
-				requestProps.method || 'GET'
-			),
+
+			method: requestMethod,
 			headers: filterRequestHeaders(
 				requestProps.hasOwnProperty('headers') &&
 				Utils.isObject(requestProps.headers) &&
@@ -104,19 +106,14 @@ define(['../Utils'], function(Utils) {
 			)
 		};
 
-		if (requestProps.hasOwnProperty('data') &&
+		if (requestMethod !== 'GET' &&
+			requestMethod !== 'HEAD' &&
+			requestProps.hasOwnProperty('data') &&
 			!Utils.isUndefined(requestProps.data)) {
 			postData = requestProps.data;
 			if (Utils.isObject(postData)) {
-				var postFields = [];
-				for (var fieldName in postData) {
-					if (postData.hasOwnProperty(fieldName)) {
-						postFields.push(fieldName + '=' +
-							encodeURIComponent(postData[fieldName])
-						);
-					}
-				}
-				postData = postFields.join('&');
+				// THIS IS NOT - TESTED / HAS TO BE REFACTORED
+				// postData = Histone.Map.toQueryString(postData);
 				requestOptions.headers['Content-type'] = (
 					'application/x-www-form-urlencoded'
 				);
@@ -138,7 +135,7 @@ define(['../Utils'], function(Utils) {
 	}
 
 	function NodeDriver(requestURI, success, fail, requestProps, isJSONP) {
-		var requestObj = (URL || require('url')).parse(requestURI);
+		var requestObj = URL.parse(requestURI);
 		var requestProtocol = (requestObj.protocol || '');
 		try {
 			if (requestProtocol === 'http:' ||

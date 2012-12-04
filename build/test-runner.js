@@ -175,12 +175,12 @@ function runTestCase(testCase, testCaseURL, ret) {
 			skippedCases++;
 		}
 
-		testCounter++;
 
 		ret();
 	}
 
 	try {
+		testCounter++;
 		template = Histone(
 			testCase.input,
 			testCaseURL
