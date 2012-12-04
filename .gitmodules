@@ -4,3 +4,6 @@
 [submodule "build/plugins/closureCompiler"]
 	path = build/plugins/closureCompiler
 	url = git://github.com/angrycoding/krang.closureCompiler.git
+[submodule "build/plugins/socketServer"]
+	path = build/plugins/socketServer
+	url = git://github.com/angrycoding/krang.socketServer.git
