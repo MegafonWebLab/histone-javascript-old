@@ -25,7 +25,13 @@ var socketServer = new SocketServer('127.0.0.1', 4442);
 
 socketServer.start(function(request) {
 
-	// Utils.print(request);
+	var requestHeaders = request.headers;
+	for (var key in requestHeaders) {
+		var value = requestHeaders[key];
+		delete requestHeaders[key];
+		key = key.toLowerCase();
+		requestHeaders[key] = value;
+	}
 
 	return {code: 200, headers: {
 		'Content-type': 'application/javascript'

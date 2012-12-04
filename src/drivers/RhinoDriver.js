@@ -17,14 +17,116 @@
 
 define(['../Utils'], function(Utils) {
 
+	var Java = null;
+
+	function filterRequestHeaders(requestHeaders) {
+		var headers = {}, name, value;
+		for (name in requestHeaders) {
+			value = name.toLowerCase();
+			if (value.substr(0, 4) === 'sec-') continue;
+			if (value.substr(0, 6) === 'proxy-') continue;
+			switch (value) {
+				case 'accept-charset':
+				case 'accept-encoding':
+				case 'access-control-request-headers':
+				case 'access-control-request-method':
+				case 'connection':
+				case 'content-length':
+				case 'cookie':
+				case 'cookie2':
+				case 'content-transfer-encoding':
+				case 'date':
+				case 'expect':
+				case 'host':
+				case 'keep-alive':
+				case 'origin':
+				case 'referer':
+				case 'te':
+				case 'trailer':
+				case 'transfer-encoding':
+				case 'upgrade':
+				case 'user-agent':
+				case 'via': break;
+				default:
+					value = requestHeaders[name];
+					if (!Utils.isUndefined(value)) {
+						headers[name] = String(value);
+					}
+			}
+		}
+		return headers;
+	}
+
+	function getResponseBody(connection) {
+		var responseBody = '';
+		var inputStream = connection.getInputStream();
+		var streamReader = new Java.InputStreamReader(inputStream);
+		var bufferedReader = new Java.BufferedReader(streamReader);
+		var chunk = bufferedReader.readLine();
+		while (chunk !== null) {
+			responseBody += chunk;
+			chunk = bufferedReader.readLine();
+		}
+		bufferedReader.close();
+		return responseBody;
+	}
+
+	function doHTTPRequest(requestURI, success, fail, requestProps, isJSONP) {
+		if (!Utils.isObject(requestProps)) requestProps = {};
+
+		var requestMethod = (
+			requestProps.hasOwnProperty('method') &&
+			Utils.isString(requestProps.method) &&
+			requestProps.method.toUpperCase() || 'GET'
+		);
+
+		var requestHeaders = filterRequestHeaders(
+			requestProps.hasOwnProperty('headers') &&
+			Utils.isObject(requestProps.headers) &&
+			requestProps.headers || {}
+		);
+
+		var url = new Java.URL(requestURI);
+		var connection = url.openConnection();
+
+		connection.setDoOutput(true);
+		connection.setDoInput(true);
+
+		connection.setInstanceFollowRedirects(false);
+		connection.setRequestMethod(requestMethod);
+
+		for (var key in requestHeaders)
+			connection.setRequestProperty(key, requestHeaders[key]);
+
+		connection.setUseCaches (false);
+
+		connection.connect();
+
+		// var wr = new Java.DataOutputStream(connection.getOutputStream());
+		// wr.writeBytes(urlParameters);
+		// wr.flush();
+		// wr.close();
+
+		success(getResponseBody(connection));
+		connection.disconnect();
+	}
+
 	return function(requestURI, success, fail, requestProps, isJSONP) {
+
+		if (Java === null) Java = JavaImporter(
+			java.net.URL,
+			java.io.DataOutputStream,
+			java.io.BufferedReader,
+			java.io.InputStreamReader
+		);
+
 		var requestObj = Utils.uri.parse(requestURI);
+
 		try {
 			if (requestObj.scheme === 'http' ||
-				requestObj.scheme === 'https') {
-				var data = readUrl(requestURI);
-				success(data);
-			} else if (requestObj.scheme === '') {
+				requestObj.scheme === 'https') doHTTPRequest(
+				requestURI, success, fail, requestProps, isJSONP
+			); else if (requestObj.scheme === '') {
 				var data = readFile(requestURI);
 				success(data);
 			} else fail();
