@@ -18,6 +18,27 @@
 var Files = require('Files');
 var Utils = require('Utils');
 var System = require('System');
+// var SocketServer = require('SocketServer');
+
+
+// var socketServer = new SocketServer('127.0.0.1', 4442);
+
+// socketServer.start(function(request) {
+
+// 	// Utils.print(request);
+
+// 	return {
+// 		code: 200,
+// 		headers: {
+// 			'Content-type': 'application/javascript'
+// 		},
+// 		body: JSON.stringify(request)
+// 	};
+// 	// Utils.print(request);
+// 	// return responseObj;
+// });
+
+// socketServer.stop();
 
 var Histone = require('../Histone');
 
