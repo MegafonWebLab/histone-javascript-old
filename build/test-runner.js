@@ -18,25 +18,19 @@
 var Files = require('Files');
 var Utils = require('Utils');
 var System = require('System');
-// var SocketServer = require('SocketServer');
+var SocketServer = require('SocketServer');
 
 
-// var socketServer = new SocketServer('127.0.0.1', 4442);
+var socketServer = new SocketServer('127.0.0.1', 4442);
 
-// socketServer.start(function(request) {
+socketServer.start(function(request) {
 
-// 	// Utils.print(request);
+	// Utils.print(request);
 
-// 	return {
-// 		code: 200,
-// 		headers: {
-// 			'Content-type': 'application/javascript'
-// 		},
-// 		body: JSON.stringify(request)
-// 	};
-// 	// Utils.print(request);
-// 	// return responseObj;
-// });
+	return {code: 200, headers: {
+		'Content-type': 'application/javascript'
+	}, body: JSON.stringify(request)};
+});
 
 // socketServer.stop();
 
