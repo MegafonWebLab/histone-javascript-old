@@ -198,6 +198,34 @@ define(['./Utils'], function(Utils) {
 			return result;
 		};
 
+		this.toQueryString = function(numPrefix, separator, toString) {
+			var queryString = [];
+			if (!Utils.isString(numPrefix)) numPrefix = '';
+			if (!Utils.isString(separator)) separator = '&';
+			if (!Utils.isFunction(toString)) toString = String;
+			(function evaluate(value, prefix) {
+				var c, key, val;
+				var keys = value.keys();
+				var length = keys.length;
+				var values = value.values();
+				for (c = 0; c < length; c++) {
+					key = prefix.concat(keys[c]);
+					val = values[c];
+					if (val instanceof OrderedMap) {
+						evaluate(val, key);
+					} else if (!Utils.isUndefined(val)) {
+						val = toString(val);
+						val = encodeURIComponent(val);
+						if (Utils.isNumeric(key = key.shift() + (
+							key.length ? '[' + key.join('][') + ']' : ''
+						))) key = (numPrefix + key);
+						queryString.push(key + '=' + val);
+					}
+				}
+			})(this, []);
+			return queryString.join(separator);
+		};
+
 	};
 
 	return OrderedMap;

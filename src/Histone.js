@@ -39,44 +39,6 @@ define([
 		envType === 'browser' && AJAXDriver
 	);
 
-	function filterRequestHeaders(requestHeaders) {
-		var headers = {}, name, value;
-		for (name in requestHeaders) {
-			value = name.toLowerCase();
-			if (value.substr(0, 4) === 'sec-') continue;
-			if (value.substr(0, 6) === 'proxy-') continue;
-			switch (value) {
-				case 'accept-charset':
-				case 'accept-encoding':
-				case 'access-control-request-headers':
-				case 'access-control-request-method':
-				case 'connection':
-				case 'content-length':
-				case 'cookie':
-				case 'cookie2':
-				case 'content-transfer-encoding':
-				case 'date':
-				case 'expect':
-				case 'host':
-				case 'keep-alive':
-				case 'origin':
-				case 'referer':
-				case 'te':
-				case 'trailer':
-				case 'transfer-encoding':
-				case 'upgrade':
-				case 'user-agent':
-				case 'via': break;
-				default:
-					value = requestHeaders[name];
-					if (!Utils.isUndefined(value)) {
-						headers[name] = String(value);
-					}
-			}
-		}
-		return headers;
-	}
-
 	function nodeToBoolean(value) {
 		switch (Utils.getBaseType(value)) {
 			case Utils.T_BOOLEAN: return value;
@@ -140,12 +102,59 @@ define([
 		return '';
 	}
 
-	function resolveURIDefault(requestURI, baseURI, ret,
-		requestProps, isJSONP) {
+	function filterRequestHeaders(requestHeaders) {
+		var headers = {}, name, value;
+		for (name in requestHeaders) {
+			value = name.toLowerCase();
+			if (value.substr(0, 4) === 'sec-') continue;
+			if (value.substr(0, 6) === 'proxy-') continue;
+			switch (value) {
+				case 'accept-charset':
+				case 'accept-encoding':
+				case 'access-control-request-headers':
+				case 'access-control-request-method':
+				case 'connection':
+				case 'content-length':
+				case 'cookie':
+				case 'cookie2':
+				case 'content-transfer-encoding':
+				case 'date':
+				case 'expect':
+				case 'host':
+				case 'keep-alive':
+				case 'origin':
+				case 'referer':
+				case 'te':
+				case 'trailer':
+				case 'transfer-encoding':
+				case 'upgrade':
+				case 'user-agent':
+				case 'via': break;
+				default:
+					value = requestHeaders[name];
+					if (!Utils.isUndefined(value)) {
+						headers[name] = String(value);
+					}
+			}
+		}
+		return headers;
+	}
+
+	function resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP) {
+
 		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
 		if (!resourceCache.hasOwnProperty(resourceURI)) {
 
-			if (!Utils.isMap(requestProps)) requestProps = {};
+
+			if (requestProps instanceof OrderedMap) {
+				requestProps = {
+					data: requestProps.get('data'),
+					method: internal2js(requestProps.get('method')),
+					headers: internal2js(requestProps.get('headers'))
+				};
+			} else if (!Utils.isMap(requestProps)) {
+				requestProps = {};
+			}
 
 			var requestMethod = requestProps.method = (
 				requestProps.hasOwnProperty('method') &&
@@ -165,14 +174,20 @@ define([
 				!Utils.isUndefined(requestProps.data)) {
 				var requestData = requestProps.data;
 				if (Utils.isObject(requestData)) {
+					if (requestData instanceof OrderedMap) {
+						requestData = requestData.toQueryString(
+							null, null, nodeToString
+						);
+					} else {
+						// ADD SOME TO QUERY STRING
+						requestData = 'FUCKING HELL';
+					}
 
-					// THIS IS NOT - TESTED / HAS TO BE REFACTORED
-					// postData = Histone.Map.toQueryString(postData);
-					// requestProps.headers['Content-type'] = (
-						// 'application/x-www-form-urlencoded'
-					// );
-					requestProps.data = '';
-				} else requestProps.data = String(requestData);
+					requestProps.headers['Content-type'] = (
+						'application/x-www-form-urlencoded'
+					);
+				}
+				requestProps.data = nodeToString(requestData);
 			} else requestProps.data = '';
 
 			NetworkRequest(resourceURI, function(resourceData) {
@@ -187,6 +202,18 @@ define([
 		} else ret(resourceCache[resourceURI], resourceURI);
 	}
 
+	function resolveURI(requestURI, baseURI, ret, requestProps, isJSONP) {
+		try {
+			if (Utils.isFunction(URIResolver) && URIResolver(
+				requestURI, baseURI, function(resourceData, resourceURI) {
+				if (!Utils.isString(resourceURI)) resourceURI = requestURI;
+				ret(resourceData, resourceURI);
+				// IT CAN BREAK HERE BECAUSE OF internal2js changes original array
+			}, internal2js(requestProps), isJSONP) === true) return;
+		} catch (e) {}
+		resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP);
+	}
+
 	function resourceToTpl(resourceData) {
 		if (Utils.isString(resourceData) &&
 			resourceData.match(/^\s*\[\s*\[\s*"HISTONE"/)) {
@@ -194,17 +221,6 @@ define([
 			catch (e) {}
 		}
 		return resourceData;
-	}
-
-	function resolveURI(requestURI, baseURI, ret, requestProps, isJSONP) {
-		try {
-			if (Utils.isFunction(URIResolver) && URIResolver(
-				requestURI, baseURI, function(resourceData, resourceURI) {
-				if (!Utils.isString(resourceURI)) resourceURI = requestURI;
-				ret(resourceData, resourceURI);
-			}, requestProps) === true) return;
-		} catch (e) {}
-		resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP);
 	}
 
 	function js2internal(value) {
@@ -224,6 +240,10 @@ define([
 		if (Utils.isObject(value)) {
 			if (value instanceof OrderedMap) {
 				return value.toObject();
+			} else if (Utils.isArray(value)) {
+				for (var key = 0; key < value.length; key++) {
+					value[key] = internal2js(value[key]);
+				}
 			} else for (var key in value) {
 				value[key] = internal2js(value[key]);
 			}
@@ -232,7 +252,6 @@ define([
 	}
 
 	function getHandlerFor(value, name, isProp) {
-
 		var handler = value;
 		switch (Utils.getBaseType(value)) {
 			case Utils.T_NULL: handler = Histone.Type; break;
@@ -241,7 +260,6 @@ define([
 			case Utils.T_NUMBER: handler = Histone.Number; break;
 			case Utils.T_STRING: handler = Histone.String; break;
 		}
-
 		if (Utils.isObject(value) && value instanceof OrderedMap) {
 			handler = Histone.Map;
 		}
@@ -560,10 +578,11 @@ define([
 							try {
 								handler.call(
 									stack, target,
-									internal2js(callArgs),
+									callArgs,
 									function(value) {
-									ret(js2internal(value));
-								});
+										ret(js2internal(value));
+									}
+								);
 							} catch (e) { ret(); }
 						} else ret(js2internal(handler));
 					}
@@ -882,8 +901,9 @@ define([
 
 		test: function(value, args, ret) {
 			var regExp = args[0];
-			ret(Utils.isString(regExp) &&
-				value.match(regExp) !== null);
+			if (Utils.isString(regExp)) {
+				ret(value.match(regExp) !== null);
+			} else ret(false);
 		},
 
 		toLowerCase: function(value, args, ret) {
@@ -896,7 +916,8 @@ define([
 
 		split: function(value, args, ret) {
 			var splitter = args[0];
-			ret(value.split(Utils.isString(splitter) ? splitter : ''));
+			if (!Utils.isString(splitter)) splitter = '';
+			ret(value.split(splitter));
 		},
 
 		charCodeAt: function(value, args, ret) {
@@ -921,8 +942,7 @@ define([
 	Histone.Map = {
 
 		'': function(value, args, ret) {
-			var key = args[0];
-			ret(value.get(key));
+			ret(value.get(args[0]));
 		},
 
 		size: function(value, args, ret) {
@@ -930,8 +950,7 @@ define([
 		},
 
 		join: function(value, args, ret) {
-			var separator = args[0];
-			ret(value.join(separator));
+			ret(value.join(args[0]));
 		},
 
 		resize: function(value, args, ret) {
@@ -939,13 +958,11 @@ define([
 			var fillValue = args[1];
 			var result = value.clone();
 			var keys = result.keys();
-
 			var currLength = keys.length;
 			if (!Utils.isNumber(newLength) ||
 				newLength === currLength) {
 				return ret(result);
 			}
-
 			if (newLength > currLength) {
 				for (var c = 0; c < newLength - currLength; c++) {
 					result.set(null, fillValue);
@@ -956,26 +973,20 @@ define([
 					result.remove(keys.pop());
 				}
 			}
-
 			return ret(result);
 		},
 
 		search: function(value, args, ret) {
 			var needle = args[0];
 			var offset = args[1];
-
+			if (Utils.isObject(needle)) return ret();
 			var keys = value.keys();
 			var values = value.values();
-
-			if (!Utils.isNumber(offset)) {
-				offset = 0;
-			}
-
+			if (!Utils.isNumber(offset)) offset = 0;
 			if (offset >= 0 && offset > values.length ||
 				offset < 0 && Math.abs(offset) > values.length) {
-				return ret(undefined);
+				return ret();
 			}
-
 			if (offset >= 0) {
 				for (var c = offset; c < values.length; c++) {
 					if (values[c] !== needle) continue;
@@ -988,14 +999,11 @@ define([
 					return ret(keys[c]);
 				}
 			}
-
-
-			ret(undefined);
+			ret();
 		},
 
 		set: function(value, args, ret) {
-			var key = args[0];
-			var val = args[1];
+			var key = args[0], val = args[1];
 			var value = value.clone();
 			if (!Utils.isString(key) &&
 				!Utils.isNumeric(key)) {
@@ -1016,15 +1024,13 @@ define([
 		},
 
 		hasKey: function(value, args, ret) {
-			var key = args[0];
-			ret(value.hasKey(key));
+			ret(value.hasKey(args[0]));
 		},
 
 		remove: function(value, args, ret) {
-			var key, keys = args;
-			var result = value.clone();
-			while (keys.length) {
-				key = keys.shift();
+			var key, result = value.clone();
+			while (args.length) {
+				key = args.shift();
 				result.remove(key);
 			}
 			ret(result);
@@ -1039,36 +1045,12 @@ define([
 		},
 
 		toQueryString: function(value, args, ret) {
-			var qName, qValue;
-			var queryString = [];
-			var numPrefix = args[0];
-			var separator = args[1];
-			if (!Utils.isString(numPrefix)) numPrefix = '';
-			if (!Utils.isString(separator)) separator = '&';
-			(function evaluate(value, prefix) {
-				var c, key, val;
-				var keys = value.keys();
-				var length = keys.length;
-				var values = value.values();
-				for (c = 0; c < length; c++) {
-					key = prefix.concat(keys[c]);
-					val = values[c];
-					if (val instanceof OrderedMap) {
-						evaluate(val, key);
-					} else if (!Utils.isUndefined(val)) {
-						val = nodeToString(val);
-						val = encodeURIComponent(val);
-						if (Utils.isNumeric(key = key.shift() + (
-							key.length ? '[' + key.join('][') + ']' : ''
-						))) key = (numPrefix + key);
-						queryString.push(key + '=' + val);
-					}
-				}
-			})(value, []);
-			ret(queryString.join(separator));
+			var numPrefix = args[0], separator = args[1];
+			ret(value.toQueryString(numPrefix, separator, nodeToString));
 		},
 
 		toJSON: function(value, args, ret) {
+			// REFACTOR IN ORDER TO SUPPORT ITEMS ORDER
 			ret(JSON.stringify(value.toObject()));
 		}
 
@@ -1085,8 +1067,9 @@ define([
 		},
 
 		resolveURI: function(value, args, ret) {
-			var uri = args[0];
-			var baseURI = args[1];
+			var uri = args[0], baseURI = args[1];
+			if (!Utils.isString(uri)) return ret('');
+			if (!Utils.isString(baseURI)) return ret(uri);
 			ret(Utils.uri.resolve(uri, baseURI));
 		},
 
@@ -1100,10 +1083,11 @@ define([
 
 		loadJSON: function(value, args, ret) {
 			var requestURI = args.shift();
+			if (!Utils.isString(requestURI)) return ret();
 			var requestProps = (!Utils.isBoolean(args[0]) && args.shift());
 			var isJSONP = (Utils.isBoolean(args[0]) && args[0]);
-			var baseURI = this.getBaseURI();
-			resolveURI(requestURI, baseURI, function(data) {
+			resolveURI(requestURI, this.getBaseURI(), function(data) {
+				// CHECK WHY THIS IS HERE?
 				if (!Utils.isString(data)) {
 					data = js2internal(data);
 					return ret(data);
@@ -1121,27 +1105,26 @@ define([
 		},
 
 		loadText: function(value, args, ret) {
-			var requestURI = args[0];
-			var requestProps = args[1];
-			var baseURI = this.getBaseURI();
-			resolveURI(requestURI, baseURI, function(resourceData) {
+			var requestURI = args[0], requestProps = args[1];
+			if (!Utils.isString(requestURI)) return ret();
+			resolveURI(requestURI, this.getBaseURI(), function(resourceData) {
 				ret(Utils.isString(resourceData) ? resourceData : undefined);
 			}, requestProps);
 		},
 
 		include: function(value, args, ret) {
 			var requestURI = args[0];
-			var context = args[1];
-			var baseURI = this.getBaseURI();
-			resolveURI(requestURI, baseURI, function(
-				resourceData, resourceURI) {
+			if (!Utils.isString(requestURI)) return ret();
+			var context = args[1], requestProps = args[2];
+			resolveURI(requestURI, this.getBaseURI(), function(resourceData, resourceURI) {
 				try {
 					resourceData = resourceToTpl(resourceData);
 					resourceData = Histone(resourceData, resourceURI);
 					resourceData.render(ret, js2internal(context));
+					// TODO: CHECK WHY THIS IS?
 					return resourceData;
 				} catch (e) { ret(); }
-			});
+			}, requestProps);
 		},
 
 		rand: function(value, args, ret) {
@@ -1181,7 +1164,7 @@ define([
 				return minValue;
 			}
 
-			ret(findMinimal(args));
+			ret(findMinimal(internal2js(args)));
 		},
 
 		max: function(value, args, ret) {
@@ -1209,7 +1192,7 @@ define([
 				return minValue;
 			}
 
-			ret(findMaximal(args));
+			ret(findMaximal(internal2js(args)));
 		},
 
 		range: function(value, args, ret) {
@@ -1268,17 +1251,13 @@ define([
 	};
 
 	Histone.load = function(name, req, load, config) {
-
 		var requestObj = Utils.uri.parse(name);
 		var requestType = requestObj.path.split('.').pop();
 		if (requestType !== 'tpl') {
-
 			if (typeof curl === 'function') {
-
 				curl({paths: {'Histone': module.uri}});
 				req([req.toUrl(name)], load);
 				curl(config);
-
 			} else if (typeof require === 'function') {
 				require.config({
 					'map': {
@@ -1286,7 +1265,6 @@ define([
 					}
 				})([req.toUrl(name)], load);
 			}
-
 		} else {
 			resolveURIDefault(name, window.location.href, function(
 				resourceData, resourceURI) {
