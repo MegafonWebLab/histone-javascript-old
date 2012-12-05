@@ -66,7 +66,7 @@ function printMessage(type, message) {
 	var message = JSON.stringify(message);
 	message = message.substr(1);
 	message = message.substr(0, message.length - 1);
-	System.print('     [ ' + type + ' ] ', message);
+	System.print('       ' + type, message);
 }
 
 function registerFunction(type, name, result, exception) {
@@ -156,10 +156,9 @@ function runTestCase(testCase, testCaseURL, ret) {
 			var expectedAST = JSON.stringify(testCase.expectedAST);
 			if (expectedAST !== actualAST) {
 				failedCases++;
-				printMessage('FAILING', (
-					'expected AST is:' + expectedAST +
-					'actual AST is:' + actualAST
-				));
+				printMessage('[ FAILING ]', testCase.input);
+				printMessage('            expected AST', expectedAST);
+				printMessage('            actual AST', actualAST);
 				return ret();
 			}
 		}
@@ -168,10 +167,9 @@ function runTestCase(testCase, testCaseURL, ret) {
 			isProcessed = true;
 			if (testCase.expectedResult !== actualResult) {
 				failedCases++;
-				printMessage('FAILING', (
-					'expected result is:' + testCase.expectedResult +
-					'actual result is:' + actualResult
-				));
+				printMessage('[ FAILING ]', testCase.input);
+				printMessage('            expected result:', testCase.expectedResult);
+				printMessage('            actual result:', actualResult);
 				return ret();
 			}
 		}
@@ -180,10 +178,9 @@ function runTestCase(testCase, testCaseURL, ret) {
 			isProcessed = true;
 			if (!actualException) {
 				failedCases++;
-				printMessage('FAILING', (
-					'expected exception:' +
-					JSON.stringify(testCase.expectedException)
-				));
+				printMessage('[ FAILING ]', testCase.input);
+				printMessage('            expected exception', JSON.stringify(testCase.expectedException));
+				printMessage('            actual exception', '{}');
 				return ret();
 			}
 			for (var expectedKey in testCase.expectedException) {
@@ -191,12 +188,9 @@ function runTestCase(testCase, testCaseURL, ret) {
 					String(actualException[expectedKey]) !==
 					String(testCase.expectedException[expectedKey])) {
 					failedCases++;
-					printMessage('FAILING', (
-						'expected exception is:' +
-						JSON.stringify(testCase.expectedException) +
-						'actual exception is:' +
-						JSON.stringify(actualException)
-					));
+					printMessage('[ FAILING ]', testCase.input);
+					printMessage('            expected exception', JSON.stringify(testCase.expectedException));
+					printMessage('            actual exception', JSON.stringify(actualException));
 					return ret();
 				}
 			}
@@ -204,9 +198,9 @@ function runTestCase(testCase, testCaseURL, ret) {
 
 		if (isProcessed) {
 			successCases++;
-			printMessage('SUCCESS', testCase.input);
+			printMessage('[ SUCCESS ]', testCase.input);
 		} else {
-			printMessage('SKIPPED', testCase.input);
+			printMessage('[ SKIPPED ]', testCase.input);
 			skippedCases++;
 		}
 
