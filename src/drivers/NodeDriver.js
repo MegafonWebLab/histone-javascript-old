@@ -39,9 +39,11 @@ define(['../Utils'], function(Utils) {
 			if (response.statusCode > 300 &&
 				response.statusCode < 400 && response.headers.location) {
 				var toURI = URL.parse(response.headers.location);
+				if (!toURI.port) toURI.port = requestObj.port;
 				if (!toURI.host) toURI.host = requestObj.host;
+				if (!toURI.hostname) toURI.hostname = requestObj.hostname;
 				if (!toURI.protocol) toURI.protocol = requestObj.protocol;
-				return doHTTPRequest(URL.format(toURI), success, fail, requestProps);
+				return doHTTPRequest(toURI, success, fail, requestProps);
 			}
 
 			var data = '';
