@@ -1288,9 +1288,7 @@ define([
 			}
 
 		} else {
-			var requestURI = window.location.href;
-			requestURI = Utils.uri.resolve(name, requestURI);
-			NetworkRequest(requestURI, function(resourceData) {
+			resolveURIDefault(name, window.location.href, function(resourceData) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, requestURI));
 			});

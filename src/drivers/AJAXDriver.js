@@ -62,7 +62,7 @@ define(['../Utils'], function(Utils) {
 
 			request.send(requestProps.data);
 
-		} catch (e) { if (fail) fail(); }
+		} catch (e) { fail(); }
 	}
 
 	function removeCallback(callbackId) {
