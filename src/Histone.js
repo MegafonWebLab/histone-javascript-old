@@ -1098,7 +1098,6 @@ define([
 			var requestProps = (!Utils.isBoolean(args[0]) && args.shift());
 			var isJSONP = (Utils.isBoolean(args[0]) && args[0]);
 			resolveURI(requestURI, this.getBaseURI(), function(data) {
-				// CHECK WHY THIS IS HERE?
 				if (!Utils.isString(data)) {
 					data = js2internal(data);
 					return ret(data);
@@ -1132,8 +1131,6 @@ define([
 					resourceData = resourceToTpl(resourceData);
 					resourceData = Histone(resourceData, resourceURI);
 					resourceData.render(ret, js2internal(context));
-					// TODO: CHECK WHY THIS IS?
-					return resourceData;
 				} catch (e) { ret(); }
 			}, requestProps);
 		},
