@@ -1288,7 +1288,8 @@ define([
 			}
 
 		} else {
-			resolveURIDefault(name, window.location.href, function(resourceData) {
+			resolveURIDefault(name, window.location.href, function(
+				resourceData, resourceURI) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, requestURI));
 			});
