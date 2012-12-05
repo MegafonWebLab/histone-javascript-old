@@ -39,35 +39,12 @@ define(['../Utils'], function(Utils) {
 		var request = createXMLHTTPObject();
 		if (!request) return fail();
 
-		if (!Utils.isObject(requestProps)) {
-			requestProps = {};
-		}
-
-		var requestMethod = (
-			requestProps.hasOwnProperty('method') &&
-			Utils.isString(requestProps.method) &&
-			requestProps.method || 'GET'
-		);
-
-		var requestHeaders = (
-			requestProps.hasOwnProperty('headers') &&
-			Utils.isObject(requestProps.headers) &&
-			requestProps.headers || {}
-		);
-
 		var postData = null;
 
-		if (requestProps.hasOwnProperty('data') &&
-			!Utils.isUndefined(requestProps.data)) {
-			postData = requestProps.data;
-			if (!Utils.isObject(postData)) {
-				postData = String(postData);
-			}
-		}
-
 		try {
-			request.open(requestMethod, requestURI, true);
+			request.open(requestProps.method, requestURI, true);
 
+			var requestHeaders = requestProps.headers;
 			for (var headerName in requestHeaders) {
 				if (requestHeaders.hasOwnProperty(headerName)) {
 					request.setRequestHeader(headerName,
@@ -83,22 +60,7 @@ define(['../Utils'], function(Utils) {
 				success(request.responseText);
 			};
 
-			if (Utils.isObject(postData)) {
-				var postFields = [];
-				for (var fieldName in postData) {
-					if (postData.hasOwnProperty(fieldName)) {
-						postFields.push(fieldName + '=' +
-							encodeURIComponent(postData[fieldName])
-						);
-					}
-				}
-				postData = postFields.join('&');
-				request.setRequestHeader('Content-type',
-					'application/x-www-form-urlencoded'
-				);
-			}
-
-			request.send(postData);
+			request.send(requestProps.data);
 
 		} catch (e) { fail(); }
 	}

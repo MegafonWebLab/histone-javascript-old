@@ -39,6 +39,44 @@ define([
 		envType === 'browser' && AJAXDriver
 	);
 
+	function filterRequestHeaders(requestHeaders) {
+		var headers = {}, name, value;
+		for (name in requestHeaders) {
+			value = name.toLowerCase();
+			if (value.substr(0, 4) === 'sec-') continue;
+			if (value.substr(0, 6) === 'proxy-') continue;
+			switch (value) {
+				case 'accept-charset':
+				case 'accept-encoding':
+				case 'access-control-request-headers':
+				case 'access-control-request-method':
+				case 'connection':
+				case 'content-length':
+				case 'cookie':
+				case 'cookie2':
+				case 'content-transfer-encoding':
+				case 'date':
+				case 'expect':
+				case 'host':
+				case 'keep-alive':
+				case 'origin':
+				case 'referer':
+				case 'te':
+				case 'trailer':
+				case 'transfer-encoding':
+				case 'upgrade':
+				case 'user-agent':
+				case 'via': break;
+				default:
+					value = requestHeaders[name];
+					if (!Utils.isUndefined(value)) {
+						headers[name] = String(value);
+					}
+			}
+		}
+		return headers;
+	}
+
 	function nodeToBoolean(value) {
 		switch (Utils.getBaseType(value)) {
 			case Utils.T_BOOLEAN: return value;
@@ -106,6 +144,37 @@ define([
 		requestProps, isJSONP) {
 		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
 		if (!resourceCache.hasOwnProperty(resourceURI)) {
+
+			if (!Utils.isMap(requestProps)) requestProps = {};
+
+			var requestMethod = requestProps.method = (
+				requestProps.hasOwnProperty('method') &&
+				Utils.isString(requestProps.method) &&
+				requestProps.method.toUpperCase() || 'GET'
+			);
+
+			requestProps.headers = (
+				requestProps.hasOwnProperty('headers') &&
+				Utils.isMap(requestProps.headers) &&
+				filterRequestHeaders(requestProps.headers) || {}
+			);
+
+			if (requestMethod !== 'GET' &&
+				requestMethod !== 'HEAD' &&
+				requestProps.hasOwnProperty('data') &&
+				!Utils.isUndefined(requestProps.data)) {
+				var requestData = requestProps.data;
+				if (Utils.isObject(requestData)) {
+
+					// THIS IS NOT - TESTED / HAS TO BE REFACTORED
+					// postData = Histone.Map.toQueryString(postData);
+					// requestProps.headers['Content-type'] = (
+						// 'application/x-www-form-urlencoded'
+					// );
+					requestProps.data = '';
+				} else requestProps.data = String(requestData);
+			} else requestProps.data = '';
+
 			NetworkRequest(resourceURI, function(resourceData) {
 				resourceData = ret(resourceData, resourceURI);
 				if (!Utils.isUndefined(resourceData)) {
@@ -114,6 +183,7 @@ define([
 			}, function() {
 				ret(undefined, resourceURI);
 			}, requestProps, isJSONP);
+
 		} else ret(resourceCache[resourceURI], resourceURI);
 	}
 

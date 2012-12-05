@@ -17,138 +17,67 @@
 
 define(['../Utils'], function(Utils) {
 
+	var URL = null;
 	var FSModule = null;
 	var HTTPModule = null;
 	var HTTPSModule = null;
-	var URL = (Utils.getEnvType() === 'node' && require('url'));
 
-	function filterRequestHeaders(requestHeaders) {
-		var headers = {}, name, value;
-		for (name in requestHeaders) {
-			value = name.toLowerCase();
-			if (value.substr(0, 4) === 'sec-') continue;
-			if (value.substr(0, 6) === 'proxy-') continue;
-			switch (value) {
-				case 'accept-charset':
-				case 'accept-encoding':
-				case 'access-control-request-headers':
-				case 'access-control-request-method':
-				case 'connection':
-				case 'content-length':
-				case 'cookie':
-				case 'cookie2':
-				case 'content-transfer-encoding':
-				case 'date':
-				case 'expect':
-				case 'host':
-				case 'keep-alive':
-				case 'origin':
-				case 'referer':
-				case 'te':
-				case 'trailer':
-				case 'transfer-encoding':
-				case 'upgrade':
-				case 'user-agent':
-				case 'via': break;
-				default:
-					value = requestHeaders[name];
-					if (!Utils.isUndefined(value)) {
-						headers[name] = String(value);
-					}
-			}
-		}
-		return headers;
-	}
-
-	function onResponse(requestObj, success, fail, requestProps, isJSONP, response) {
-		if (response.statusCode > 300 &&
-			response.statusCode < 400 && response.headers.location) {
-			var toURI = URL.parse(response.headers.location);
-			if (!toURI.host) toURI.host = requestObj.host;
-			if (!toURI.protocol) toURI.protocol = requestObj.protocol;
-			return NodeDriver(URL.format(toURI),
-				success, fail, requestProps, isJSONP);
-		}
-		var data = '';
-		response.on('end', function() { success(data); });
-		response.on('data', function(chunk) { data += chunk; });
-	}
-
-	function doHTTPRequest(requestObj, success, fail, requestProps, isJSONP) {
-		var postData = '', query = (requestObj.query || '');
-		if (!Utils.isObject(requestProps)) requestProps = {};
-
-		if (isJSONP && query.indexOf('callback=') === -1) {
-			if (query) query += '&';
-			query += 'callback=';
-			query += Utils.uniqueId('callback');
-		}
-
-		if (query) query = ('?' + query);
-
-		var requestMethod = (
-			requestProps.hasOwnProperty('method') &&
-			Utils.isString(requestProps.method) &&
-			requestProps.method.toUpperCase() || 'GET'
-		);
-
-		var requestOptions = {
-
-			host: requestObj.hostname,
-			port: requestObj.port,
-			path: requestObj.pathname + query,
-
-			method: requestMethod,
-			headers: filterRequestHeaders(
-				requestProps.hasOwnProperty('headers') &&
-				Utils.isObject(requestProps.headers) &&
-				requestProps.headers || {}
-			)
-		};
-
-		if (requestMethod !== 'GET' &&
-			requestMethod !== 'HEAD' &&
-			requestProps.hasOwnProperty('data') &&
-			!Utils.isUndefined(requestProps.data)) {
-			postData = requestProps.data;
-			if (Utils.isObject(postData)) {
-				// THIS IS NOT - TESTED / HAS TO BE REFACTORED
-				// postData = Histone.Map.toQueryString(postData);
-				requestOptions.headers['Content-type'] = (
-					'application/x-www-form-urlencoded'
-				);
-			} else postData = String(postData);
-		}
-
+	function doHTTPRequest(requestObj, success, fail, requestProps) {
 		var request = (
 			requestObj.protocol === 'http:' && (
 			HTTPModule = HTTPModule || require('http')
 		) || requestObj.protocol === 'https:' && (
 			HTTPSModule = HTTPSModule || require('https')
-		)).request(requestOptions, Function.prototype.bind.apply(
-			onResponse, Array.prototype.concat.apply(this, arguments)
-		));
+		)).request({
+			host: requestObj.hostname,
+			port: requestObj.port,
+			path: requestObj.path,
+			method: requestProps.method,
+			headers: requestProps.headers
+		}, function(response) {
+
+			if (response.statusCode > 300 &&
+				response.statusCode < 400 && response.headers.location) {
+				var toURI = URL.parse(response.headers.location);
+				if (!toURI.host) toURI.host = requestObj.host;
+				if (!toURI.protocol) toURI.protocol = requestObj.protocol;
+				return doHTTPRequest(URL.format(toURI), success, fail, requestProps);
+			}
+
+			var data = '';
+			response.on('end', function() { success(data); });
+			response.on('data', function(chunk) { data += chunk; });
+		});
 
 		request.on('error', function(error) { fail(); });
-		request.write(postData);
+		if (requestProps.data) request.write(requestProps.data);
 		request.end();
 	}
 
 	function NodeDriver(requestURI, success, fail, requestProps, isJSONP) {
-		var requestObj = URL.parse(requestURI);
-		var requestProtocol = (requestObj.protocol || '');
-		try {
-			if (requestProtocol === 'http:' ||
-				requestProtocol === 'https:') doHTTPRequest(
-				requestObj, success, fail, requestProps, isJSONP
-			); else if (requestProtocol === '') {
-				FSModule = (FSModule || require('fs'));
-				FSModule.readFile(requestURI, function(error, data) {
-					if (error) return fail();
-					success(data.toString());
-				});
-			} else fail();
-		} catch (exception) { fail(); }
+
+		if (!URL) URL = require('url');
+		var requestObj = Utils.uri.parse(requestURI);
+		var requestProtocol = (requestObj.scheme || '');
+
+		if (requestProtocol === 'http' || requestProtocol === 'https') {
+			if (isJSONP) {
+				var query = Utils.uri.parseQuery(requestObj.query);
+				if (!query.hasOwnProperty('callback')) {
+					query['callback'] = Utils.uniqueId('callback');
+					requestObj.query = Utils.uri.formatQuery(query);
+				}
+			}
+			requestURI = Utils.uri.format(requestObj);
+			requestObj = URL.parse(requestURI);
+			doHTTPRequest(requestObj, success, fail, requestProps);
+		} else if (requestProtocol === '') {
+			FSModule = (FSModule || require('fs'));
+			FSModule.readFile(requestURI, function(error, data) {
+				if (error) return fail();
+				success(data.toString());
+			});
+		} else fail();
 	}
 
 	return NodeDriver;

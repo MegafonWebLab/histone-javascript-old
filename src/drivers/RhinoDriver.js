@@ -19,44 +19,6 @@ define(['../Utils'], function(Utils) {
 
 	var Java = null;
 
-	function filterRequestHeaders(requestHeaders) {
-		var headers = {}, name, value;
-		for (name in requestHeaders) {
-			value = name.toLowerCase();
-			if (value.substr(0, 4) === 'sec-') continue;
-			if (value.substr(0, 6) === 'proxy-') continue;
-			switch (value) {
-				case 'accept-charset':
-				case 'accept-encoding':
-				case 'access-control-request-headers':
-				case 'access-control-request-method':
-				case 'connection':
-				case 'content-length':
-				case 'cookie':
-				case 'cookie2':
-				case 'content-transfer-encoding':
-				case 'date':
-				case 'expect':
-				case 'host':
-				case 'keep-alive':
-				case 'origin':
-				case 'referer':
-				case 'te':
-				case 'trailer':
-				case 'transfer-encoding':
-				case 'upgrade':
-				case 'user-agent':
-				case 'via': break;
-				default:
-					value = requestHeaders[name];
-					if (!Utils.isUndefined(value)) {
-						headers[name] = String(value);
-					}
-			}
-		}
-		return headers;
-	}
-
 	function getResponseBody(connection) {
 		var responseBody = '';
 		var inputStream = connection.getInputStream();
@@ -71,20 +33,7 @@ define(['../Utils'], function(Utils) {
 		return responseBody;
 	}
 
-	function doHTTPRequest(requestURI, success, fail, requestProps, isJSONP) {
-		if (!Utils.isObject(requestProps)) requestProps = {};
-
-		var requestMethod = (
-			requestProps.hasOwnProperty('method') &&
-			Utils.isString(requestProps.method) &&
-			requestProps.method.toUpperCase() || 'GET'
-		);
-
-		var requestHeaders = filterRequestHeaders(
-			requestProps.hasOwnProperty('headers') &&
-			Utils.isObject(requestProps.headers) &&
-			requestProps.headers || {}
-		);
+	function doHTTPRequest(requestURI, success, fail, requestProps) {
 
 		var url = new Java.URL(requestURI);
 		var connection = url.openConnection();
@@ -93,8 +42,9 @@ define(['../Utils'], function(Utils) {
 		connection.setDoInput(true);
 
 		connection.setInstanceFollowRedirects(false);
-		connection.setRequestMethod(requestMethod);
+		connection.setRequestMethod(requestProps.method);
 
+		var requestHeaders = requestProps.headers;
 		for (var key in requestHeaders)
 			connection.setRequestProperty(key, requestHeaders[key]);
 
@@ -121,16 +71,27 @@ define(['../Utils'], function(Utils) {
 		);
 
 		var requestObj = Utils.uri.parse(requestURI);
+		var requestProtocol = (requestObj.scheme || '');
 
-		try {
-			if (requestObj.scheme === 'http' ||
-				requestObj.scheme === 'https') doHTTPRequest(
-				requestURI, success, fail, requestProps, isJSONP
-			); else if (requestObj.scheme === '') {
-				var data = readFile(requestURI);
-				success(data);
-			} else fail();
-		} catch (exception) { fail(); }
+		if (requestProtocol === 'http' || requestProtocol === 'https') {
+			if (isJSONP) {
+				var query = Utils.uri.parseQuery(requestObj.query);
+				if (!query.hasOwnProperty('callback')) {
+					query['callback'] = Utils.uniqueId('callback');
+					requestObj.query = Utils.uri.formatQuery(query);
+				}
+			}
+			requestURI = Utils.uri.format(requestObj);
+
+			doHTTPRequest(requestURI, success, fail, requestProps);
+
+		} else if (requestProtocol === '') {
+
+			var data = readFile(requestURI);
+			success(data);
+
+		} else fail();
+
 	};
 
 });

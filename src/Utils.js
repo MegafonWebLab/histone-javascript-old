@@ -117,6 +117,16 @@ define(function() {
 	}
 
 	/**
+	 * Returns true if the value is map.
+	 * @param {*} value Value to check.
+	 * @return {boolean} Returns true if the value is map.
+	 */
+	function isMap(value) {
+		return (value instanceof Object &&
+			!(value instanceof Array));
+	}
+
+	/**
 	 * Returns true if the value is function.
 	 * @param {*} value Value to check.
 	 * @return {boolean} Returns true if the value is function.
@@ -228,6 +238,14 @@ define(function() {
 		};
 	}
 
+	function URIFormat(uri) {
+		return ((uri.scheme ? uri.scheme + '://' : '') +
+			(uri.authority ? uri.authority : '') +
+			(uri.path ? uri.path : '') +
+			(uri.query ? '?' + uri.query : '') +
+			(uri.fragment ? '#' + uri.fragment : ''));
+	}
+
 	/**
 	 * Resolves a relative URI to a base URI, returning an absolute URI.
 	 * @param {string} relative Relative URI.
@@ -273,13 +291,19 @@ define(function() {
 	function URIParseQuery(query) {
 		var result = {};
 		if (!isString(query)) return {};
-		var query = query.split('&');
-		var frag, length = query.length;
-		for (var c = 0; c < length; c++) {
-			frag = query[c].split('=', 2);
-			result[frag[0]] = frag[1];
-		}
+		query.replace(new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
+			function($0, $1, $2, $3) { result[$1] = $3; });
 		return result;
+	}
+
+	function URIFormatQuery(query) {
+		var queryArr = [], key;
+		if (!isMap(query)) return '';
+		for (key in query) {
+			if (!query.hasOwnProperty(key)) continue;
+			queryArr.push(key + '=' + query[key]);
+		}
+		return queryArr.join('&');
 	}
 
 	function getEnvType() {
@@ -326,6 +350,7 @@ define(function() {
 		isString: isString,
 		isArray: isArray,
 		isObject: isObject,
+		isMap: isMap,
 		isFunction: isFunction,
 		isNumeric: isNumeric,
 		isDOMElement: isDOMElement,
@@ -338,8 +363,10 @@ define(function() {
 
 		uri: {
 			parse: URIParse,
+			format: URIFormat,
 			resolve: URIResolve,
-			parseQuery: URIParseQuery
+			parseQuery: URIParseQuery,
+			formatQuery: URIFormatQuery
 		}
 	};
 
