@@ -141,10 +141,9 @@ define([
 	}
 
 	function resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP) {
-
 		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
+		// THINK HOW WE CAN IMPROVE CACHE (possibly use serialized request as a key)
 		if (!resourceCache.hasOwnProperty(resourceURI)) {
-
 
 			if (requestProps instanceof OrderedMap) {
 				requestProps = {
@@ -175,19 +174,31 @@ define([
 				var requestData = requestProps.data;
 				if (Utils.isObject(requestData)) {
 					if (requestData instanceof OrderedMap) {
-						requestData = requestData.toQueryString(
+						requestProps.data = requestData.toQueryString(
 							null, null, nodeToString
 						);
+					} else if (Utils.isArray(requestData)) {
+						var resultArr, key, value;
+						var length = requestData.length;
+						for (key = 0; key < length; key++) {
+							value = nodeToString(requestData[key]);
+							value = encodeURIComponent(value);
+							resultArr.push(key + '=' + value);
+						}
+						requestProps.data = resultArr.join('&');
 					} else {
-						// ADD SOME TO QUERY STRING
-						requestData = 'FUCKING HELL';
+						var resultArr, key, value;
+						for (key in requestData) {
+							value = nodeToString(requestData[key]);
+							value = encodeURIComponent(value);
+							resultArr.push(key + '=' + value);
+						}
+						requestProps.data = resultArr.join('&');
 					}
-
 					requestProps.headers['Content-type'] = (
 						'application/x-www-form-urlencoded'
 					);
-				}
-				requestProps.data = nodeToString(requestData);
+				} else requestProps.data = nodeToString(requestData);
 			} else requestProps.data = '';
 
 			NetworkRequest(resourceURI, function(resourceData) {
