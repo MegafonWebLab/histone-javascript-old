@@ -24,10 +24,10 @@ define(['../Utils'], function(Utils) {
 		var inputStream = connection.getInputStream();
 		var streamReader = new Java.InputStreamReader(inputStream);
 		var bufferedReader = new Java.BufferedReader(streamReader);
-		var chunk = bufferedReader.readLine();
-		while (chunk !== null) {
-			responseBody += chunk;
-			chunk = bufferedReader.readLine();
+		var chunk = bufferedReader.read();
+		while (chunk !== -1) {
+			responseBody += String.fromCharCode(chunk);
+			chunk = bufferedReader.read();
 		}
 		bufferedReader.close();
 		return responseBody;
@@ -38,24 +38,22 @@ define(['../Utils'], function(Utils) {
 		var url = new Java.URL(requestURI);
 		var connection = url.openConnection();
 
-		connection.setDoOutput(true);
 		connection.setDoInput(true);
+		connection.setUseCaches(false);
 
 		connection.setInstanceFollowRedirects(false);
 		connection.setRequestMethod(requestProps.method);
 
 		var requestHeaders = requestProps.headers;
-		for (var key in requestHeaders)
+		for (var key in requestHeaders) {
 			connection.setRequestProperty(key, requestHeaders[key]);
+		}
 
-		connection.setUseCaches (false);
-
-		connection.connect();
-
-		// var wr = new Java.DataOutputStream(connection.getOutputStream());
-		// wr.writeBytes(urlParameters);
-		// wr.flush();
-		// wr.close();
+		connection.setDoOutput(true);
+		var wr = new Java.DataOutputStream(connection.getOutputStream());
+		wr.writeBytes(requestProps.data);
+		wr.flush();
+		wr.close();
 
 		success(getResponseBody(connection));
 		connection.disconnect();
@@ -82,7 +80,6 @@ define(['../Utils'], function(Utils) {
 				}
 			}
 			requestURI = Utils.uri.format(requestObj);
-
 			doHTTPRequest(requestURI, success, fail, requestProps);
 
 		} else if (requestProtocol === '') {
