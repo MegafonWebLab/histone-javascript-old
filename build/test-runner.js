@@ -33,9 +33,23 @@ socketServer.start(function(request) {
 		requestHeaders[key] = value;
 	}
 
-	return {code: 200, headers: {
+	var responseCode = 200;
+
+	var responseHeaders = {
 		'Content-type': 'application/javascript'
-	}, body: JSON.stringify(request)};
+	};
+
+	if (request.path.match(/^\/redirect:[0-9]+$/)) {
+		responseCode = request.path.split(':');
+		responseCode = parseInt(responseCode.pop());
+		responseHeaders['Location'] = '/';
+	}
+
+	return {
+		code: responseCode,
+		headers: responseHeaders,
+		body: JSON.stringify(request)
+	};
 });
 
 // socketServer.stop();
