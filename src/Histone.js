@@ -1291,7 +1291,7 @@ define([
 			resolveURIDefault(name, window.location.href, function(
 				resourceData, resourceURI) {
 				resourceData = resourceToTpl(resourceData);
-				load(Histone(resourceData, requestURI));
+				load(Histone(resourceData, resourceURI));
 			});
 		}
 	};
