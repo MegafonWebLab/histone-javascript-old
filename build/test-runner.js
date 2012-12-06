@@ -263,7 +263,7 @@ if (Files.isDir(testPath)) {
 		if (file.type === 'folder') {
 			return (file.name !== 'testresources');
 		} else if (file.type === 'file') {
-			if (file.name !== 'examples2.json') {
+			if (file.name !== 'examples3.json') {
 				return false;
 			}
 		}
