@@ -263,6 +263,7 @@ if (Files.isDir(testPath)) {
 		if (file.type === 'folder') {
 			return (file.name !== 'testresources');
 		} else if (file.type === 'file') {
+			//
 		}
 		files.push(file.path);
 	});
