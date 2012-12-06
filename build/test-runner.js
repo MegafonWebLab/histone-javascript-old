@@ -266,6 +266,9 @@ if (Files.isDir(testPath)) {
 			if (file.name === 'examples8.json') {
 				return false;
 			}
+			if (file.name === 'examples21.json') {
+				return false;
+			}
 		}
 		files.push(file.path);
 	});
