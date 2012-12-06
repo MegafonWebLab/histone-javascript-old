@@ -219,7 +219,6 @@ define([
 				requestURI, baseURI, function(resourceData, resourceURI) {
 				if (!Utils.isString(resourceURI)) resourceURI = requestURI;
 				ret(resourceData, resourceURI);
-				// IT CAN BREAK HERE BECAUSE OF internal2js changes original array
 			}, internal2js(requestProps), isJSONP) === true) return;
 		} catch (e) {}
 		resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP);
@@ -248,18 +247,23 @@ define([
 	}
 
 	function internal2js(value) {
-		if (Utils.isObject(value)) {
-			if (value instanceof OrderedMap) {
-				return value.toObject();
-			} else if (Utils.isArray(value)) {
-				for (var key = 0; key < value.length; key++) {
-					value[key] = internal2js(value[key]);
-				}
-			} else for (var key in value) {
-				value[key] = internal2js(value[key]);
+		if (!Utils.isObject(value)) return value;
+		if (value instanceof OrderedMap) return value.toObject();
+		if (Utils.isArray(value)) {
+			var result = [];
+			for (var key = 0; key < value.length; key++) {
+				result.push(internal2js(value[key]));
 			}
+			return result;
+		} else {
+			var result = {};
+			for (var key in value) {
+				if (Object.prototype.hasOwnProperty.call(value, key)) {
+					result[key] = internal2js(value[key]);
+				}
+			}
+			return result;
 		}
-		return value;
 	}
 
 	function getHandlerFor(value, name, isProp) {
@@ -455,7 +459,7 @@ define([
 				Utils.forEachAsync(values, function(
 					value, ret, key, index, last) {
 					stack.save();
-					stack.putVar(iterator[0], js2internal(value));
+					stack.putVar(iterator[0], value);
 					if (iterator[1]) stack.putVar(iterator[1], keys[index]);
 					self = {last: last, index: index};
 					stack.putVar('self', js2internal(self));
@@ -481,27 +485,24 @@ define([
 			processNode(fragment, stack, function(fragment) {
 				prevSubj = subject;
 				if (handler = getHandlerFor(subject, fragment, true)) {
-					if (Utils.isFunction(handler)) {
-						try {
-							handler.call(
-								stack,
-								prevSubj,
-								[fragment],
-								function(value) {
-									subject = js2internal(value);
-									ret();
-								}
-							);
-						} catch (e) {
-							subject = undefined;
+					if (Utils.isFunction(handler)) try {
+						handler.call(stack, prevSubj,
+							[fragment], function(value) {
+							// convert call result
+							// to it's internal form
+							subject = js2internal(value);
 							ret();
-						}
+						});
+					} catch (e) {
+						subject = undefined;
+						ret();
 					} else {
+						// convert property value
+						// to it's internal form
 						subject = js2internal(handler);
 						ret();
 					}
-				}
-				else {
+				} else {
 					subject = undefined;
 					return ret(true);
 				}
@@ -552,13 +553,12 @@ define([
 		var macroBody = handler[1];
 		var newBaseURI = handler[2];
 		var oldBaseURI = stack.getBaseURI();
-		var selfObj = {arguments: args};
 		stack.save();
 		stack.setBaseURI(newBaseURI);
-		stack.putVar('self', js2internal(selfObj));
+		stack.putVar('self', js2internal({arguments: args}));
 		for (var c = 0, arity = macroArgs.length; c < arity; c++) {
 			if (c >= args.length) stack.putVar(macroArgs[c], undefined);
-			else stack.putVar(macroArgs[c], js2internal(args[c]));
+			else stack.putVar(macroArgs[c], args[c]);
 		}
 		return processNodes(macroBody, stack, function(result) {
 			stack.setBaseURI(oldBaseURI);
@@ -587,17 +587,19 @@ define([
 					if (handler = getHandlerFor(target, name)) {
 						if (Utils.isFunction(handler)) {
 							try {
-								handler.call(
-									stack, target,
-									callArgs,
-									function(value) {
-										ret(js2internal(value));
-									}
-								);
+								handler.call(stack, target,
+									callArgs, function(value) {
+									// convert call result to
+									// it's internal form
+									ret(js2internal(value));
+								});
 							} catch (e) { ret(); }
-						} else ret(js2internal(handler));
-					}
-					else return ret();
+						} else {
+							// convert property value
+							// to it's internal form
+							ret(js2internal(handler));
+						}
+					} else return ret();
 				});
 			});
 		});
@@ -706,19 +708,34 @@ define([
 		};
 
 		this.render = function() {
+			// initialize variables
 			var context = undefined;
 			var ret = null, stack = null;
 			var callArgs = [], callName = null;
 			var args = Array.prototype.slice.call(arguments);
-			if (Utils.isString(args[0])) callName = args.shift();
-			if (callName !== null && !Utils.isFunction(args[0])) {
-				callArgs = args.shift();
-				if (!Utils.isArray(callArgs)) callArgs = [callArgs];
+			// check if first argument is macro name
+			if (Utils.isString(args[0])) {
+				callName = args.shift();
+				// check if second argument is macro arguments
+				if (!Utils.isFunction(args[0])) {
+					callArgs = args.shift();
+					// convert arguments to array if needed
+					if (!Utils.isArray(callArgs)) callArgs = [callArgs];
+					for (var c = 0; c < callArgs.length; c++) {
+						// convert argument to it's internal form
+						callArgs[c] = js2internal(callArgs[c]);
+					}
+				}
 			}
-			if (Utils.isFunction(args[0])) ret = args.shift();
+			// check for callback argument
+			if (Utils.isFunction(args[0])) {
+				ret = args.shift();
+			}
+			// check for context argument
 			if (args[0] instanceof CallStack) {
 				stack = args.shift();
 			} else {
+				// convert context to it's internal form
 				context = js2internal(args[0]);
 				stack = new CallStack(context);
 			}
@@ -728,10 +745,11 @@ define([
 					var callHandler = stack.getMacro(callName);
 					if (!callHandler) return ret(undefined, stack);
 					callMacro(callHandler, callArgs, stack, function(value) {
-						ret(internal2js(value), stack);
+						ret(value, stack);
 					});
 				} else ret(result, stack);
 			});
+
 		};
 
 	}
