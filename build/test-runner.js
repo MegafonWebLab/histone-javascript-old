@@ -33,23 +33,22 @@ socketServer.start(function(request) {
 		requestHeaders[key] = value;
 	}
 
-	var responseCode = 200;
-
-	var responseHeaders = {
+	var response = {code: 200, headers: {
 		'Content-type': 'application/javascript'
-	};
+	}, body: JSON.stringify(request)};
 
-	if (request.path.match(/^\/redirect:[0-9]+$/)) {
-		responseCode = request.path.split(':');
-		responseCode = parseInt(responseCode.pop());
-		responseHeaders['Location'] = '/';
+	var requestQuery = Utils.parseQuery(request.query);
+
+	if (requestQuery.hasOwnProperty('code')) {
+		var responseCode = parseInt(requestQuery.code, 10);
+		if (!isNaN(responseCode)) response.code = responseCode;
 	}
 
-	return {
-		code: responseCode,
-		headers: responseHeaders,
-		body: JSON.stringify(request)
-	};
+	if (requestQuery.hasOwnProperty('location')) {
+		response.headers['location'] = requestQuery.location;
+	}
+
+	return response;
 });
 
 // socketServer.stop();
@@ -236,10 +235,18 @@ function doTest(filePath, ret) {
 		Utils.forEachAsync(testSuites, function(testSuite, ret) {
 			var suiteName = testSuite.name;
 			var testCases = testSuite.cases;
-			System.print('\n[ "' + filePath + '" -> "' + suiteName + '"]\n');
-			Utils.forEachAsync(testCases, function(testCase, ret) {
-				runTestCase(testCase, filePath, ret);
-			}, ret);
+			var ignore = testSuite.ignore;
+			if (!Utils.isArray(ignore)) ignore = [ignore];
+			if (ignore.indexOf('javascript') === -1) {
+				System.print('\n[testing "' + filePath + '" -> "' + suiteName + '"]\n');
+				Utils.forEachAsync(testCases, function(testCase, ret) {
+					runTestCase(testCase, filePath, ret);
+				}, ret);
+			} else {
+				System.print('\n[skipping "' + filePath + '" -> "' + suiteName + '"]\n');
+				skippedCases += testCases.length;
+				return ret();
+			}
 		}, ret);
 	} else return ret();
 }
