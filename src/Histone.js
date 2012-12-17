@@ -140,7 +140,7 @@ define([
 		return headers;
 	}
 
-	function resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP) {
+	function loadResource(requestURI, baseURI, ret, requestProps, isJSONP) {
 		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
 		// THINK HOW WE CAN IMPROVE CACHE (possibly use serialized request as a key)
 		if (!resourceCache.hasOwnProperty(resourceURI)) {
@@ -161,14 +161,22 @@ define([
 				requestProps.method.toUpperCase() || 'GET'
 			);
 
+			if (requestMethod !== 'GET' &&
+				requestMethod !== 'POST') {
+				return ret(undefined, resourceURI);
+			}
+
 			requestProps.headers = (
 				requestProps.hasOwnProperty('headers') &&
 				Utils.isMap(requestProps.headers) &&
 				filterRequestHeaders(requestProps.headers) || {}
 			);
 
-			if (requestMethod !== 'GET' &&
-				requestMethod !== 'HEAD' &&
+			requestProps.headers['user-agent'] = (
+				'Histone/' + ClientInfo.version
+			);
+
+			if (requestMethod === 'POST' &&
 				requestProps.hasOwnProperty('data') &&
 				!Utils.isUndefined(requestProps.data)) {
 				var requestData = requestProps.data;
@@ -213,7 +221,7 @@ define([
 		} else ret(resourceCache[resourceURI], resourceURI);
 	}
 
-	function resolveURI(requestURI, baseURI, ret, requestProps, isJSONP) {
+	function getResource(requestURI, baseURI, ret, requestProps, isJSONP) {
 		try {
 			if (Utils.isFunction(URIResolver) && URIResolver(
 				requestURI, baseURI, function(resourceData, resourceURI) {
@@ -221,7 +229,7 @@ define([
 				ret(resourceData, resourceURI);
 			}, internal2js(requestProps), isJSONP) === true) return;
 		} catch (e) {}
-		resolveURIDefault(requestURI, baseURI, ret, requestProps, isJSONP);
+		loadResource(requestURI, baseURI, ret, requestProps, isJSONP);
 	}
 
 	function resourceToTpl(resourceData) {
@@ -485,6 +493,7 @@ define([
 			processNode(fragment, stack, function(fragment) {
 				prevSubj = subject;
 				if (handler = getHandlerFor(subject, fragment, true)) {
+
 					if (Utils.isFunction(handler)) try {
 						handler.call(stack, prevSubj,
 							[fragment], function(value) {
@@ -502,6 +511,7 @@ define([
 						subject = js2internal(handler);
 						ret();
 					}
+
 				} else {
 					subject = undefined;
 					return ret(true);
@@ -611,7 +621,7 @@ define([
 		var importHash = (requestURI + '#' + baseURI);
 		if (stack.imports.hasOwnProperty(importHash)) return ret();
 		stack.imports[importHash] = true;
-		resolveURI(requestURI, baseURI, function(resourceData, resourceURI) {
+		getResource(requestURI, baseURI, function(resourceData, resourceURI) {
 			try {
 				resourceData = resourceToTpl(resourceData);
 				resourceData = Histone(resourceData, resourceURI);
@@ -634,18 +644,21 @@ define([
 			case Parser.T_INT:
 			case Parser.T_STRING:
 			case Parser.T_DOUBLE: ret(node[1]); break;
+
 			case Parser.T_SELECTOR: processSelector(node[1], stack, ret); break;
 			case Parser.T_VAR: processVar(node[1], node[2], stack, ret); break;
 			case Parser.T_IF: processIf(node[1], stack, ret); break;
 			case Parser.T_CALL: processCall(node[1], node[2], node[3], stack, ret); break;
 			case Parser.T_TERNARY: processTernary(node[1], node[2], node[3], stack, ret); break;
 			case Parser.T_IMPORT: processImport(node[1], stack, ret); break;
+
 			case Parser.T_EQUAL:
 			case Parser.T_NOT_EQUAL:
 				processEquality(node[1], node[2], stack, function(equals) {
 					ret(nodeType === Parser.T_EQUAL ? equals : !equals);
 				});
 				break;
+
 			case Parser.T_STATEMENTS: processNodes(node[1], stack, ret); break;
 			case Parser.T_MACRO: processMacro(node[1], node[2], node[3], stack, ret); break;
 			case Parser.T_MAP: processMap(node[1], stack, ret); break;
@@ -869,9 +882,11 @@ define([
 		log: function(value, args, ret) {
 			if (value <= 0) return ret();
 			var result, base = args[0];
+
 			if (Utils.isNumber(base) && base > 0) {
 				result = Math.log(value) / Math.log(base);
 			} else result = Math.log(value);
+
 			if (isNaN(result)) return ret();
 			if (!isFinite(result)) return ret();
 			ret(result);
@@ -1115,7 +1130,7 @@ define([
 			if (!Utils.isString(requestURI)) return ret();
 			var requestProps = (!Utils.isBoolean(args[0]) && args.shift());
 			var isJSONP = (Utils.isBoolean(args[0]) && args[0]);
-			resolveURI(requestURI, this.getBaseURI(), function(data) {
+			getResource(requestURI, this.getBaseURI(), function(data) {
 				if (!Utils.isString(data)) {
 					data = js2internal(data);
 					return ret(data);
@@ -1135,7 +1150,7 @@ define([
 		loadText: function(value, args, ret) {
 			var requestURI = args[0], requestProps = args[1];
 			if (!Utils.isString(requestURI)) return ret();
-			resolveURI(requestURI, this.getBaseURI(), function(resourceData) {
+			getResource(requestURI, this.getBaseURI(), function(resourceData) {
 				ret(Utils.isString(resourceData) ? resourceData : undefined);
 			}, requestProps);
 		},
@@ -1144,7 +1159,7 @@ define([
 			var requestURI = args[0];
 			if (!Utils.isString(requestURI)) return ret();
 			var context = args[1], requestProps = args[2];
-			resolveURI(requestURI, this.getBaseURI(), function(resourceData, resourceURI) {
+			getResource(requestURI, this.getBaseURI(), function(resourceData, resourceURI) {
 				try {
 					resourceData = resourceToTpl(resourceData);
 					resourceData = Histone(resourceData, resourceURI);
@@ -1285,14 +1300,12 @@ define([
 				req([req.toUrl(name)], load);
 				curl(config);
 			} else if (typeof require === 'function') {
-				require.config({
-					'map': {
-						'*': {'Histone': module.id}
-					}
-				})([req.toUrl(name)], load);
+				require.config({'map': {
+					'*': {'Histone': module.id}
+				}})([req.toUrl(name)], load);
 			}
 		} else {
-			resolveURIDefault(name, window.location.href, function(
+			loadResource(name, window.location.href, function(
 				resourceData, resourceURI) {
 				resourceData = resourceToTpl(resourceData);
 				load(Histone(resourceData, resourceURI));
