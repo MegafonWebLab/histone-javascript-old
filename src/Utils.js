@@ -177,14 +177,14 @@ define(function() {
 	}
 
 	function forEachAsync(list, iterator, ret) {
-		if (!(list instanceof Object)) ret();
+		if (!(list instanceof Object)) return ret();
 		var keys, key, length, last;
 		var i = -1, calls = 0, looping = false;
-		if (!(list instanceof Array)) {
+		if (list instanceof Array) {
+			length = list.length;
+		} else {
 			keys = Object.keys(list);
 			length = keys.length;
-		} else {
-			length = list.length;
 		}
 		last = length - 1;
 		var resume = function() {
