@@ -19,44 +19,81 @@ define(['../Utils'], function(Utils) {
 
 	var Java = null;
 
-	function getResponseBody(connection) {
+	function readFromStream(stream) {
 		var responseBody = '';
-		var inputStream = connection.getInputStream();
-		var streamReader = new Java.InputStreamReader(inputStream);
+		var streamReader = new Java.InputStreamReader(stream);
 		var bufferedReader = new Java.BufferedReader(streamReader);
-		var chunk = bufferedReader.read();
-		while (chunk !== -1) {
-			responseBody += String.fromCharCode(chunk);
-			chunk = bufferedReader.read();
+		var line = bufferedReader.readLine();
+		while (line !== null) {
+			responseBody += String(line);
+			line = bufferedReader.readLine();
 		}
 		bufferedReader.close();
 		return responseBody;
 	}
 
-	function doHTTPRequest(requestURI, success, fail, requestProps) {
+	function writeToStream(stream, data) {
+		var writer = new Java.DataOutputStream(stream);
+		writer.writeBytes(data);
+		writer.flush();
+		writer.close();
+	}
 
-		var url = new Java.URL(requestURI);
-		var connection = url.openConnection();
+	function doHTTPRequest(requestObj, success, fail, requestProps) {
 
-		connection.setDoInput(true);
-		connection.setUseCaches(false);
+		try {
+			var requestURI = Utils.uri.format(requestObj);
+			var url = new Java.URL(requestURI);
+			var connection = url.openConnection();
+			connection.setDoInput(true);
+			connection.setUseCaches(false);
+			connection.setInstanceFollowRedirects(false);
+			connection.setRequestMethod(requestProps.method);
 
-		connection.setInstanceFollowRedirects(false);
-		connection.setRequestMethod(requestProps.method);
+			var requestHeaders = requestProps.headers;
+			connection.setRequestProperty('content-type', '');
+			for (var key in requestHeaders) {
+				connection.setRequestProperty(
+					key, requestHeaders[key]
+				);
+			}
 
-		var requestHeaders = requestProps.headers;
-		for (var key in requestHeaders) {
-			connection.setRequestProperty(key, requestHeaders[key]);
-		}
+			if (requestProps.data.length) {
+				connection.setDoOutput(true);
+				writeToStream(
+					connection.getOutputStream(),
+					requestProps.data
+				);
+			}
 
-		connection.setDoOutput(true);
-		var wr = new Java.DataOutputStream(connection.getOutputStream());
-		wr.writeBytes(requestProps.data);
-		wr.flush();
-		wr.close();
+			var responseCode = connection.getResponseCode();
 
-		success(getResponseBody(connection));
-		connection.disconnect();
+			// successful response code
+			if (responseCode === 200) {
+				var inputStream = connection.getInputStream();
+				var responseData = readFromStream(inputStream);
+				connection.disconnect();
+				return success(responseData);
+			}
+
+			connection.disconnect();
+
+			// redirect response codes
+			if (responseCode > 300 && responseCode < 400) {
+				var location = connection.getHeaderField('location');
+				if (location !== null) {
+					location = Utils.uri.parse(location);
+					if (!location.scheme)
+						location.scheme = requestObj.scheme;
+					if (!location.authority)
+						location.authority = requestObj.authority;
+					return doHTTPRequest(location, success, fail, requestProps);
+				}
+			}
+
+			fail();
+
+		} catch (exception) { fail(); }
 	}
 
 	return function(requestURI, success, fail, requestProps, isJSONP) {
@@ -79,8 +116,7 @@ define(['../Utils'], function(Utils) {
 					requestObj.query = Utils.uri.formatQuery(query);
 				}
 			}
-			requestURI = Utils.uri.format(requestObj);
-			doHTTPRequest(requestURI, success, fail, requestProps);
+			doHTTPRequest(requestObj, success, fail, requestProps);
 
 		} else if (requestProtocol === '') {
 
