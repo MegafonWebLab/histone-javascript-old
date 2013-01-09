@@ -120,6 +120,18 @@
 		{{hello('Histone')}}
 	]]></example>
 
+	<example name="{{import}} + AST"><![CDATA[
+		{{* import macro "hello" from external template, stored as AST *}}
+		{{import 'examples/include_ast.tpl'}}
+		{{hello('Histone')}}
+	]]></example>
+
+	<example name="{{import}} + data URI"><![CDATA[
+		{{* import macro "hello" from the template that is embedded into data URI *}}
+		{{import 'data:;base64,e3ttYWNybyBoZWxsbyhuYW1lKX19DQoJSGVsbG8ge3tuYW1lfX0hDQp7ey9tYWNyb319'}}
+		{{hello('Histone')}}
+	]]></example>
+
 	<example name="number.log()"><![CDATA[
 		{{* using log, floor, pow and toFixed functions *}}
 		{{macro byteFormat(bytes)}}
@@ -325,6 +337,11 @@
 		<div style="padding-left: 20px; padding-top: 10px;">{{loadText(url)}}</div>
 	]]></example>
 
+	<example name="global.loadText() + data URI"><![CDATA[
+		{{* load text file embedded into data URI *}}
+		{{loadText("data:;base64,SEVMTE8gV09STEQh")}}
+	]]></example>
+
 	<example name="global.loadJSON()"><![CDATA[
 		{{* load JSON object from file using loadJSON function *}}
 		{{var url = resolveURI('examples/json.json', this.href)}}
@@ -351,6 +368,11 @@
 		<div style="padding-left: 20px; padding-top: 10px;">
 			{{dumpJSON(data)}}
 		</div>
+	]]></example>
+
+	<example name="global.loadJSON() + data URI"><![CDATA[
+		{{* load JSON object embedded into data URI *}}
+		{{loadJSON("data:;base64,eyJIRUxMTyI6ICJXT1JMRCEifQ==").toJSON()}}
 	]]></example>
 
 	<example name="global.loadJSON() for Twitter API"><![CDATA[
@@ -428,6 +450,25 @@
 			backgroundColor: 'gray',
 			href: url
 		])}}
+	]]></example>
+
+	<example name="global.include() + AST"><![CDATA[
+		{{* process template AST from examples/include_ast.tpl file *}}
+		{{var url = 'examples/include_ast.tpl'}}
+		{{var url = resolveURI(url, this.href)}}
+
+		{{include(url, [
+			color: 'white',
+			borderColor: 'red',
+			borderRadius: 10,
+			backgroundColor: 'gray',
+			href: url
+		])}}
+	]]></example>
+
+	<example name="global.include() + data URI"><![CDATA[
+		{{* process template that is embedded into data URI *}}
+		{{include("data:;base64,SGVsbG8ge3t0aGlzfX0h", "WORLD")}}
 	]]></example>
 
 	<example name="built-in properties"><![CDATA[
