@@ -1112,7 +1112,7 @@ define([
 
 		resolveURI: function(value, args, ret) {
 			var uri = args[0], baseURI = args[1];
-			if (!Utils.isString(uri)) return ret('');
+			if (!Utils.isString(uri)) uri = nodeToString(uri);
 			if (!Utils.isString(baseURI)) return ret(uri);
 			ret(Utils.uri.resolve(uri, baseURI));
 		},
@@ -1294,7 +1294,8 @@ define([
 	Histone.load = function(name, req, load, config) {
 		var requestObj = Utils.uri.parse(name);
 		var requestType = requestObj.path.split('.').pop();
-		if (requestType !== 'tpl') {
+		if (requestType !== 'tpl' &&
+			requestObj.scheme !== 'data') {
 			if (typeof curl === 'function') {
 				curl({paths: {'Histone': module.uri}});
 				req([req.toUrl(name)], load);
@@ -1304,13 +1305,11 @@ define([
 					'*': {'Histone': module.id}
 				}})([req.toUrl(name)], load);
 			}
-		} else {
-			loadResource(name, window.location.href, function(
-				resourceData, resourceURI) {
-				resourceData = resourceToTpl(resourceData);
-				load(Histone(resourceData, resourceURI));
-			});
-		}
+		} else loadResource(name, window.location.href, function(
+			resourceData, resourceURI) {
+			resourceData = resourceToTpl(resourceData);
+			load(Histone(resourceData, resourceURI));
+		});
 	};
 
 	Histone.setURIResolver = function(callback) {

@@ -121,7 +121,16 @@ define(['../Utils'], function(Utils) {
 	}
 
 	return function(requestURI, success, fail, requestProps, isJSONP) {
-		if (!isJSONP) doRequest(requestURI, success, fail, requestProps);
+		var requestObj = Utils.uri.parse(requestURI);
+		if (requestObj.scheme === 'data') {
+			requestObj = Utils.uri.parseData(requestObj.path);
+			if (requestObj.encoding === 'base64') {
+				var requestData = requestObj.data;
+				requestData = atob(requestData);
+				success(requestData);
+			} else fail();
+		}
+		else if (!isJSONP) doRequest(requestURI, success, fail, requestProps);
 		else doJSONPRequest(requestURI, success, fail, requestProps);
 	};
 

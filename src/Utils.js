@@ -238,12 +238,52 @@ define(function() {
 		};
 	}
 
+	function URIParseData(data) {
+		var keyValue, result = {
+			type: 'text/plain',
+			data: '', encoding: '',
+			params: {charset: 'US-ASCII'}
+		};
+		if (!isString(data)) return result;
+		data = data.split(',');
+		if (isString(data[1])) result.data = data.pop();
+		data = data.shift().split(';');
+		if (isString(data[0])) result.type = data.shift();
+		while (data.length) {
+			keyValue = data.shift().split('=');
+			if (isString(keyValue[1])) {
+				result.params[keyValue[0]] = keyValue[1];
+			} else result.encoding = keyValue[0];
+		}
+		if (!result.type) result.type = 'text/plain';
+		if (!result.params.charset) result.params.charset = 'US-ASCII';
+		return result;
+	}
+
+	function URIParseQuery(query) {
+		var result = {};
+		if (!isString(query)) return {};
+		query.replace(new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
+			function($0, $1, $2, $3) { result[$1] = $3; });
+		return result;
+	}
+
 	function URIFormat(uri) {
 		return ((uri.scheme ? uri.scheme + '://' : '') +
 			(uri.authority ? uri.authority : '') +
 			(uri.path ? uri.path : '') +
 			(uri.query ? '?' + uri.query : '') +
 			(uri.fragment ? '#' + uri.fragment : ''));
+	}
+
+	function URIFormatQuery(query) {
+		var queryArr = [], key;
+		if (!isMap(query)) return '';
+		for (key in query) {
+			if (!query.hasOwnProperty(key)) continue;
+			queryArr.push(key + '=' + query[key]);
+		}
+		return queryArr.join('&');
 	}
 
 	/**
@@ -286,24 +326,6 @@ define(function() {
 		if (urlArgs) res += urlArgs;
 		if (ts = relUri.fragment) res += ('#' + ts);
 		return res;
-	}
-
-	function URIParseQuery(query) {
-		var result = {};
-		if (!isString(query)) return {};
-		query.replace(new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
-			function($0, $1, $2, $3) { result[$1] = $3; });
-		return result;
-	}
-
-	function URIFormatQuery(query) {
-		var queryArr = [], key;
-		if (!isMap(query)) return '';
-		for (key in query) {
-			if (!query.hasOwnProperty(key)) continue;
-			queryArr.push(key + '=' + query[key]);
-		}
-		return queryArr.join('&');
 	}
 
 	function getEnvType() {
@@ -365,6 +387,7 @@ define(function() {
 			parse: URIParse,
 			format: URIFormat,
 			resolve: URIResolve,
+			parseData: URIParseData,
 			parseQuery: URIParseQuery,
 			formatQuery: URIFormatQuery
 		}

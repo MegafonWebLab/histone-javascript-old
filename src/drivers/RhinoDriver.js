@@ -97,17 +97,15 @@ define(['../Utils'], function(Utils) {
 	}
 
 	return function(requestURI, success, fail, requestProps, isJSONP) {
-
 		if (Java === null) Java = JavaImporter(
 			java.net.URL,
 			java.io.DataOutputStream,
 			java.io.BufferedReader,
-			java.io.InputStreamReader
+			java.io.InputStreamReader,
+			javax.xml.bind.DatatypeConverter
 		);
-
 		var requestObj = Utils.uri.parse(requestURI);
 		var requestProtocol = (requestObj.scheme || '');
-
 		if (requestProtocol === 'http' || requestProtocol === 'https') {
 			if (isJSONP) {
 				var query = Utils.uri.parseQuery(requestObj.query);
@@ -117,12 +115,17 @@ define(['../Utils'], function(Utils) {
 				}
 			}
 			doHTTPRequest(requestObj, success, fail, requestProps);
-
+		} else if (requestProtocol === 'data') {
+			requestObj = Utils.uri.parseData(requestObj.path);
+			if (requestObj.encoding === 'base64') {
+				var requestData = requestObj.data;
+				requestData = Java.DatatypeConverter.parseBase64Binary(requestData);
+				requestData = String(new java.lang.String(requestData));
+				success(requestData);
+			} else fail();
 		} else if (requestProtocol === '') {
-
 			var data = readFile(requestURI);
 			success(data);
-
 		} else fail();
 
 	};

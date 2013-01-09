@@ -73,6 +73,14 @@ define(['../Utils'], function(Utils) {
 			requestURI = Utils.uri.format(requestObj);
 			requestObj = URL.parse(requestURI);
 			doHTTPRequest(requestObj, success, fail, requestProps);
+		} else if (requestProtocol === 'data') {
+			requestObj = Utils.uri.parseData(requestObj.path);
+			if (requestObj.encoding === 'base64') {
+				var requestData = requestObj.data;
+				requestData = new Buffer(requestData, 'base64');
+				requestData = requestData.toString('binary');
+				success(requestData);
+			} else fail();
 		} else if (requestProtocol === '') {
 			FSModule = (FSModule || require('fs'));
 			FSModule.readFile(requestURI, function(error, data) {
