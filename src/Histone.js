@@ -172,10 +172,6 @@ define([
 				filterRequestHeaders(requestProps.headers) || {}
 			);
 
-			requestProps.headers['user-agent'] = (
-				'Histone/' + ClientInfo.version
-			);
-
 			if (requestMethod === 'POST' &&
 				requestProps.hasOwnProperty('data') &&
 				!Utils.isUndefined(requestProps.data)) {
