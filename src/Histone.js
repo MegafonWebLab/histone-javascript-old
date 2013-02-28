@@ -17,14 +17,13 @@
 
 define([
 	'module', 'ClientInfo', 'Utils',
-	'parser/Parser', 'parser/Constants',
 	'CallStack', 'OrderedMap', 'Share',
+	'parser/Parser', 'parser/Constants',
 	'drivers/AJAXDriver', 'drivers/NodeDriver'
 ], function(
 	Module, ClientInfo, Utils,
-	Parser, AST,
 	CallStack, OrderedMap, Share,
-	AJAXDriver, NodeDriver) {
+	Parser, AST, AJAXDriver, NodeDriver) {
 
 	var resourceCache = {};
 	var URIResolver = null;
