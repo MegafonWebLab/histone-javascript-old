@@ -33,6 +33,7 @@ define(function() {
 	var T_OBJECT = 8;
 
 	var URL_DIRNAME_REGEXP = /^(.*)\//;
+	var FILE_TYPE_REGEXP = /.+\.([^\.]+)$/;
 	var URL_PARSER_REGEXP = /^(?:([^:\/?\#]+):)?(?:\/\/([^\/?\#]*))?([^?\#]*)(?:\?([^\#]*))?(?:\#(.*))?/;
 
 	function removeDotSegments(path) {
@@ -229,12 +230,16 @@ define(function() {
 	 */
 	function URIParse(uri) {
 		var result = uri.match(URL_PARSER_REGEXP);
+		var scheme = (result[1] || '');
+		var authority = (result[2] || '');
+		var path = (result[3] || '');
+		var fileName = (path.split('/').pop());
+		var fileType = fileName.match(FILE_TYPE_REGEXP);
+		fileType = (fileType && fileType[1] || '');
 		return {
-			'scheme': (result[1] || ''),
-			'authority': (result[2] || ''),
-			'path': (result[3] || ''),
-			'query': (result[4] || ''),
-			'fragment': (result[5] || '')
+			scheme: scheme, authority: authority,
+			path: path, fileName: fileName, fileType: fileType,
+			query: (result[4] || ''), fragment: (result[5] || '')
 		};
 	}
 
