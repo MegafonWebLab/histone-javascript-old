@@ -1262,6 +1262,17 @@ define([
 		}
 	};
 
+	Histone.krang = function(baseURI, pluginURI, load, krang) {
+		var requestURI = Utils.uri.parse(pluginURI);
+		if (requestURI.fileType !== 'tpl') {
+			krang({packages: {
+				'histone': Module.uri
+			}}).require(Utils.uri.resolve(pluginURI, baseURI), load);
+		} else loadResource(pluginURI, baseURI, function(resourceData, resourceURI) {
+			load(Histone(resourceData, resourceURI));
+		});
+	};
+
 	Histone.load = function(name, req, load, config) {
 		var requestObj = Utils.uri.parse(name);
 		var requestType = requestObj.path.split('.').pop();
