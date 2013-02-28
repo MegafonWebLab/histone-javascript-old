@@ -18,12 +18,12 @@
 define([
 	'module', './ClientInfo', './Utils',
 	'./parser/Parser', './parser/Constants',
-	'./CallStack', './OrderedMap',
+	'./CallStack', './OrderedMap', './Share',
 	'./drivers/AJAXDriver', './drivers/NodeDriver'
 ], function(
 	Module, ClientInfo, Utils,
 	Parser, AST,
-	CallStack, OrderedMap,
+	CallStack, OrderedMap, Share,
 	AJAXDriver, NodeDriver) {
 
 	var resourceCache = {};
@@ -38,69 +38,6 @@ define([
 		envType === 'node' && NodeDriver ||
 		envType === 'browser' && AJAXDriver
 	);
-
-	function nodeToBoolean(value) {
-		switch (Utils.getBaseType(value)) {
-			case Utils.T_BOOLEAN: return value;
-			case Utils.T_NUMBER: return (value !== 0);
-			case Utils.T_STRING: return (value.length > 0);
-			case Utils.T_OBJECT: return (value instanceof OrderedMap);
-			default: return false;
-		}
-	}
-
-	function nodeToString(value) {
-		switch (Utils.getBaseType(value)) {
-			case Utils.T_UNDEFINED: return '';
-			case Utils.T_NULL:
-			case Utils.T_STRING:
-			case Utils.T_BOOLEAN:
-				return String(value);
-			case Utils.T_NUMBER:
-				var value = String(value).toLowerCase();
-				if (value.indexOf('e') === -1) return value;
-				value = value.split('e');
-				var numericPart = value[0];
-				var exponentPart = value[1];
-				var numericSign = numericPart[0];
-				var exponentSign = exponentPart[0];
-				if (numericSign === '+' || numericSign === '-') {
-					numericPart = numericPart.substr(1);
-				} else numericSign = '';
-				if (exponentSign === '+' || exponentSign === '-') {
-					exponentPart = exponentPart.substr(1);
-				} else exponentSign = '+';
-				var lDecPlaces, rDecPlaces;
-				var decPos = numericPart.indexOf('.');
-				if (decPos === -1) {
-					rDecPlaces = 0;
-					lDecPlaces = numericPart.length;
-				} else {
-					rDecPlaces = numericPart.substr(decPos + 1).length;
-					lDecPlaces = numericPart.substr(0, decPos).length;
-					numericPart = numericPart.replace(/\./g, '');
-				}
-				var numZeros = exponentPart - lDecPlaces;
-				if (exponentSign === '+') numZeros = exponentPart - rDecPlaces;
-				for (var zeros = '', c = 0; c < numZeros; c++) zeros += '0';
-				return (
-					exponentSign === '+' ?
-					numericSign + numericPart + zeros :
-					numericSign + '0.' + zeros + numericPart
-				);
-		}
-		if (Utils.isObject(value) && value instanceof OrderedMap) {
-			var result = [], value;
-			var values = value.values();
-			for (var c = 0; c < values.length; c++) {
-				value = values[c];
-				if (Utils.isUndefined(value)) continue;
-				result.push(nodeToString(value));
-			}
-			return result.join(' ');
-		}
-		return '';
-	}
 
 	function filterRequestHeaders(requestHeaders) {
 		var headers = {}, name, value;
@@ -148,8 +85,8 @@ define([
 			if (requestProps instanceof OrderedMap) {
 				requestProps = {
 					data: requestProps.get('data'),
-					method: internal2js(requestProps.get('method')),
-					headers: internal2js(requestProps.get('headers'))
+					method: Share.internal2js(requestProps.get('method')),
+					headers: Share.internal2js(requestProps.get('headers'))
 				};
 			} else if (!Utils.isMap(requestProps)) {
 				requestProps = {};
@@ -179,13 +116,13 @@ define([
 				if (Utils.isObject(requestData)) {
 					if (requestData instanceof OrderedMap) {
 						requestProps.data = requestData.toQueryString(
-							null, null, nodeToString
+							null, null, Share.nodeToString
 						);
 					} else if (Utils.isArray(requestData)) {
 						var resultArr, key, value;
 						var length = requestData.length;
 						for (key = 0; key < length; key++) {
-							value = nodeToString(requestData[key]);
+							value = Share.nodeToString(requestData[key]);
 							value = encodeURIComponent(value);
 							resultArr.push(key + '=' + value);
 						}
@@ -193,7 +130,7 @@ define([
 					} else {
 						var resultArr, key, value;
 						for (key in requestData) {
-							value = nodeToString(requestData[key]);
+							value = Share.nodeToString(requestData[key]);
 							value = encodeURIComponent(value);
 							resultArr.push(key + '=' + value);
 						}
@@ -202,7 +139,7 @@ define([
 					requestProps.headers['Content-type'] = (
 						'application/x-www-form-urlencoded'
 					);
-				} else requestProps.data = nodeToString(requestData);
+				} else requestProps.data = Share.nodeToString(requestData);
 			} else requestProps.data = '';
 
 			NetworkRequest(resourceURI, function(resourceData) {
@@ -223,7 +160,7 @@ define([
 				requestURI, baseURI, function(resourceData, resourceURI) {
 				if (!Utils.isString(resourceURI)) resourceURI = requestURI;
 				ret(resourceData, resourceURI);
-			}, internal2js(requestProps), isJSONP) === true) return;
+			}, Share.internal2js(requestProps), isJSONP) === true) return;
 		} catch (e) {}
 		loadResource(requestURI, baseURI, ret, requestProps, isJSONP);
 	}
@@ -235,39 +172,6 @@ define([
 			catch (e) {}
 		}
 		return resourceData;
-	}
-
-	function js2internal(value) {
-		if (Utils.isFunction(value)) return;
-		if (!Utils.isObject(value)) return value;
-		if (value instanceof OrderedMap) return value;
-		var orderedMap = new OrderedMap();
-		for (var key in value) {
-			if (Object.prototype.hasOwnProperty.call(value, key)) {
-				orderedMap.set(key, js2internal(value[key]));
-			}
-		}
-		return orderedMap;
-	}
-
-	function internal2js(value) {
-		if (!Utils.isObject(value)) return value;
-		if (value instanceof OrderedMap) return value.toObject();
-		if (Utils.isArray(value)) {
-			var result = [];
-			for (var key = 0; key < value.length; key++) {
-				result.push(internal2js(value[key]));
-			}
-			return result;
-		} else {
-			var result = {};
-			for (var key in value) {
-				if (Object.prototype.hasOwnProperty.call(value, key)) {
-					result[key] = internal2js(value[key]);
-				}
-			}
-			return result;
-		}
 	}
 
 	function getHandlerFor(value, name, isProp) {
@@ -301,27 +205,27 @@ define([
 
 	function processNot(value, stack, ret) {
 		processNode(value, stack, function(value) {
-			ret(!nodeToBoolean(value));
+			ret(!Share.nodeToBoolean(value));
 		});
 	}
 
 	function processOr(left, right, stack, ret) {
 		processNode(left, stack, function(left) {
-			if (nodeToBoolean(left)) ret(left);
+			if (Share.nodeToBoolean(left)) ret(left);
 			else processNode(right, stack, ret);
 		});
 	}
 
 	function processAnd(left, right, stack, ret) {
 		processNode(left, stack, function(left) {
-			if (!nodeToBoolean(left)) ret(left);
+			if (!Share.nodeToBoolean(left)) ret(left);
 			else processNode(right, stack, ret);
 		});
 	}
 
 	function processTernary(condition, left, right, stack, ret) {
 		processNode(condition, stack, function(condition) {
-			if (nodeToBoolean(condition)) {
+			if (Share.nodeToBoolean(condition)) {
 				processNode(left, stack, ret);
 			} else if (right) {
 				processNode(right, stack, ret);
@@ -334,18 +238,18 @@ define([
 			processNode(right, stack, function(right) {
 				if (Utils.isString(left) && Utils.isNumber(right)) {
 					if (!Utils.isNumeric(left)) left = parseFloat(left, 10);
-					else right = nodeToString(right);
+					else right = Share.nodeToString(right);
 				} else if (Utils.isNumber(left) && Utils.isString(right)) {
 					if (!Utils.isNumeric(right)) right = parseFloat(right, 10);
-					else left = nodeToString(left);
+					else left = Share.nodeToString(left);
 				}
 				if (!(Utils.isString(left) && Utils.isString(right))) {
 					if (Utils.isNumber(left) && Utils.isNumber(right)) {
 						left = parseFloat(left);
 						right = parseFloat(right);
 					} else {
-						left = nodeToBoolean(left);
-						right = nodeToBoolean(right);
+						left = Share.nodeToBoolean(left);
+						right = Share.nodeToBoolean(right);
 					}
 				}
 				ret(left === right);
@@ -358,18 +262,18 @@ define([
 			processNode(right, stack, function(right) {
 				if (Utils.isString(left) && Utils.isNumber(right)) {
 					if (Utils.isNumeric(left)) left = parseFloat(left, 10);
-					else right = nodeToString(right);
+					else right = Share.nodeToString(right);
 				} else if (Utils.isNumber(left) && Utils.isString(right)) {
 					if (Utils.isNumeric(right)) right = parseFloat(right, 10);
-					else left = nodeToString(left);
+					else left = Share.nodeToString(left);
 				}
 				if (!(Utils.isNumber(left) && Utils.isNumber(right))) {
 					if (Utils.isString(left) && Utils.isString(right)) {
 						left = left.length;
 						right = right.length;
 					} else {
-						left = nodeToBoolean(left);
-						right = nodeToBoolean(right);
+						left = Share.nodeToBoolean(left);
+						right = Share.nodeToBoolean(right);
 					}
 				}
 				switch (nodeType) {
@@ -400,8 +304,8 @@ define([
 						return ret(result);
 					}
 				}
-				left = nodeToString(left);
-				right = nodeToString(right);
+				left = Share.nodeToString(left);
+				right = Share.nodeToString(right);
 				ret(left + right);
 			});
 		});
@@ -443,7 +347,7 @@ define([
 		var result = '';
 		Utils.forEachAsync(conditions, function(condition, ret) {
 			processNode(condition[0], stack, function(condResult) {
-				if (!nodeToBoolean(condResult)) return ret();
+				if (!Share.nodeToBoolean(condResult)) return ret();
 				stack.save();
 				processNodes(condition[1], stack, function(value) {
 					result = value;
@@ -466,7 +370,7 @@ define([
 					stack.put(iterator[0], value);
 					if (iterator[1]) stack.put(iterator[1], keys[index]);
 					self = {last: last, index: index};
-					stack.put('self', js2internal(self));
+					stack.put('self', Share.js2internal(self));
 					processNodes(statements[0], stack, function(value) {
 						result += value;
 						stack.restore();
@@ -495,7 +399,7 @@ define([
 							[fragment], function(value) {
 							// convert call result
 							// to it's internal form
-							subject = js2internal(value);
+							subject = Share.js2internal(value);
 							ret();
 						});
 					} catch (e) {
@@ -504,7 +408,7 @@ define([
 					} else {
 						// convert property value
 						// to it's internal form
-						subject = js2internal(handler);
+						subject = Share.js2internal(handler);
 						ret();
 					}
 
@@ -561,7 +465,7 @@ define([
 		var oldBaseURI = stack.getBaseURI();
 		stack.save();
 		stack.setBaseURI(newBaseURI);
-		stack.put('self', js2internal({arguments: args}));
+		stack.put('self', Share.js2internal({arguments: args}));
 		for (var c = 0, arity = macroArgs.length; c < arity; c++) {
 			if (c >= args.length) stack.put(macroArgs[c], undefined);
 			else stack.put(macroArgs[c], args[c]);
@@ -597,13 +501,13 @@ define([
 									callArgs, function(value) {
 									// convert call result to
 									// it's internal form
-									ret(js2internal(value));
+									ret(Share.js2internal(value));
 								});
 							} catch (e) { ret(); }
 						} else {
 							// convert property value
 							// to it's internal form
-							ret(js2internal(handler));
+							ret(Share.js2internal(handler));
 						}
 					} else return ret();
 				});
@@ -615,6 +519,7 @@ define([
 		if (!Utils.isArray(node)) return ret(node);
 		var nodeType = node[0];
 		switch (nodeType) {
+
 			case AST.INT:
 			case AST.STRING:
 			case AST.DOUBLE: ret(node[1]); break;
@@ -669,7 +574,7 @@ define([
 		Utils.forEachAsync(nodes, function(node, ret) {
 			if (Utils.isArray(node)) {
 				processNode(node, stack, function(node) {
-					result += nodeToString(node);
+					result += Share.nodeToString(node);
 					ret();
 				});
 			} else {
@@ -708,7 +613,7 @@ define([
 					if (!Utils.isArray(callArgs)) callArgs = [callArgs];
 					for (var c = 0; c < callArgs.length; c++) {
 						// convert argument to it's internal form
-						callArgs[c] = js2internal(callArgs[c]);
+						callArgs[c] = Share.js2internal(callArgs[c]);
 					}
 				}
 			}
@@ -721,7 +626,7 @@ define([
 				stack = args.shift();
 			} else {
 				// convert context to it's internal form
-				context = js2internal(args[0]);
+				context = Share.js2internal(args[0]);
 				stack = new CallStack(context);
 			}
 			stack.setBaseURI(baseURI);
@@ -796,11 +701,11 @@ define([
 		},
 
 		toString: function(value, args, ret) {
-			ret(nodeToString(value));
+			ret(Share.nodeToString(value));
 		},
 
 		toBoolean: function(value, args, ret) {
-			ret(nodeToBoolean(value));
+			ret(Share.nodeToBoolean(value));
 		}
 	};
 
@@ -1061,7 +966,7 @@ define([
 
 		toQueryString: function(value, args, ret) {
 			var numPrefix = args[0], separator = args[1];
-			ret(value.toQueryString(numPrefix, separator, nodeToString));
+			ret(value.toQueryString(numPrefix, separator, Share.nodeToString));
 		},
 
 		toJSON: function(value, args, ret) {
@@ -1083,7 +988,7 @@ define([
 
 		resolveURI: function(value, args, ret) {
 			var uri = args[0], baseURI = args[1];
-			if (!Utils.isString(uri)) uri = nodeToString(uri);
+			if (!Utils.isString(uri)) uri = Share.nodeToString(uri);
 			if (!Utils.isString(baseURI)) return ret(uri);
 			ret(Utils.uri.resolve(uri, baseURI));
 		},
@@ -1103,7 +1008,7 @@ define([
 			var isJSONP = (Utils.isBoolean(args[0]) && args[0]);
 			getResource(requestURI, this.getBaseURI(), function(data) {
 				if (!Utils.isString(data)) {
-					data = js2internal(data);
+					data = Share.js2internal(data);
 					return ret(data);
 				}
 				if (isJSONP) {
@@ -1112,7 +1017,7 @@ define([
 				}
 				try {
 					data = JSON.parse(data);
-					data = js2internal(data);
+					data = Share.js2internal(data);
 					ret(data);
 				} catch (e) { ret(); }
 			}, requestProps, isJSONP);
@@ -1134,7 +1039,7 @@ define([
 				try {
 					resourceData = resourceToTpl(resourceData);
 					resourceData = Histone(resourceData, resourceURI);
-					resourceData.render(ret, js2internal(context));
+					resourceData.render(ret, Share.js2internal(context));
 				} catch (e) { ret(); }
 			}, requestProps);
 		},
@@ -1176,7 +1081,7 @@ define([
 				return minValue;
 			}
 
-			ret(findMinimal(internal2js(args)));
+			ret(findMinimal(Share.internal2js(args)));
 		},
 
 		max: function(value, args, ret) {
@@ -1204,7 +1109,7 @@ define([
 				return minValue;
 			}
 
-			ret(findMaximal(internal2js(args)));
+			ret(findMaximal(Share.internal2js(args)));
 		},
 
 		range: function(value, args, ret) {
