@@ -429,7 +429,7 @@ define([
 		stack.save();
 		processNode(value, stack, function(value) {
 			stack.restore();
-			stack.putVar(name, value);
+			stack.put(name, value);
 			ret('');
 		});
 	}
@@ -463,10 +463,10 @@ define([
 				Utils.forEachAsync(values, function(
 					value, ret, key, index, last) {
 					stack.save();
-					stack.putVar(iterator[0], value);
-					if (iterator[1]) stack.putVar(iterator[1], keys[index]);
+					stack.put(iterator[0], value);
+					if (iterator[1]) stack.put(iterator[1], keys[index]);
 					self = {last: last, index: index};
-					stack.putVar('self', js2internal(self));
+					stack.put('self', js2internal(self));
 					processNodes(statements[0], stack, function(value) {
 						result += value;
 						stack.restore();
@@ -541,7 +541,7 @@ define([
 				ret
 			);
 		}
-		stack.getVar(fragment, function(value, found) {
+		stack.get(fragment, function(value, found) {
 			if (found) return evalSelector(value, selector, stack, ret);
 			if (Histone.Global.hasOwnProperty(fragment)) return evalSelector(
 				Histone.Global, [fragment].concat(selector), stack, ret);
@@ -561,10 +561,10 @@ define([
 		var oldBaseURI = stack.getBaseURI();
 		stack.save();
 		stack.setBaseURI(newBaseURI);
-		stack.putVar('self', js2internal({arguments: args}));
+		stack.put('self', js2internal({arguments: args}));
 		for (var c = 0, arity = macroArgs.length; c < arity; c++) {
-			if (c >= args.length) stack.putVar(macroArgs[c], undefined);
-			else stack.putVar(macroArgs[c], args[c]);
+			if (c >= args.length) stack.put(macroArgs[c], undefined);
+			else stack.put(macroArgs[c], args[c]);
 		}
 		return processNodes(macroBody, stack, function(result) {
 			stack.setBaseURI(oldBaseURI);

@@ -19,7 +19,7 @@ define(function() {
 
 	function CallStack(context) {
 		this.baseURI = '';
-		this.vars = [{}];
+		this.variables = [{}];
 		this.macros = [{}];
 		this.stackPointer = 0;
 		this.context = context;
@@ -33,12 +33,12 @@ define(function() {
 		return this.baseURI;
 	};
 
-	CallStack.prototype.putVar = function(name, value) {
-		this.vars[this.stackPointer][name] = value;
+	CallStack.prototype.put = function(name, value) {
+		this.variables[this.stackPointer][name] = value;
 	};
 
-	CallStack.prototype.getVar = function(name, ret) {
-		var stacks = this.vars;
+	CallStack.prototype.get = function(name, ret) {
+		var stacks = this.variables;
 		var stack, index = this.stackPointer;
 		do {
 			stack = stacks[index];
@@ -65,13 +65,13 @@ define(function() {
 	};
 
 	CallStack.prototype.save = function() {
-		this.vars.push({});
+		this.variables.push({});
 		this.macros.push({});
 		this.stackPointer++;
 	};
 
 	CallStack.prototype.restore = function() {
-		this.vars.pop();
+		this.variables.pop();
 		this.macros.pop();
 		this.stackPointer--;
 	};
@@ -79,7 +79,7 @@ define(function() {
 	CallStack.prototype.clone = function() {
 		var callStack = new CallStack(this.context);
 		var key, iterator = (this.stackPointer + 1);
-		var tVars = this.vars;
+		var tVars = this.variables;
 		var tMacros = this.macros;
 		var cVars = new Array(iterator);
 		var cMacros = new Array(iterator);
@@ -93,7 +93,7 @@ define(function() {
 				cMacros[iterator][key] = tMacros[iterator][key];
 			}
 		}
-		callStack.vars = cVars;
+		callStack.variables = cVars;
 		callStack.macros = cMacros;
 		return callStack;
 	};
