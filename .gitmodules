@@ -7,3 +7,6 @@
 [submodule "build/plugins/socketServer"]
 	path = build/plugins/socketServer
 	url = git://github.com/angrycoding/krang.socketServer.git
+[submodule "histone-acceptance-tests"]
+	path = histone-acceptance-tests
+	url = git://github.com/MegafonWebLab/histone-acceptance-tests.git

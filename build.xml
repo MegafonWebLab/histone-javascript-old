@@ -42,15 +42,6 @@
 		</fileset>
 	</path>
 
-	<target name="checkout" description="checkout acceptance tests" unless="test">
-		<delete dir="histone-acceptance-tests" />
-		<exec executable="git" failonerror="true">
-			<arg value="clone" />
-			<arg value="git://github.com/MegafonWebLab/histone-acceptance-tests.git" />
-			<arg value="histone-acceptance-tests" />
-		</exec>
-	</target>
-
 	<target name="build" description="make production package">
 		<exec executable="java">
 			<arg value="-Dfile.encoding=UTF8" />
@@ -64,7 +55,7 @@
 		</exec>
 	</target>
 
-	<target name="test" description="run tests" depends="build, checkout">
+	<target name="test" description="run tests" depends="build">
 
 		<property name="test" location="histone-acceptance-tests/src/main/acceptance" />
 
@@ -74,7 +65,6 @@
 			<env key="tests" path="${test}" />
 		</exec>
 
-		<delete dir="histone-acceptance-tests" />
 	</target>
 
 	<!--target name="integration-test"
