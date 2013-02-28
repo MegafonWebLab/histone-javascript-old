@@ -16,17 +16,18 @@
  */
 
 define([
-	'module', './ClientInfo',
-	'./Utils', './Parser', './CallStack', './OrderedMap',
+	'module', './ClientInfo', './Utils',
+	'./parser/Parser', './parser/Constants',
+	'./CallStack', './OrderedMap',
 	'./drivers/AJAXDriver', './drivers/NodeDriver'
 ], function(
-	module, ClientInfo,
-	Utils, Parser, CallStack, OrderedMap,
+	Module, ClientInfo, Utils,
+	Parser, AST,
+	CallStack, OrderedMap,
 	AJAXDriver, NodeDriver) {
 
 	var resourceCache = {};
 	var URIResolver = null;
-	var parserInstance = null;
 	var AST_HEADER = ['HISTONE', ClientInfo];
 
 	var envType = Utils.getEnvType();
@@ -372,10 +373,10 @@ define([
 					}
 				}
 				switch (nodeType) {
-					case Parser.T_LESS_THAN: ret(left < right); break;
-					case Parser.T_GREATER_THAN: ret(left > right); break;
-					case Parser.T_LESS_OR_EQUAL: ret(left <= right); break;
-					case Parser.T_GREATER_OR_EQUAL: ret(left >= right); break;
+					case AST.LESS_THAN: ret(left < right); break;
+					case AST.GREATER_THAN: ret(left > right); break;
+					case AST.LESS_OR_EQUAL: ret(left <= right); break;
+					case AST.GREATER_OR_EQUAL: ret(left >= right); break;
 				}
 			});
 		});
@@ -410,15 +411,15 @@ define([
 		processNode(left, stack, function(left) {
 			if (Utils.isNumeric(left)) left = parseFloat(left, 10);
 			if (!Utils.isNumber(left)) return ret();
-			if (nodeType === Parser.T_NEGATE) return ret(-left);
+			if (nodeType === AST.NEGATE) return ret(-left);
 			processNode(right, stack, function(right) {
 				if (Utils.isNumeric(right)) right = parseFloat(right, 10);
 				if (!Utils.isNumber(right)) return ret();
 				switch (nodeType) {
-					case Parser.T_SUB: ret(left - right); break;
-					case Parser.T_MUL: ret(left * right); break;
-					case Parser.T_DIV: ret(left / right); break;
-					case Parser.T_MOD: ret(left % right); break;
+					case AST.SUB: ret(left - right); break;
+					case AST.MUL: ret(left * right); break;
+					case AST.DIV: ret(left / right); break;
+					case AST.MOD: ret(left % right); break;
 				}
 			});
 		});
@@ -614,52 +615,51 @@ define([
 		if (!Utils.isArray(node)) return ret(node);
 		var nodeType = node[0];
 		switch (nodeType) {
-			case Parser.T_INT:
-			case Parser.T_STRING:
-			case Parser.T_DOUBLE: ret(node[1]); break;
+			case AST.INT:
+			case AST.STRING:
+			case AST.DOUBLE: ret(node[1]); break;
 
-			case Parser.T_SELECTOR: processSelector(node[1], stack, ret); break;
-			case Parser.T_VAR: processVar(node[1], node[2], stack, ret); break;
-			case Parser.T_IF: processIf(node[1], stack, ret); break;
-			case Parser.T_CALL: processCall(node[1], node[2], node[3], stack, ret); break;
-			case Parser.T_TERNARY: processTernary(node[1], node[2], node[3], stack, ret); break;
+			case AST.SELECTOR: processSelector(node[1], stack, ret); break;
+			case AST.VAR: processVar(node[1], node[2], stack, ret); break;
+			case AST.IF: processIf(node[1], stack, ret); break;
+			case AST.CALL: processCall(node[1], node[2], node[3], stack, ret); break;
+			case AST.TERNARY: processTernary(node[1], node[2], node[3], stack, ret); break;
 
-			case Parser.T_EQUAL:
-			case Parser.T_NOT_EQUAL:
+			case AST.EQUAL:
+			case AST.NOT_EQUAL:
 				processEquality(node[1], node[2], stack, function(equals) {
-					ret(nodeType === Parser.T_EQUAL ? equals : !equals);
+					ret(nodeType === AST.EQUAL ? equals : !equals);
 				});
 				break;
 
-			case Parser.T_STATEMENTS: processNodes(node[1], stack, ret); break;
-			case Parser.T_MACRO: processMacro(node[1], node[2], node[3], stack, ret); break;
-			case Parser.T_MAP: processMap(node[1], stack, ret); break;
-			case Parser.T_ADD: processAddition(node[1], node[2], stack, ret); break;
-			case Parser.T_FOR: processFor(node[1], node[2], node[3], stack, ret); break;
-			case Parser.T_TRUE: ret(true); break;
-			case Parser.T_FALSE: ret(false); break;
-			case Parser.T_OR: processOr(node[1], node[2], stack, ret); break;
-			case Parser.T_AND: processAnd(node[1], node[2], stack, ret); break;
-			case Parser.T_NULL: ret(null); break;
-			case Parser.T_NOT: processNot(node[1], stack, ret); break;
-			case Parser.T_SUB:
-			case Parser.T_MUL:
-			case Parser.T_DIV:
-			case Parser.T_MOD:
-			case Parser.T_NEGATE:
+			case AST.STATEMENTS: processNodes(node[1], stack, ret); break;
+			case AST.MACRO: processMacro(node[1], node[2], node[3], stack, ret); break;
+			case AST.MAP: processMap(node[1], stack, ret); break;
+			case AST.ADD: processAddition(node[1], node[2], stack, ret); break;
+			case AST.FOR: processFor(node[1], node[2], node[3], stack, ret); break;
+			case AST.TRUE: ret(true); break;
+			case AST.FALSE: ret(false); break;
+			case AST.OR: processOr(node[1], node[2], stack, ret); break;
+			case AST.AND: processAnd(node[1], node[2], stack, ret); break;
+			case AST.NULL: ret(null); break;
+			case AST.NOT: processNot(node[1], stack, ret); break;
+			case AST.SUB:
+			case AST.MUL:
+			case AST.DIV:
+			case AST.MOD:
+			case AST.NEGATE:
 				processArithmetical(nodeType, node[1], node[2], stack, ret);
 				break;
-			case Parser.T_LESS_THAN:
-			case Parser.T_GREATER_THAN:
-			case Parser.T_LESS_OR_EQUAL:
-			case Parser.T_GREATER_OR_EQUAL:
+			case AST.LESS_THAN:
+			case AST.GREATER_THAN:
+			case AST.LESS_OR_EQUAL:
+			case AST.GREATER_OR_EQUAL:
 				processRelational(nodeType, node[1], node[2], stack, ret);
 				break;
 			default:
 				ret();
 				throw(
-					'unsupported template instruction "' +
-					nodeToString(node) + '"'
+					'unsupported template instruction "' + JSON.stringify(node) + '"'
 				);
 		}
 	}
@@ -741,8 +741,7 @@ define([
 
 	var Histone = function(template, baseURI) {
 		if (Utils.isString(template)) {
-			if (!parserInstance) parserInstance = new Parser();
-			template = parserInstance.parse(template, baseURI);
+			template = Parser(template, baseURI);
 			template = [AST_HEADER, template];
 		} else if (template instanceof Template) {
 			template = template.getAST();
@@ -1269,12 +1268,12 @@ define([
 		if (requestType !== 'tpl' &&
 			requestObj.scheme !== 'data') {
 			if (typeof curl === 'function') {
-				curl({paths: {'Histone': module.uri}});
+				curl({paths: {'Histone': Module.uri}});
 				req([req.toUrl(name)], load);
 				curl(config);
 			} else if (typeof require === 'function') {
 				require.config({'map': {
-					'*': {'Histone': module.id}
+					'*': {'Histone': Module.id}
 				}})([req.toUrl(name)], load);
 			}
 		} else loadResource(name, window.location.href, function(

@@ -110,38 +110,36 @@ define(function() {
 			currentContext = newContext;
 		}
 
-		function addTokens(tokens, kind, contexts) {
-			if (typeof(tokens) !== 'object') tokens = [tokens];
+		function addToken(expression, kind, contexts, tokenID) {
+			if (!tokenID) tokenID = ++lastTokenId;
 			if (contexts === undefined) contexts = 0;
 			if (!(contexts instanceof Array)) contexts = [contexts];
-
-			lastTokenId++;
-
-			for (var c = 0; c < contexts.length; c++) {
-
-				var context = contexts[c];
-
+			for (var context, c = 0; c < contexts.length; c++) {
+				context = contexts[c];
 				if (!tokenStrings[context]) tokenStrings[context] = [];
 				if (!tokenDefinitions[context]) {
 					tokenDefinitions[context] = [[], []];
 				}
-				tokenStrings[context].push('(' + tokens.join('|') + ')');
-				tokenDefinitions[context][1].push([kind, lastTokenId]);
+				tokenStrings[context].push('(' + expression + ')');
+				tokenDefinitions[context][1].push([kind, tokenID]);
 			}
-
-			return lastTokenId;
+			return tokenID;
 		}
 
-		this.addToken = function(tokens, context) {
-			return addTokens(tokens, T_KIND_TOKEN, context);
+		this.addToken = function(name, expression, context) {
+			if (this.hasOwnProperty(name))
+				addToken(expression, T_KIND_TOKEN, context, this[name]);
+			else this[name] = addToken(expression, T_KIND_TOKEN, context);
 		};
 
-		this.addLiteral = function(literals, context) {
-			return addTokens(literals, T_KIND_LITERAL, context);
+		this.addLiteral = function(name, expression, context) {
+			if (this.hasOwnProperty(name))
+				addToken(expression, T_KIND_LITERAL, context, this[name]);
+			else this[name] = addToken(expression, T_KIND_LITERAL, context);
 		};
 
-		this.addIgnore = function(ignores, context) {
-			return addTokens(ignores, T_KIND_IGNORE, context);
+		this.addIgnore = function(expression, context) {
+			addToken(expression, T_KIND_IGNORE, context);
 		};
 
 		this.tokenize = function(input, context) {
