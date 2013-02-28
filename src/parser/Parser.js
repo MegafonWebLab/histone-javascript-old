@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['./Tokenizer', './Constants'], function(Tokenizer, AST) {
+define(['Tokenizer', 'Constants'], function(Tokenizer, AST) {
 
 	var escapeSequence, tokenizer, nestLevel, fileName;
 	var T_CTX_TPL = 0, T_CTX_EXP = 1, T_CTX_CMT = 2, T_CTX_LIT = 3;

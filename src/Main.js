@@ -16,10 +16,10 @@
  */
 
 define([
-	'module', './ClientInfo', './Utils',
-	'./parser/Parser', './parser/Constants',
-	'./CallStack', './OrderedMap', './Share',
-	'./drivers/AJAXDriver', './drivers/NodeDriver'
+	'module', 'ClientInfo', 'Utils',
+	'parser/Parser', 'parser/Constants',
+	'CallStack', 'OrderedMap', 'Share',
+	'drivers/AJAXDriver', 'drivers/NodeDriver'
 ], function(
 	Module, ClientInfo, Utils,
 	Parser, AST,
