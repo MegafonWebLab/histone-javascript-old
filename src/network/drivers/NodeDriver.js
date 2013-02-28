@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-define(['../Utils'], function(Utils) {
+define(['../../Utils'], function(Utils) {
 
 	var URL = null;
 	var FSModule = null;
