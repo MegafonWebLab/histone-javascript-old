@@ -1,190 +1,64 @@
-/**
- * build.js - Histone template engine.
- * Copyright 2012 MegaFon
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+var Path = require('path');
+var FileSystem = require('fs');
+var UglifyJS = require('uglify-js');
+var TestRunner = require('./test-runner.js');
 
-var Utils = require('Utils');
-var Files = require('Files');
-var System = require('System');
-var ClosureCompiler = require('ClosureCompiler');
+var Krang = require('../../krang-js.git/krang.js');
 
-var FUNCTION_NAME = 'Histone';
-var INPUT_PATH = System.getEnv('input');
-var OUTPUT_PATH = System.getEnv('output');
+var BUILD_TPL = Path.resolve(__dirname, 'build.tpl');
+var SOURCE_FILE = Path.resolve(__dirname, '../src/Histone.js');
+var TARGET_FILE = Path.resolve(__dirname, '../Histone.js');
+var TEST_PATH = Path.resolve(__dirname, '../histone-acceptance-tests/src/main/acceptance/');
 
-function moduleHeader(definition, namespace, global) {
-
-	function useExports() {
-		return (typeof process === 'object' ||
-		typeof Packages === 'object' &&
-		typeof JavaImporter === 'function' &&
-		typeof module !== "undefined" && (
-			!global.module ||
-			global.module.id !== module.id
-		));
-	}
-
-	function useDefine() {
-		return ((typeof curl === 'function' ||
-			typeof requirejs === 'function'
-		) && typeof define === 'function' && define.amd);
-
-	}
-
-	if (!useExports()) {
-
-		global[namespace] = definition();
-
-		if (!useDefine()) return;
-
-		define(['module'], definition.bind(this, function() {
-			delete global[namespace];
-		}));
-
-	} else {
-		module.exports = definition(null, module);
-	}
+function message() {
+	var args = Array.prototype.slice.call(arguments);
+	if (!args.length) console.info();
+	else console.info('>', args.join(' '));
 }
 
-function executePlugin(pluginPath, pluginArgs, baseURI) {
-	var pluginStr = '';
-	print('processing plugin:', pluginPath);
-	var pluginBody = makeBundle(pluginPath, 'PLUGIN');
-	pluginBody = new Function(pluginBody + ' return PLUGIN;')();
-	pluginBody.build(pluginArgs, baseURI, function(result) {
-		pluginStr = result;
-	});
-	return pluginStr;
-}
-
-function makeBundle(fileName, exportAs) {
-
-	var bundleStr = '';
-	var dependencies = {};
-
-	function storeDependency(fileName, exportAs, definition, order) {
-		if (!dependencies.hasOwnProperty(fileName)) {
-			print('processing dependency:', fileName);
-			dependencies[fileName] = {
-				order: order,
-				exportAs: {},
-				body: definition
-			};
-		} else dependencies[fileName].order++;
-		if (exportAs && !dependencies[fileName]
-			['exportAs'].hasOwnProperty(exportAs)) {
-			dependencies[fileName]['exportAs'][exportAs] = true;
-		}
-	}
-
-	function buildDependencies(fileName, callback, order, exportAs) {
-		if (order === undefined) order = 0;
-		var fileContents = readFile(fileName);
-		new Function('define', fileContents)(function() {
-			var dependencyNames = [], dependencyPaths = [];
-			var args = Array.prototype.slice.call(arguments);
-			if (Utils.isArray(args[0])) dependencyPaths = args.shift();
-			var definition = args.shift();
-			if (Utils.isFunction(definition)) {
-				dependencyNames = Utils.getFunctionArguments(definition);
-				definition = Utils.setFunctionArguments(definition);
-			}
-			storeDependency(fileName, exportAs, definition, order);
-			for (var c = 0; c < dependencyPaths.length; c++) {
-				var dependencyPath = dependencyPaths[c];
-				if (dependencyPath === 'module') continue;
-				if (dependencyPath.slice(-3) !== '.js')
-					dependencyPath += '.js';
-				if (dependencyPath.indexOf('!') !== -1 &&
-					Utils.isFunction(callback)) {
-					var pluginPath = dependencyPath;
-					if (pluginPath[0] === '!') {
-						pluginPath = pluginPath.substr(1);
-					}
-					pluginPath = pluginPath.split('!');
-					var pluginArgs = pluginPath.slice(1).join('!');
-					pluginPath = pluginPath.shift();
-					pluginPath = Utils.resolveURI(pluginPath, fileName);
-					fileContents = callback(pluginPath, pluginArgs, fileName);
-					storeDependency(
-						dependencyPath,
-						dependencyNames[c],
-						fileContents, order + 1
-					);
-				} else {
-					buildDependencies(
-						Utils.resolveURI(dependencyPath, fileName),
-						callback, order + 1, dependencyNames[c]
-					);
-				}
-			}
+function doBuild(callback) {
+	Krang({
+		debug: true
+	}).require([SOURCE_FILE, BUILD_TPL].join('!'), function(buildTpl) {
+		Krang.build(SOURCE_FILE, function(Histone) {
+			buildTpl.render(function(Histone) {
+				FileSystem.writeFile(TARGET_FILE, Histone, function() {
+					if (typeof callback === 'function') callback();
+				});
+			}, {alias: 'Histone', module: Histone});
 		});
-	}
-
-	buildDependencies(fileName, executePlugin);
-	dependencies[fileName]['exportAs'][exportAs] = true;
-
-	var dependencyData = [];
-	for (var dependencyPath in dependencies) {
-		var dependency = dependencies[dependencyPath];
-		dependencyData.push(dependency);
-	}
-
-	dependencyData.sort(function(a, b) {
-		return (b.order - a.order);
 	});
-
-	while (dependencyData.length) {
-		var exportAs = null;
-		var dependency = dependencyData.shift();
-		for (var exportVar in dependency.exportAs) {
-			bundleStr += 'var ';
-			bundleStr += exportVar;
-			if (!exportAs) {
-				if (Utils.isFunction(dependency.body)) {
-					bundleStr += ' = (';
-					bundleStr += Utils.setFunctionArguments(dependency.body);
-					bundleStr += ')();';
-				} else {
-					bundleStr += ' = (';
-					bundleStr += JSON.stringify(dependency.body);
-					bundleStr += ');'
-				}
-				exportAs = exportVar;
-			} else {
-				bundleStr += ' = ';
-				bundleStr += exportAs;
-				bundleStr += ';';
-			}
-			bundleStr += '\n';
-		}
-	}
-
-	return bundleStr;
 }
 
-function compileBundle(fileName, exportAs) {
-	var module = ('(' + moduleHeader.toString() + ')(function(cleanup, module) {');
-	module += 'if (cleanup instanceof Function) cleanup();';
-	module += makeBundle(fileName, exportAs);
-	module += 'return ' + exportAs + ';';
-	module += '}, "' + exportAs + '", function() { return this; }.call(null));';
-	return module;
+function doOptimize(callback) {
+	message();
+	message('optimizing', TARGET_FILE);
+	var data = UglifyJS.minify(TARGET_FILE).code;
+	FileSystem.writeFile(TARGET_FILE, data, function() {
+		message('done optimizing', TARGET_FILE);
+		if (typeof callback === 'function') callback();
+	});
 }
 
-var bundleStr = compileBundle(INPUT_PATH, FUNCTION_NAME);
-print('compiling:', OUTPUT_PATH);
-bundleStr = ClosureCompiler.processString(bundleStr);
-Files.write(OUTPUT_PATH, bundleStr);
+function doTest(callback) {
+	message();
+	message('testing', TARGET_FILE);
+	var Histone = require(TARGET_FILE);
+	TestRunner(Histone, TEST_PATH, function(result) {
+		message();
+		message('EXECUTED:', result.executed, 'test cases');
+		message('SUCCEEDED:', result.succeeded, 'test cases');
+		message('FAILED:', result.failed, 'test cases');
+		message('IGNORED:', result.ignored, 'test cases');
+		message();
+		if (typeof callback === 'function')
+			callback(result.failed !== 0);
+	});
+}
+
+doBuild(function() {
+	doOptimize(function() {
+		doTest(process.exit);
+	});
+});
+
