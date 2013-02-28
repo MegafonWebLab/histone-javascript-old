@@ -18,11 +18,11 @@
 define([
 	'module', './ClientInfo',
 	'./Utils', './Parser', './CallStack', './OrderedMap',
-	'./drivers/AJAXDriver', './drivers/NodeDriver', './drivers/RhinoDriver'
+	'./drivers/AJAXDriver', './drivers/NodeDriver'
 ], function(
 	module, ClientInfo,
 	Utils, Parser, CallStack, OrderedMap,
-	AJAXDriver, NodeDriver, RhinoDriver) {
+	AJAXDriver, NodeDriver) {
 
 	var resourceCache = {};
 	var URIResolver = null;
@@ -35,7 +35,6 @@ define([
 
 	var NetworkRequest = (
 		envType === 'node' && NodeDriver ||
-		envType === 'rhino' && RhinoDriver ||
 		envType === 'browser' && AJAXDriver
 	);
 

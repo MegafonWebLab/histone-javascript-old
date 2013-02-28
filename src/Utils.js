@@ -331,8 +331,6 @@ define(function() {
 	function getEnvType() {
 		if (ENV_TYPE !== null) return ENV_TYPE;
 		return (typeof process  === 'object' && (ENV_TYPE = 'node') ||
-			typeof Packages === 'object' &&
-			typeof JavaImporter === 'function' && (ENV_TYPE = 'rhino') ||
 			typeof window !== 'undefined' && (ENV_TYPE = 'browser') ||
 			(ENV_TYPE = 'unknown')
 		);
@@ -343,17 +341,6 @@ define(function() {
 		var envType = getEnvType();
 		if (envType === 'node') return (ENV_INFO = process.versions);
 		if (envType === 'browser') return (ENV_INFO = window.navigator.userAgent);
-		if (envType === 'rhino') {
-			var System = java.lang.System;
-			return (ENV_INFO = {
-				'os.arch': String(System.getProperty('os.arch')),
-				'os.name': String(System.getProperty('os.name')),
-				'os.version': String(System.getProperty('os.version')),
-				'java.vendor': String(System.getProperty('java.vendor')),
-				'java.version': String(System.getProperty('java.version')),
-				'java.vendor.url': String(System.getProperty('java.vendor.url'))
-			});
-		}
 	}
 
 	return {
