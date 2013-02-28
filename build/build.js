@@ -5,7 +5,7 @@ var TestRunner = require('./test-runner.js');
 var Krang = require('./krangx/krang.js');
 
 var BUILD_TPL = Path.resolve(__dirname, 'build.tpl');
-var SOURCE_FILE = Path.resolve(__dirname, '../src/Histone.js');
+var SOURCE_FILE = Path.resolve(__dirname, '../src/Main.js');
 var TARGET_FILE = Path.resolve(__dirname, '../Histone.js');
 var TEST_PATH = Path.resolve(__dirname, '../histone-acceptance-tests/src/main/acceptance/');
 
