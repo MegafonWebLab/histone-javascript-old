@@ -2,7 +2,7 @@ var Path = require('path');
 var FileSystem = require('fs');
 var UglifyJS = require('uglify-js');
 var TestRunner = require('./test-runner.js');
-var Krang = require('./krang-js/krang.js');
+var Krang = require('./krangx/krang.js');
 
 var BUILD_TPL = Path.resolve(__dirname, 'build.tpl');
 var SOURCE_FILE = Path.resolve(__dirname, '../src/Histone.js');

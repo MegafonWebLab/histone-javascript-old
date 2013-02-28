@@ -4,3 +4,6 @@
 [submodule "build/krang-js"]
 	path = build/krang-js
 	url = git://github.com/angrycoding/krang-js.git
+[submodule "build/krangx"]
+	path = build/krangx
+	url = git://github.com/angrycoding/krang-js.git
