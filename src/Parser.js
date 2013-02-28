@@ -26,7 +26,7 @@ define(['./Tokenizer'], function(Tokenizer) {
 	// define tokens
 	var T_COMMENT_START, T_COMMENT_END, T_LITERAL_START, T_LITERAL_END,
 	T_BLOCK_START, T_BLOCK_END, T_IS, T_OR, T_AND, T_NOT, T_MOD, T_THIS,
-	T_SELF, T_GLOBAL, T_NULL, T_TRUE, T_FALSE, T_CALL, T_IMPORT, T_IF,
+	T_SELF, T_GLOBAL, T_NULL, T_TRUE, T_FALSE, T_IF,
 	T_ELSEIF, T_ELSE, T_FOR, T_IN, T_VAR, T_MACRO, T_DOUBLE, T_INT,
 	T_NOT_EQUAL, T_LESS_OR_EQUAL, T_GREATER_OR_EQUAL, T_LESS_THAN,
 	T_GREATER_THAN, T_LBRACKET, T_RBRACKET, T_LPAREN, T_RPAREN, T_QUERY,
@@ -59,8 +59,6 @@ define(['./Tokenizer'], function(Tokenizer) {
 		T_TRUE = tokenizer.addLiteral('true\\b', T_CTX_EXP),
 		T_FALSE = tokenizer.addLiteral('false\\b', T_CTX_EXP),
 		// statement tokens
-		T_CALL = tokenizer.addLiteral('call\\b', T_CTX_EXP);
-		T_IMPORT = tokenizer.addLiteral('import\\b', T_CTX_EXP);
 		T_IF = tokenizer.addLiteral('if\\b', T_CTX_EXP),
 		T_ELSEIF = tokenizer.addLiteral('elseif\\b', T_CTX_EXP),
 		T_ELSE = tokenizer.addLiteral('else\\b', T_CTX_EXP),
@@ -552,53 +550,6 @@ define(['./Tokenizer'], function(Tokenizer) {
 			return [Parser.T_MACRO, name.value, args, statements];
 		}
 
-		function parseCallStatement() {
-			if (!tokenizer.next(T_CALL)) return;
-			var name = tokenizer.next(T_ID);
-			if (!name) throw new ParseError('identifier');
-
-			var args = [];
-			if (tokenizer.next(T_LPAREN)) {
-				if (!tokenizer.next(T_RPAREN)) {
-					while (true) {
-						args.push(parseExpression());
-						if (!tokenizer.next(T_COMMA)) break;
-					}
-					if (!tokenizer.next(T_RPAREN)) {
-						throw new ParseError(')');
-					}
-				}
-			}
-			if (!tokenizer.next(T_BLOCK_END)) {
-				throw new ParseError('}}');
-			}
-
-
-			args.push([
-				Parser.T_STATEMENTS,
-				parseStatements(T_DIV)
-			]);
-
-			if (!tokenizer.next(T_DIV) ||
-				!tokenizer.next(T_CALL) ||
-				!tokenizer.next(T_BLOCK_END)) {
-				throw new ParseError('{{/call}}');
-			}
-
-			return [Parser.T_CALL, null, name.value, args];
-		}
-
-		function parseImportStatement() {
-			if (!tokenizer.next(T_IMPORT)) return;
-			var file = tokenizer.next(T_STRING);
-			if (!file) throw new ParseError('string');
-			file = extractStringData(file.value);
-			if (!tokenizer.next(T_BLOCK_END)) {
-				throw new ParseError('}}');
-			}
-			return [Parser.T_IMPORT, file];
-		}
-
 		function parseExpressionStatement() {
 			var expression = parseExpression();
 			if (!tokenizer.next(T_BLOCK_END)) {
@@ -613,8 +564,6 @@ define(['./Tokenizer'], function(Tokenizer) {
 				parseForStatement() ||
 				parseVarStatement() ||
 				parseMacroStatement() ||
-				parseCallStatement() ||
-				parseImportStatement() ||
 				parseExpressionStatement()
 			);
 		}
@@ -702,7 +651,7 @@ define(['./Tokenizer'], function(Tokenizer) {
 	Parser.T_FALSE = 17, Parser.T_NULL = 100, Parser.T_INT = 101,
 	Parser.T_DOUBLE = 102, Parser.T_STRING = 103, Parser.T_TERNARY = 104,
 	Parser.T_SELECTOR = 105, Parser.T_CALL = 106, Parser.T_MAP = 107,
-	Parser.T_STATEMENTS = 109, Parser.T_IMPORT = 110, Parser.T_IF = 1000,
+	Parser.T_STATEMENTS = 109, Parser.T_IF = 1000,
 	Parser.T_VAR = 1001, Parser.T_FOR = 1002, Parser.T_MACRO = 1003;
 
 	return Parser;

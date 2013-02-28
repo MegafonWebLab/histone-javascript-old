@@ -611,28 +611,6 @@ define([
 		});
 	}
 
-	function processImport(requestURI, stack, ret) {
-		var baseURI = stack.getBaseURI();
-		if (!stack.imports) stack.imports = {};
-		var importHash = (requestURI + '#' + baseURI);
-		if (stack.imports.hasOwnProperty(importHash)) return ret();
-		stack.imports[importHash] = true;
-		getResource(requestURI, baseURI, function(resourceData, resourceURI) {
-			try {
-				resourceData = resourceToTpl(resourceData);
-				resourceData = Histone(resourceData, resourceURI);
-				stack.setBaseURI(resourceURI);
-				processAST(resourceData.getAST(), stack,
-					function(resourceData) {
-						stack.setBaseURI(baseURI);
-						ret('');
-					}
-				);
-				return resourceData;
-			} catch (e) { ret(); }
-		});
-	}
-
 	function processNode(node, stack, ret) {
 		if (!Utils.isArray(node)) return ret(node);
 		var nodeType = node[0];
@@ -646,7 +624,6 @@ define([
 			case Parser.T_IF: processIf(node[1], stack, ret); break;
 			case Parser.T_CALL: processCall(node[1], node[2], node[3], stack, ret); break;
 			case Parser.T_TERNARY: processTernary(node[1], node[2], node[3], stack, ret); break;
-			case Parser.T_IMPORT: processImport(node[1], stack, ret); break;
 
 			case Parser.T_EQUAL:
 			case Parser.T_NOT_EQUAL:
