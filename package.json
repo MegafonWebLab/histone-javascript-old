@@ -1,8 +1,9 @@
 {
-	"name": "Histone",
+	"name": "histone",
 	"version": "1.0.6",
 	"devDependencies": {
-		"uglify-js": "2.2.5"
+		"uglify-js": "2.2.5",
+		"krang-js": "*"
 	},
 	"scripts": {
 		"test": "node build/build.js"

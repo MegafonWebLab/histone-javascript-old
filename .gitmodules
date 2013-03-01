@@ -1,6 +1,3 @@
 [submodule "histone-acceptance-tests"]
 	path = histone-acceptance-tests
 	url = git://github.com/MegafonWebLab/histone-acceptance-tests.git
-[submodule "build/krangx"]
-	path = build/krangx
-	url = git://github.com/angrycoding/krang-js.git
