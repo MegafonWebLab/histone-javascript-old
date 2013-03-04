@@ -16,18 +16,23 @@
  */
 
 define([
-	'../Utils', '../OrderedMap',
-	'drivers/AJAXDriver', 'drivers/NodeDriver'
-], function(Utils, OrderedMap, AJAXDriver, NodeDriver) {
+	'../Utils', '../OrderedMap', '../Share',
+	'ResourceLoader', 'drivers/AJAXDriver', 'drivers/NodeDriver'
+], function(Utils, OrderedMap, Share, ResourceLoader, AJAXDriver, NodeDriver) {
 
 	var resourceCache = {};
-
 	var envType = Utils.getEnvType();
 
-	var NetworkDriver = (
-		envType === 'node' && NodeDriver ||
-		envType === 'browser' && AJAXDriver
-	);
+	function decodeDataURI(dataURI) {
+		var uriObj = Utils.uri.parseData(dataURI);
+		if (!uriObj) return;
+		var requestData = uriObj.data;
+		try {
+			if (uriObj.encoding === 'base64')
+				return Utils.base64decode(requestData);
+			return decodeURIComponent(requestData);
+		} catch (exception) {}
+	}
 
 	function filterRequestHeaders(requestHeaders) {
 		var headers = {}, name, value;
@@ -67,81 +72,98 @@ define([
 		return headers;
 	}
 
-	function loadResource(requestURI, baseURI, ret, requestProps, isJSONP) {
-		var resourceURI = Utils.uri.resolve(requestURI, baseURI);
-		// THINK HOW WE CAN IMPROVE CACHE (possibly use serialized request as a key)
-		if (!resourceCache.hasOwnProperty(resourceURI)) {
+	function filterRequestProps(requestProps) {
 
-			if (requestProps instanceof OrderedMap) {
-				requestProps = {
-					data: requestProps.get('data'),
-					method: Share.internal2js(requestProps.get('method')),
-					headers: Share.internal2js(requestProps.get('headers'))
-				};
-			} else if (!Utils.isMap(requestProps)) {
-				requestProps = {};
-			}
+		if (requestProps instanceof OrderedMap) {
+			requestProps = {
+				data: requestProps.get('data'),
+				method: Share.internal2js(requestProps.get('method')),
+				headers: Share.internal2js(requestProps.get('headers'))
+			};
+		}
 
-			var requestMethod = requestProps.method = (
-				requestProps.hasOwnProperty('method') &&
-				Utils.isString(requestProps.method) &&
-				requestProps.method.toUpperCase() || 'GET'
-			);
+		else if (!Utils.isMap(requestProps))
+			requestProps = {};
 
-			if (requestMethod !== 'GET' &&
-				requestMethod !== 'POST') {
-				return ret(undefined, resourceURI);
-			}
+		var requestMethod = requestProps.method = (
+			requestProps.hasOwnProperty('method') &&
+			Utils.isString(requestProps.method) &&
+			requestProps.method.toUpperCase() || 'GET'
+		);
 
-			requestProps.headers = (
-				requestProps.hasOwnProperty('headers') &&
-				Utils.isMap(requestProps.headers) &&
-				filterRequestHeaders(requestProps.headers) || {}
-			);
+		if (requestMethod !== 'GET' && requestMethod !== 'POST')
+			requestMethod = requestProps.method = 'GET';
 
-			if (requestMethod === 'POST' &&
-				requestProps.hasOwnProperty('data') &&
-				!Utils.isUndefined(requestProps.data)) {
-				var requestData = requestProps.data;
-				if (Utils.isObject(requestData)) {
-					if (requestData instanceof OrderedMap) {
-						requestProps.data = requestData.toQueryString(
-							null, null, Share.nodeToString
-						);
-					} else if (Utils.isArray(requestData)) {
-						var resultArr, key, value;
-						var length = requestData.length;
-						for (key = 0; key < length; key++) {
-							value = Share.nodeToString(requestData[key]);
-							value = encodeURIComponent(value);
-							resultArr.push(key + '=' + value);
-						}
-						requestProps.data = resultArr.join('&');
-					} else {
-						var resultArr, key, value;
-						for (key in requestData) {
-							value = Share.nodeToString(requestData[key]);
-							value = encodeURIComponent(value);
-							resultArr.push(key + '=' + value);
-						}
-						requestProps.data = resultArr.join('&');
-					}
-					requestProps.headers['Content-type'] = (
-						'application/x-www-form-urlencoded'
+		requestProps.headers = (
+			requestProps.hasOwnProperty('headers') &&
+			Utils.isMap(requestProps.headers) &&
+			filterRequestHeaders(requestProps.headers) || {}
+		);
+
+		if (requestMethod === 'POST' &&
+			requestProps.hasOwnProperty('data') &&
+			!Utils.isUndefined(requestProps.data)) {
+			var requestData = requestProps.data;
+			if (Utils.isObject(requestData)) {
+				if (requestData instanceof OrderedMap) {
+					requestProps.data = requestData.toQueryString(
+						null, null, Share.nodeToString
 					);
-				} else requestProps.data = Share.nodeToString(requestData);
-			} else requestProps.data = '';
-
-			NetworkDriver(resourceURI, function(resourceData) {
-				resourceData = ret(resourceData, resourceURI);
-				if (!Utils.isUndefined(resourceData)) {
-					resourceCache[resourceURI] = resourceData;
+				} else if (Utils.isArray(requestData)) {
+					var resultArr, key, value;
+					var length = requestData.length;
+					for (key = 0; key < length; key++) {
+						value = Share.nodeToString(requestData[key]);
+						value = encodeURIComponent(value);
+						resultArr.push(key + '=' + value);
+					}
+					requestProps.data = resultArr.join('&');
+				} else {
+					var resultArr, key, value;
+					for (key in requestData) {
+						value = Share.nodeToString(requestData[key]);
+						value = encodeURIComponent(value);
+						resultArr.push(key + '=' + value);
+					}
+					requestProps.data = resultArr.join('&');
 				}
-			}, function() {
-				ret(undefined, resourceURI);
-			}, requestProps, isJSONP);
+				requestProps.headers['Content-type'] = (
+					'application/x-www-form-urlencoded'
+				);
+			} else requestProps.data = Share.nodeToString(requestData);
+		} else requestProps.data = '';
 
-		} else ret(resourceCache[resourceURI], resourceURI);
+		return requestProps;
+	}
+
+	function loadResource(requestURI, baseURI, ret, requestProps, isJSONP) {
+		var requestURI = Utils.uri.resolve(requestURI, baseURI);
+		requestURI = Utils.string.trimLeft(requestURI);
+		if (Utils.string.startsWith(requestURI, 'data:', true))
+			return ret(decodeDataURI(requestURI));
+		var requestProps = filterRequestProps(requestProps);
+		var requestHash = [requestURI, requestProps];
+		requestHash = JSON.stringify(requestHash);
+		if (!requestProps.hasOwnProperty('async'))
+			requestProps.async = true;
+		if (!requestProps.hasOwnProperty('cache'))
+			requestProps.cache = true;
+		if (!requestProps.cache) {
+			requestURI = Utils.uri.parse(requestURI);
+			var query = Utils.uri.parseQuery(requestURI.query);
+			query['histone.nocache'] = new Date().getTime();
+			requestURI.query = Utils.uri.formatQuery(query);
+			requestURI = Utils.uri.format(requestURI);
+		}
+		ResourceLoader(requestHash, function(resourceData) {
+			ret(resourceData, requestURI, requestHash);
+		}, function(ret) {
+			switch (envType) {
+				case 'nodejs': return NodeDriver(requestURI, ret, requestProps, isJSONP);
+				case 'browser': return AJAXDriver(requestURI, ret, requestProps, isJSONP);
+				default: ret();
+			}
+		});
 	}
 
 	return loadResource;
