@@ -538,7 +538,15 @@
 	<example name="global.require() nested templates"><![CDATA[
 		{{* require template from examples/library.tpl file *}}
 		{{var myLibrary = require('examples/library.tpl')}}
-		<div>myLibrary.widget("HELLO", "WORLD") = {{myLibrary.widget("HELLO", "WORLD")}}</div>
+		<div style="border: 1px solid red;">
+			<div>{{myLibrary.inputText('Hello world')}}</div>
+			<div>{{myLibrary.textArea('Hello world')}}</div>
+			<div>
+				{{myLibrary.button('Ok')}}
+				{{myLibrary.button('Apply')}}
+				{{myLibrary.button('Cancel')}}
+			</div>
+		</div>
 	]]></example>
 
 	<example name="global.require() + AST"><![CDATA[
