@@ -66,9 +66,7 @@ define([
 			case Utils.T_OBJECT:
 				if (value === Histone.Global) { vChain = [Histone.Global, Histone.Type]; break; }
 				if (value instanceof OrderedMap) { vChain = [Histone.Map, Histone.Type]; break; }
-
-			default: throw 'DUNNO THIS SHIT';
-
+			default: throw 'INTERNAL ERROR';
 		}
 
 		for (var c = 0; c < vChain.length; c++) {
@@ -500,7 +498,7 @@ define([
 	Histone.Global = {
 
 		clientType: clientType,
-		clientInfo: ClientInfo,
+		clientInfo: Share.js2internal(ClientInfo),
 		userAgent: userAgent,
 
 		'.baseURI': function(value, args, ret) {
