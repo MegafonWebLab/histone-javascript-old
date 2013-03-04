@@ -1,0 +1,1 @@
+{{var widget = require("require.tpl").myMacro}}

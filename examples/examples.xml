@@ -41,14 +41,36 @@
 		</div>
 	]]></example>
 
-	<example name="{{var}} extended form definition"><![CDATA[
+	<example name="{{for}} else statement usage"><![CDATA[
+		{{* using else statement inside the for loop *}}
+		<div style="border: 1px solid red;">
+			{{for item in []}}
+				this won't be rendered because collection is empty
+			{{else}}
+				nothing to iterate!
+			{{/for}}
+		</div>
+	]]></example>
+
+	<example name="{{var}} statement usage"><![CDATA[
+		{{* variable definition (simple form) *}}
+		{{var myHTML = '<span style="border: 1px solid red;"><strong><i>Hello world!</i></strong></span>'}}
+		<div>myHTML = {{myHTML}}</div>
+
 		{{* variable definition (extended form) *}}
 		{{var myHTML}}
 			<span style="border: 1px solid red;">
 				<strong><i>Hello world!</i></strong>
 			</span>
 		{{/var}}
+		<div>myHTML = {{myHTML}}</div>
 
+		{{* variable definition (nested tags) *}}
+		{{var myHTML = {{
+			<span style="border: 1px solid red;">
+				<strong><i>Hello world!</i></strong>
+			</span>
+		}}}}
 		<div>myHTML = {{myHTML}}</div>
 	]]></example>
 
@@ -170,6 +192,39 @@
 		<div>{{myString}} * 100 = {{myString.toNumber() * 100}}</div>
 	]]></example>
 
+	<example name="map definition"><![CDATA[
+		{{* define simple map *}}
+		{{var myMap = [
+			color: 'blue',
+			padding: '8px',
+			fontWeight: 'bold',
+			borderRadius: '8px',
+			border: '1px solid red'
+		]}}
+		<div>{{myMap.toJSON()}}</div>
+
+		{{* define map using nested tags *}}
+		{{var myMap = [
+			title: {{
+				This is a title
+			}},
+			description: {{
+				This is
+				a description
+			}},
+			legend: {{
+				<strong style="border: 1px solid red;">
+					2 * 2 = {{2 * 2}}
+				</strong>
+			}}
+		]}}
+		<div>
+			{{for key:value in myMap}}
+				<div>{{key}} = {{value}}</div>
+			{{/for}}
+		</div>
+	]]></example>
+
 	<example name="map.join()"><![CDATA[
 		{{* using map.join to turn map into a string *}}
 		{{var style = [
@@ -207,6 +262,32 @@
 		])}}
 	]]></example>
 
+	<example name="map.toQueryString()"><![CDATA[
+		{{* generate a URL-encoded query string from the map *}}
+		<div>{{[
+			'foo': 'bar',
+			'baz': 'boom',
+			'cow': 'milk',
+			'histone': 'template engine'
+		].toQueryString()}}</div>
+
+		{{* generate a URL-encoded query string from the map + numeric prefix *}}
+		<div>{{[
+			'bar',
+			'boom',
+			'milk',
+			'template engine'
+		].toQueryString('prefix_')}}</div>
+
+		{{* generate a URL-encoded query string from the map + separator *}}
+		<div>{{[
+			'foo': 'bar',
+			'baz': 'boom',
+			'cow': 'milk',
+			'histone': 'template engine'
+		].toQueryString(null, '@')}}</div>
+	]]></example>
+
 	<example name="global.dayOfWeek()"><![CDATA[
 		{{* define week day names *}}
 		{{var days = [
@@ -227,6 +308,16 @@
 
 		{{* 25 July 1985: Thursday *}}
 		<div>25.07.1985 is {{days[dayOfWeek(1985, 7, 25) - 1]}}</div>
+	]]></example>
+
+	<example name="global.max()"><![CDATA[
+		{{* returns the largest of zero or more numbers *}}
+		{{max(1, 10, 30, -100)}}
+	]]></example>
+
+	<example name="global.min()"><![CDATA[
+		{{* returns the smallest of zero or more numbers *}}
+		{{min(1, 10, 30, -100)}}
 	]]></example>
 
 	<example name="global.daysInMonth()"><![CDATA[
@@ -298,7 +389,9 @@
 
 	<example name="global.loadText() + data URI"><![CDATA[
 		{{* load text file embedded into data URI *}}
-		{{loadText("data:;base64,SEVMTE8gV09STEQh")}}
+		<div>{{loadText("data:,HELLO WORLD")}}</div>
+		{{* load text file embedded into data URI (base64) *}}
+		<div>{{loadText("data:;base64,SEVMTE8gV09STEQh")}}</div>
 	]]></example>
 
 	<example name="global.loadJSON()"><![CDATA[
@@ -331,7 +424,9 @@
 
 	<example name="global.loadJSON() + data URI"><![CDATA[
 		{{* load JSON object embedded into data URI *}}
-		{{loadJSON("data:;base64,eyJIRUxMTyI6ICJXT1JMRCEifQ==").toJSON()}}
+		<div>{{loadJSON('data:,{"foo":"bar"}').toJSON()}}</div>
+		{{* load JSON object embedded into data URI (base64) *}}
+		<div>{{loadJSON("data:;base64,eyJIRUxMTyI6ICJXT1JMRCEifQ==").toJSON()}}</div>
 	]]></example>
 
 	<example name="global.loadJSON() for Twitter API"><![CDATA[
@@ -427,10 +522,46 @@
 
 	<example name="global.include() + data URI"><![CDATA[
 		{{* process template that is embedded into data URI *}}
-		{{include("data:;base64,SGVsbG8ge3t0aGlzfX0h", "WORLD")}}
+		<div>{{include("data:,Hello {{this}}, and everybody else!", "WORLD")}}</div>
+		{{* process template that is embedded into data URI (base64) *}}
+		<div>{{include("data:;base64,SGVsbG8ge3t0aGlzfX0h", "WORLD")}}</div>
 	]]></example>
 
-	<example name="built-in properties"><![CDATA[
+	<example name="global.require()"><![CDATA[
+		{{* require template from examples/require.tpl file *}}
+		{{var myModule = require('examples/require.tpl')}}
+		<div>myModule.myVar = {{myModule.myVar}}</div>
+		<div>myModule.myMacro("HELLO", "WORLD") = {{myModule.myMacro("HELLO", "WORLD")}}</div>
+		<div>myModule.toJSON() = {{myModule.toJSON()}}</div>
+	]]></example>
+
+	<example name="global.require() nested templates"><![CDATA[
+		{{* require template from examples/library.tpl file *}}
+		{{var myLibrary = require('examples/library.tpl')}}
+		<div>myLibrary.widget("HELLO", "WORLD") = {{myLibrary.widget("HELLO", "WORLD")}}</div>
+	]]></example>
+
+	<example name="global.require() + AST"><![CDATA[
+		{{* require template from examples/require_ast.tpl file *}}
+		{{var myModule = require('examples/require_ast.tpl')}}
+		<div>myModule.myVar = {{myModule.myVar}}</div>
+		<div>myModule.myMacro("HELLO", "WORLD") = {{myModule.myMacro("HELLO", "WORLD")}}</div>
+		<div>myModule.toJSON() = {{myModule.toJSON()}}</div>
+	]]></example>
+
+	<example name="global.require() + data URI"><![CDATA[
+		{{* require template that is embedded into data URI *}}
+		{{var myModule = require('data:,{{var PI = 3.14}}')}}
+		<div>myModule.PI = {{myModule.PI}}</div>
+		<div>myModule.toJSON() = {{myModule.toJSON()}}</div>
+
+		{{* require template that is embedded into data URI (base64) *}}
+		{{var myModule = require('data:;base64,e3t2YXIgUEkgPSAzLjE0fX0=')}}
+		<div>myModule.PI = {{myModule.PI}}</div>
+		<div>myModule.toJSON() = {{myModule.toJSON()}}</div>
+	]]></example>
+
+	<example name="global built-in properties"><![CDATA[
 		{{* accessing built-in properties *}}
 		<div>baseURI = "{{baseURI}}"</div>
 		<div>clientType = "{{clientType}}"</div>
