@@ -91,47 +91,6 @@
 		{{myMacro('Hello world!')}}
 	]]></example>
 
-	<example name="{{call}} for calling macros"><![CDATA[
-		{{* macro with variable arguments list *}}
-		{{macro makeBorderAround(html)}}
-			<div style="border: 4px solid gray;">
-				{{html}}
-			</div>
-		{{/macro}}
-
-		{{* call our macro*}}
-		{{makeBorderAround('<ul><li>this</li><li>is not</li><li>very convenient</li>')}}
-
-		<br />
-
-		{{* call our macro using {{call}} statement *}}
-		{{call makeBorderAround}}
-			<ul>
-				<li>this</li>
-				<li>is way</li>
-				<li>better</li>
-			</ul>
-		{{/call}}
-	]]></example>
-
-	<example name="{{import}} for importing macros"><![CDATA[
-		{{* import macro "hello" from external template *}}
-		{{import 'examples/include.tpl'}}
-		{{hello('Histone')}}
-	]]></example>
-
-	<example name="{{import}} + AST"><![CDATA[
-		{{* import macro "hello" from external template, stored as AST *}}
-		{{import 'examples/include_ast.tpl'}}
-		{{hello('Histone')}}
-	]]></example>
-
-	<example name="{{import}} + data URI"><![CDATA[
-		{{* import macro "hello" from the template that is embedded into data URI *}}
-		{{import 'data:;base64,e3ttYWNybyBoZWxsbyhuYW1lKX19DQoJSGVsbG8ge3tuYW1lfX0hDQp7ey9tYWNyb319'}}
-		{{hello('Histone')}}
-	]]></example>
-
 	<example name="number.log()"><![CDATA[
 		{{* using log, floor, pow and toFixed functions *}}
 		{{macro byteFormat(bytes)}}

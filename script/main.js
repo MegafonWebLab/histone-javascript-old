@@ -219,9 +219,11 @@ $(document).ready(function() {
 		templateEditor.focus();
 	}
 
-	require.config({
-		baseUrl: 'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/'
-	})(['Histone', 'Histone!templates/treeView.tpl'], function(HistoneRef, treeViewTpl) {
+	krang({
+		packages: {
+			Histone: 'https://raw.github.com/MegafonWebLab/histone-javascript/master/src/Histone'
+		}
+	}).require(['@Histone', '@Histone!templates/treeView.tpl'], function(HistoneRef, treeViewTpl) {
 		Histone = HistoneRef;
 		showPreloader('loading examples');
 		$.get('examples/examples.xml?' + Math.random(), function(result) {
