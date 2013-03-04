@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-define(function() {
+define(['Utils', 'OrderedMap'], function(Utils, OrderedMap) {
 
-	function CallStack(context) {
-		this.baseURI = '';
+	function CallStack(global, context, getProp) {
 		this.variables = [{}];
-		this.macros = [{}];
 		this.stackPointer = 0;
+		this.global = global;
 		this.context = context;
+		this.getProp = getProp;
+		this.baseURI = '';
 	}
 
 	CallStack.prototype.setBaseURI = function(baseURI) {
@@ -38,63 +39,55 @@ define(function() {
 	};
 
 	CallStack.prototype.get = function(name, ret) {
+
+		if (name === 'global') return ret(this.global);
+		if (name === 'this') return ret(this.context);
+
 		var stacks = this.variables;
-		var stack, index = this.stackPointer;
+		var stack, context, index = this.stackPointer;
+
 		do {
 			stack = stacks[index];
 			if (stack.hasOwnProperty(name)) {
-				return ret(stack[name], true);
+				return ret(stack[name]);
 			}
 		} while (index--);
-		ret();
-	};
 
-	CallStack.prototype.putMacro = function(name, args, body, baseURI) {
-		this.macros[this.stackPointer][name] = [args, body, baseURI];
-	};
+		if (Utils.isObject(context = this.context) &&
+			context instanceof OrderedMap &&
+			context.hasKey(name)) {
+			return ret(context.get(name));
+		}
 
-	CallStack.prototype.getMacro = function(name) {
-		var stacks = this.macros;
-		var stack, index = this.stackPointer;
-		do {
-			stack = stacks[index];
-			if (stack.hasOwnProperty(name)) {
-				return stack[name];
-			}
-		} while (index--);
+		this.getProp(this.global, name, this, ret);
 	};
 
 	CallStack.prototype.save = function() {
 		this.variables.push({});
-		this.macros.push({});
 		this.stackPointer++;
 	};
 
 	CallStack.prototype.restore = function() {
 		this.variables.pop();
-		this.macros.pop();
 		this.stackPointer--;
 	};
 
 	CallStack.prototype.clone = function() {
-		var callStack = new CallStack(this.context);
+		var callStack = new CallStack(
+			this.global,
+			this.context,
+			this.getProp
+		);
 		var key, iterator = (this.stackPointer + 1);
 		var tVars = this.variables;
-		var tMacros = this.macros;
 		var cVars = new Array(iterator);
-		var cMacros = new Array(iterator);
 		while (iterator--) {
 			cVars[iterator] = {};
-			cMacros[iterator] = {};
 			for (key in tVars[iterator]) {
 				cVars[iterator][key] = tVars[iterator][key];
 			}
-			for (key in tMacros[iterator]) {
-				cMacros[iterator][key] = tMacros[iterator][key];
-			}
 		}
 		callStack.variables = cVars;
-		callStack.macros = cMacros;
 		return callStack;
 	};
 
