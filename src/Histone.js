@@ -17,12 +17,12 @@
 
 define([
 	'module', 'ClientInfo', 'Utils',
-	'CallStack', 'OrderedMap', 'Share',
+	'CallStack', 'OrderedMap', 'Share', 'Processor',
 	'parser/Parser', 'parser/Constants',
 	'network/Network'
 ], function(
 	Module, ClientInfo, Utils,
-	CallStack, OrderedMap, Share,
+	CallStack, OrderedMap, Share, Processor,
 	Parser, AST, Network
 ) {
 
@@ -53,419 +53,54 @@ define([
 		return resourceData;
 	}
 
-	function getHandlerFor(value, name, isProp) {
-		var handler = value;
+	function getProperty(value, name, stack, ret) {
+		var vChain = [], vClass, getter;
+
 		switch (Utils.getBaseType(value)) {
-			case Utils.T_NULL: handler = Histone.Type; break;
-			case Utils.T_BOOLEAN: handler = Histone.Type; break;
-			case Utils.T_UNDEFINED: handler = Histone.Type; break;
-			case Utils.T_NUMBER: handler = Histone.Number; break;
-			case Utils.T_STRING: handler = Histone.String; break;
+			case Utils.T_UNDEFINED: vChain = [Histone.Type]; break;
+			case Utils.T_NULL: vChain = [Histone.Type]; break;
+			case Utils.T_BOOLEAN: vChain = [Histone.Type]; break;
+			case Utils.T_NUMBER: vChain = [Histone.Number, Histone.Type]; break;
+			case Utils.T_STRING: vChain = [Histone.String, Histone.Type]; break;
+			case Utils.T_FUNCTION: vChain = [Histone.Type]; break;
+			case Utils.T_OBJECT:
+				if (value === Histone.Global) { vChain = [Histone.Global, Histone.Type]; break; }
+				if (value instanceof OrderedMap) { vChain = [Histone.Map, Histone.Type]; break; }
+
+			default: throw 'DUNNO THIS SHIT';
+
 		}
-		if (Utils.isObject(value) && value instanceof OrderedMap) {
-			handler = Histone.Map;
-		}
-		if (Object.prototype.hasOwnProperty.call(handler, name)) {
-			return handler[name];
-		}
-		if (Histone.Type.hasOwnProperty(name)) return Histone.Type[name];
-		if (isProp && handler.hasOwnProperty('')) return handler[''];
-	}
 
-	function processMap(items, stack, ret) {
-		var result = new OrderedMap();
-		Utils.forEachAsync(items, function(item, ret) {
-			processNode(item[1], stack, function(value) {
-				result.set(item[0], value);
-				ret();
-			});
-		}, function() { ret(result); });
-	}
+		for (var c = 0; c < vChain.length; c++) {
+			vClass = vChain[c];
 
-	function processNot(value, stack, ret) {
-		processNode(value, stack, function(value) {
-			ret(!Share.nodeToBoolean(value));
-		});
-	}
-
-	function processOr(left, right, stack, ret) {
-		processNode(left, stack, function(left) {
-			if (Share.nodeToBoolean(left)) ret(left);
-			else processNode(right, stack, ret);
-		});
-	}
-
-	function processAnd(left, right, stack, ret) {
-		processNode(left, stack, function(left) {
-			if (!Share.nodeToBoolean(left)) ret(left);
-			else processNode(right, stack, ret);
-		});
-	}
-
-	function processTernary(condition, left, right, stack, ret) {
-		processNode(condition, stack, function(condition) {
-			if (Share.nodeToBoolean(condition)) {
-				processNode(left, stack, ret);
-			} else if (right) {
-				processNode(right, stack, ret);
-			} else ret();
-		});
-	}
-
-	function processEquality(left, right, stack, ret) {
-		processNode(left, stack, function(left) {
-			processNode(right, stack, function(right) {
-				if (Utils.isString(left) && Utils.isNumber(right)) {
-					if (!Utils.isNumeric(left)) left = parseFloat(left, 10);
-					else right = Share.nodeToString(right);
-				} else if (Utils.isNumber(left) && Utils.isString(right)) {
-					if (!Utils.isNumeric(right)) right = parseFloat(right, 10);
-					else left = Share.nodeToString(left);
-				}
-				if (!(Utils.isString(left) && Utils.isString(right))) {
-					if (Utils.isNumber(left) && Utils.isNumber(right)) {
-						left = parseFloat(left);
-						right = parseFloat(right);
-					} else {
-						left = Share.nodeToBoolean(left);
-						right = Share.nodeToBoolean(right);
-					}
-				}
-				ret(left === right);
-			});
-		});
-	}
-
-	function processRelational(nodeType, left, right, stack, ret) {
-		processNode(left, stack, function(left) {
-			processNode(right, stack, function(right) {
-				if (Utils.isString(left) && Utils.isNumber(right)) {
-					if (Utils.isNumeric(left)) left = parseFloat(left, 10);
-					else right = Share.nodeToString(right);
-				} else if (Utils.isNumber(left) && Utils.isString(right)) {
-					if (Utils.isNumeric(right)) right = parseFloat(right, 10);
-					else left = Share.nodeToString(left);
-				}
-				if (!(Utils.isNumber(left) && Utils.isNumber(right))) {
-					if (Utils.isString(left) && Utils.isString(right)) {
-						left = left.length;
-						right = right.length;
-					} else {
-						left = Share.nodeToBoolean(left);
-						right = Share.nodeToBoolean(right);
-					}
-				}
-				switch (nodeType) {
-					case AST.LESS_THAN: ret(left < right); break;
-					case AST.GREATER_THAN: ret(left > right); break;
-					case AST.LESS_OR_EQUAL: ret(left <= right); break;
-					case AST.GREATER_OR_EQUAL: ret(left >= right); break;
-				}
-			});
-		});
-	}
-
-	function processAddition(left, right, stack, ret) {
-		processNode(left, stack, function(left) {
-			processNode(right, stack, function(right) {
-				if (!(Utils.isString(left) || Utils.isString(right))) {
-					if (Utils.isNumber(left) || Utils.isNumber(right)) {
-						if (Utils.isNumeric(left)) left = parseFloat(left, 10);
-						if (!Utils.isNumber(left)) return ret();
-						if (Utils.isNumeric(right)) right = parseFloat(right, 10);
-						if (!Utils.isNumber(right)) return ret();
-						return ret(left + right);
-					}
-					else if (left instanceof OrderedMap &&
-						right instanceof OrderedMap) {
-						var result = left.clone();
-						result = result.concat(right);
-						return ret(result);
-					}
-				}
-				left = Share.nodeToString(left);
-				right = Share.nodeToString(right);
-				ret(left + right);
-			});
-		});
-	}
-
-	function processArithmetical(nodeType, left, right, stack, ret) {
-		processNode(left, stack, function(left) {
-			if (Utils.isNumeric(left)) left = parseFloat(left, 10);
-			if (!Utils.isNumber(left)) return ret();
-			if (nodeType === AST.NEGATE) return ret(-left);
-			processNode(right, stack, function(right) {
-				if (Utils.isNumeric(right)) right = parseFloat(right, 10);
-				if (!Utils.isNumber(right)) return ret();
-				switch (nodeType) {
-					case AST.SUB: ret(left - right); break;
-					case AST.MUL: ret(left * right); break;
-					case AST.DIV: ret(left / right); break;
-					case AST.MOD: ret(left % right); break;
-				}
-			});
-		});
-	}
-
-	function processVar(name, value, stack, ret) {
-		stack.save();
-		processNode(value, stack, function(value) {
-			stack.restore();
-			stack.put(name, value);
-			ret('');
-		});
-	}
-
-	function processMacro(name, args, statements, stack, ret) {
-		stack.putMacro(name, args, statements, stack.getBaseURI());
-		ret('');
-	}
-
-	function processIf(conditions, stack, ret) {
-		var result = '';
-		Utils.forEachAsync(conditions, function(condition, ret) {
-			processNode(condition[0], stack, function(condResult) {
-				if (!Share.nodeToBoolean(condResult)) return ret();
-				stack.save();
-				processNodes(condition[1], stack, function(value) {
-					result = value;
-					stack.restore();
-					ret(true);
-				});
-			});
-		}, function() { ret(result); });
-	}
-
-	function processFor(iterator, collection, statements, stack, ret) {
-		processNode(collection, stack, function(collection) {
-			if (collection instanceof OrderedMap && collection.length()) {
-				var result = '', self;
-				var keys = collection.keys();
-				var values = collection.values();
-				Utils.forEachAsync(values, function(
-					value, ret, key, index, last) {
-					stack.save();
-					stack.put(iterator[0], value);
-					if (iterator[1]) stack.put(iterator[1], keys[index]);
-					self = {last: last, index: index};
-					stack.put('self', Share.js2internal(self));
-					processNodes(statements[0], stack, function(value) {
-						result += value;
-						stack.restore();
-						ret();
-					});
-				}, function() { ret(result); });
-			} else if (statements[1]) {
-				stack.save();
-				processNodes(statements[1], stack, function(result) {
-					stack.restore();
-					ret(result);
-				});
-			} else ret('');
-		});
-	}
-
-	function evalSelector(subject, selector, stack, ret) {
-		var prevSubj, handler;
-		Utils.forEachAsync(selector, function(fragment, ret) {
-			processNode(fragment, stack, function(fragment) {
-				prevSubj = subject;
-				if (handler = getHandlerFor(subject, fragment, true)) {
-
-					if (Utils.isFunction(handler)) try {
-						handler.call(stack, prevSubj,
-							[fragment], function(value) {
-							// convert call result
-							// to it's internal form
-							subject = Share.js2internal(value);
-							ret();
-						});
-					} catch (e) {
-						subject = undefined;
-						ret();
-					} else {
-						// convert property value
-						// to it's internal form
-						subject = Share.js2internal(handler);
-						ret();
-					}
-
-				} else {
-					subject = undefined;
-					return ret(true);
-				}
-			});
-		}, function() { ret(subject); });
-	}
-
-	function processSelector(path, stack, ret) {
-		var context;
-		var selector = path.slice(1);
-		var fragment = path[0];
-		if (!Utils.isString(fragment)) {
-			return processNode(fragment, stack, function(subject) {
-				evalSelector(subject, selector, stack, ret);
-			});
-		}
-		if (fragment === 'global') {
-			return evalSelector(
-				Histone.Global,
-				selector,
-				stack,
-				ret
-			);
-		}
-		if (fragment === 'this') {
-			return evalSelector(
-				stack.context,
-				selector,
-				stack,
-				ret
-			);
-		}
-		stack.get(fragment, function(value, found) {
-			if (found) return evalSelector(value, selector, stack, ret);
-			if (Histone.Global.hasOwnProperty(fragment)) return evalSelector(
-				Histone.Global, [fragment].concat(selector), stack, ret);
-			context = stack.context;
-			if (Utils.isObject(context) &&
-				context instanceof OrderedMap &&
-				context.hasKey(fragment)) return evalSelector(
-				context, [fragment].concat(selector), stack, ret);
-			evalSelector(undefined, selector, stack, ret);
-		});
-	}
-
-	function callMacro(handler, args, stack, ret) {
-		var macroArgs = handler[0];
-		var macroBody = handler[1];
-		var newBaseURI = handler[2];
-		var oldBaseURI = stack.getBaseURI();
-		stack.save();
-		stack.setBaseURI(newBaseURI);
-		stack.put('self', Share.js2internal({arguments: args}));
-		for (var c = 0, arity = macroArgs.length; c < arity; c++) {
-			if (c >= args.length) stack.put(macroArgs[c], undefined);
-			else stack.put(macroArgs[c], args[c]);
-		}
-		return processNodes(macroBody, stack, function(result) {
-			stack.setBaseURI(oldBaseURI);
-			stack.restore();
-			ret(result);
-		});
-	}
-
-	function processCall(target, name, args, stack, ret) {
-		processNode(name, stack, function(name) {
-			var callArgs = [];
-			if (!Utils.isArray(args)) args = [];
-			Utils.forEachAsync(args, function(arg, ret) {
-				processNode(arg, stack, function(arg) {
-					callArgs.push(arg);
-					ret();
-				});
-			}, function() {
-				var handler = null;
-				if (Utils.isNull(target)) {
-					if (handler = stack.getMacro(name))
-						return callMacro(handler, callArgs, stack, ret);
-						target = Histone.Global;
-				}
-				processNode(target, stack, function(target) {
-					if (handler = getHandlerFor(target, name)) {
-						if (Utils.isFunction(handler)) {
-							try {
-								handler.call(stack, target,
-									callArgs, function(value) {
-									// convert call result to
-									// it's internal form
-									ret(Share.js2internal(value));
-								});
-							} catch (e) { ret(); }
-						} else {
-							// convert property value
-							// to it's internal form
-							ret(Share.js2internal(handler));
-						}
-					} else return ret();
-				});
-			});
-		});
-	}
-
-	function processNode(node, stack, ret) {
-		if (!Utils.isArray(node)) return ret(node);
-		var nodeType = node[0];
-		switch (nodeType) {
-
-			case AST.INT:
-			case AST.STRING:
-			case AST.DOUBLE: ret(node[1]); break;
-
-			case AST.SELECTOR: processSelector(node[1], stack, ret); break;
-			case AST.VAR: processVar(node[1], node[2], stack, ret); break;
-			case AST.IF: processIf(node[1], stack, ret); break;
-			case AST.CALL: processCall(node[1], node[2], node[3], stack, ret); break;
-			case AST.TERNARY: processTernary(node[1], node[2], node[3], stack, ret); break;
-
-			case AST.EQUAL:
-			case AST.NOT_EQUAL:
-				processEquality(node[1], node[2], stack, function(equals) {
-					ret(nodeType === AST.EQUAL ? equals : !equals);
-				});
-				break;
-
-			case AST.STATEMENTS: processNodes(node[1], stack, ret); break;
-			case AST.MACRO: processMacro(node[1], node[2], node[3], stack, ret); break;
-			case AST.MAP: processMap(node[1], stack, ret); break;
-			case AST.ADD: processAddition(node[1], node[2], stack, ret); break;
-			case AST.FOR: processFor(node[1], node[2], node[3], stack, ret); break;
-			case AST.TRUE: ret(true); break;
-			case AST.FALSE: ret(false); break;
-			case AST.OR: processOr(node[1], node[2], stack, ret); break;
-			case AST.AND: processAnd(node[1], node[2], stack, ret); break;
-			case AST.NULL: ret(null); break;
-			case AST.NOT: processNot(node[1], stack, ret); break;
-			case AST.SUB:
-			case AST.MUL:
-			case AST.DIV:
-			case AST.MOD:
-			case AST.NEGATE:
-				processArithmetical(nodeType, node[1], node[2], stack, ret);
-				break;
-			case AST.LESS_THAN:
-			case AST.GREATER_THAN:
-			case AST.LESS_OR_EQUAL:
-			case AST.GREATER_OR_EQUAL:
-				processRelational(nodeType, node[1], node[2], stack, ret);
-				break;
-			default:
-				ret();
-				throw(
-					'unsupported template instruction "' + JSON.stringify(node) + '"'
-				);
-		}
-	}
-
-	function processNodes(nodes, stack, ret) {
-		var result = '';
-		Utils.forEachAsync(nodes, function(node, ret) {
-			if (Utils.isArray(node)) {
-				processNode(node, stack, function(node) {
-					result += Share.nodeToString(node);
-					ret();
-				});
-			} else {
-				result += node;
-				ret();
+			if (vClass.hasOwnProperty('.' + name)) {
+				getter = vClass['.' + name];
+				if (Utils.isFunction(getter))
+					return getter.call(stack, value, [], ret);
+				else return ret(getter);
 			}
-		}, function() { ret(result); });
-	}
 
-	function processAST(nodes, stack, ret) {
-		var signature = nodes[0];
-		processNodes(nodes[1], stack, ret);
+			else if (name && vClass.hasOwnProperty(name)) {
+				return ret(vClass[name]);
+			}
+
+
+
+
+		}
+
+		vClass = vChain[0];
+
+		if (vClass.hasOwnProperty('')) {
+			getter = vClass[''];
+			if (Utils.isFunction(getter))
+				return getter.call(stack, value, [name], ret);
+			else return ret(getter);
+		}
+
+		else ret();
+
 	}
 
 	function Template(templateAST, baseURI) {
@@ -504,19 +139,22 @@ define([
 			if (args[0] instanceof CallStack) {
 				stack = args.shift();
 			} else {
+
 				// convert context to it's internal form
 				context = Share.js2internal(args[0]);
-				stack = new CallStack(context);
+				stack = new CallStack(Histone.Global, context, getProperty);
+				stack.setBaseURI(baseURI);
 			}
-			stack.setBaseURI(baseURI);
-			processAST(templateAST, stack, function(result) {
-				if (callName !== null) {
-					var callHandler = stack.getMacro(callName);
-					if (!callHandler) return ret(undefined, stack);
-					callMacro(callHandler, callArgs, stack, function(value) {
-						ret(value, stack);
-					});
-				} else ret(result, stack);
+
+
+			Processor(templateAST, stack, getProperty, function(result) {
+				if (callName !== null) stack.get(callName, function(value) {
+					if (!Utils.isFunction(value)) return ret(undefined, stack);
+					console.error(value);
+					// callMacro(callHandler, callArgs, stack, function(value) {
+					// 	ret(value, stack);
+					// });
+				}); else ret(result, stack);
 			});
 
 		};
@@ -555,6 +193,10 @@ define([
 
 		isBoolean: function(value, args, ret) {
 			ret(Utils.isBoolean(value));
+		},
+
+		isCallable: function(value, args, ret) {
+			ret(Utils.isFunction(value));
 		},
 
 		isNumber: function(value, args, ret) {
@@ -861,7 +503,7 @@ define([
 		clientInfo: ClientInfo,
 		userAgent: userAgent,
 
-		baseURI: function(value, args, ret) {
+		'.baseURI': function(value, args, ret) {
 			ret(this.getBaseURI());
 		},
 
@@ -921,6 +563,23 @@ define([
 					resourceData.render(ret, Share.js2internal(context));
 				} catch (e) { ret(); }
 			}, requestProps);
+		},
+
+		require: function(value, args, ret) {
+			var requestURI = args[0];
+			if (!Utils.isString(requestURI)) return ret();
+			getResource(requestURI, this.getBaseURI(), function(resourceData, resourceURI) {
+				if (Utils.isUndefined(resourceData)) return ret();
+				resourceData = resourceToTpl(resourceData);
+				resourceData = Histone(resourceData, resourceURI);
+				resourceData.render(function(result, stack) {
+					var exports = new OrderedMap();
+					var exportVars = stack.variables[0];
+					for (var exportName in exportVars)
+						exports.set(exportName, exportVars[exportName]);
+					ret(exports);
+				});
+			});
 		},
 
 		rand: function(value, args, ret) {
