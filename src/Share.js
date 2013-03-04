@@ -19,6 +19,50 @@ define([
 	'Utils', 'OrderedMap'
 ], function(Utils, OrderedMap) {
 
+	function numberToString(value) {
+		var value = String(value).toLowerCase();
+		if (value.indexOf('e') === -1) return value;
+		value = value.split('e');
+		var numericPart = value[0];
+		var exponentPart = value[1];
+		var numericSign = numericPart[0];
+		var exponentSign = exponentPart[0];
+		if (numericSign === '+' || numericSign === '-') {
+			numericPart = numericPart.substr(1);
+		} else numericSign = '';
+		if (exponentSign === '+' || exponentSign === '-') {
+			exponentPart = exponentPart.substr(1);
+		} else exponentSign = '+';
+		var lDecPlaces, rDecPlaces;
+		var decPos = numericPart.indexOf('.');
+		if (decPos === -1) {
+			rDecPlaces = 0;
+			lDecPlaces = numericPart.length;
+		} else {
+			rDecPlaces = numericPart.substr(decPos + 1).length;
+			lDecPlaces = numericPart.substr(0, decPos).length;
+			numericPart = numericPart.replace(/\./g, '');
+		}
+		var numZeros = exponentPart - lDecPlaces;
+		if (exponentSign === '+') numZeros = exponentPart - rDecPlaces;
+		for (var zeros = '', c = 0; c < numZeros; c++) zeros += '0';
+		return (
+			exponentSign === '+' ?
+			numericSign + numericPart + zeros :
+			numericSign + '0.' + zeros + numericPart
+		);
+	}
+
+	function mapToString(value) {
+		var result = [], values = value.values();
+		for (var c = 0; c < values.length; c++) {
+			value = values[c];
+			if (Utils.isUndefined(value)) continue;
+			result.push(nodeToString(value));
+		}
+		return result.join(' ');
+	}
+
 	function js2internal(value) {
 		if (Utils.isFunction(value)) return;
 		if (!Utils.isObject(value)) return value;
@@ -55,6 +99,7 @@ define([
 	function nodeToBoolean(value) {
 		switch (Utils.getBaseType(value)) {
 			case Utils.T_BOOLEAN: return value;
+			case Utils.T_FUNCTION: return true;
 			case Utils.T_NUMBER: return (value !== 0);
 			case Utils.T_STRING: return (value.length > 0);
 			case Utils.T_OBJECT: return (value instanceof OrderedMap);
@@ -64,55 +109,17 @@ define([
 
 	function nodeToString(value) {
 		switch (Utils.getBaseType(value)) {
-			case Utils.T_UNDEFINED: return '';
+			case Utils.T_UNDEFINED:
+			case Utils.T_FUNCTION: return '';
 			case Utils.T_NULL:
 			case Utils.T_STRING:
-			case Utils.T_BOOLEAN:
-				return String(value);
-			case Utils.T_NUMBER:
-				var value = String(value).toLowerCase();
-				if (value.indexOf('e') === -1) return value;
-				value = value.split('e');
-				var numericPart = value[0];
-				var exponentPart = value[1];
-				var numericSign = numericPart[0];
-				var exponentSign = exponentPart[0];
-				if (numericSign === '+' || numericSign === '-') {
-					numericPart = numericPart.substr(1);
-				} else numericSign = '';
-				if (exponentSign === '+' || exponentSign === '-') {
-					exponentPart = exponentPart.substr(1);
-				} else exponentSign = '+';
-				var lDecPlaces, rDecPlaces;
-				var decPos = numericPart.indexOf('.');
-				if (decPos === -1) {
-					rDecPlaces = 0;
-					lDecPlaces = numericPart.length;
-				} else {
-					rDecPlaces = numericPart.substr(decPos + 1).length;
-					lDecPlaces = numericPart.substr(0, decPos).length;
-					numericPart = numericPart.replace(/\./g, '');
-				}
-				var numZeros = exponentPart - lDecPlaces;
-				if (exponentSign === '+') numZeros = exponentPart - rDecPlaces;
-				for (var zeros = '', c = 0; c < numZeros; c++) zeros += '0';
-				return (
-					exponentSign === '+' ?
-					numericSign + numericPart + zeros :
-					numericSign + '0.' + zeros + numericPart
-				);
+			case Utils.T_BOOLEAN: return String(value);
+			case Utils.T_NUMBER: return numberToString(value);
 		}
-		if (Utils.isObject(value) && value instanceof OrderedMap) {
-			var result = [], value;
-			var values = value.values();
-			for (var c = 0; c < values.length; c++) {
-				value = values[c];
-				if (Utils.isUndefined(value)) continue;
-				result.push(nodeToString(value));
-			}
-			return result.join(' ');
-		}
-		return '';
+		if (Utils.isObject(value) &&
+			value instanceof OrderedMap) {
+			return mapToString(value);
+		} else return '';
 	}
 
 	return {
