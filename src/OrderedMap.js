@@ -213,7 +213,8 @@ define(['Utils'], function(Utils) {
 					val = values[c];
 					if (val instanceof OrderedMap) {
 						evaluate(val, key);
-					} else if (!Utils.isUndefined(val)) {
+					} else if (!Utils.isUndefined(val) &&
+						!Utils.isFunction(val)) {
 						val = toString(val);
 						val = encodeURIComponent(val);
 						if (Utils.isNumeric(key = key.shift() + (
