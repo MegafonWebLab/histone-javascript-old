@@ -35,6 +35,14 @@ define(function() {
 	var URL_DIRNAME_REGEXP = /^(.*)\//;
 	var FILE_TYPE_REGEXP = /.+\.([^\.]+)$/;
 	var URL_PARSER_REGEXP = /^(?:([^:\/?\#]+):)?(?:\/\/([^\/?\#]*))?([^?\#]*)(?:\?([^\#]*))?(?:\#(.*))?/;
+	var ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+	function getbyte64(s, i) {
+		var ch = s.charAt(i);
+		var idx = ALPHA.indexOf(ch);
+		if (idx === -1) throw ('illegal `' + ch + '` character');
+		return idx;
+	}
 
 	function removeDotSegments(path) {
 		var path = path.split('/');
@@ -206,6 +214,63 @@ define(function() {
 		resume();
 	}
 
+	function base64decode(value) {
+		var result = [];
+		var pads = 0, i, b10;
+		var value = String(value);
+		var length = value.length;
+
+		if (!length) return value;
+		if (length % 4) throw ('incorrect padding');
+
+		if (value.charAt(length - 1) === '=') {
+			pads = 1;
+			if (value.charAt(length - 2) === '=') pads = 2;
+			length -= 4;
+		}
+
+		for (i = 0; i < length; i += 4) {
+			b10 = getbyte64(value, i) << 18;
+			b10 |= getbyte64(value, i + 1) << 12;
+			b10 |= getbyte64(value, i + 2) << 6;
+			b10 |= getbyte64(value, i + 3);
+			result.push(String.fromCharCode(b10 >> 16, (b10 >> 8) & 0xff, b10 & 0xff));
+		}
+
+		if (pads) {
+			b10 = getbyte64(value, i) << 18;
+			b10 |= getbyte64(value, i + 1) << 12;
+			result.push(String.fromCharCode(b10 >> 16));
+			if (pads === 1) {
+				b10 |= getbyte64(value, i + 2) << 6;
+				result.push(String.fromCharCode((b10 >> 8) & 0xff));
+			}
+		}
+
+		return result.join('');
+	}
+
+	function string_trimLeft(value) {
+		if (!isString(value)) return '';
+		return value.replace(/^\s+/, '');
+	}
+
+	function string_trimRight(value) {
+		if (!isString(value)) return '';
+		return value.replace(/\s+$/, '');
+	}
+
+	function string_startsWith(value, search, ignoreCase) {
+		if (!isString(value)) return false;
+		if (!isString(search)) return false;
+		var fragment = value.substr(0, search.length);
+		if (ignoreCase) {
+			search = search.toLowerCase();
+			fragment = fragment.toLowerCase();
+		}
+		return (search === fragment);
+	}
+
 	/**
 	 * Generates unique identifier based on UNIX timestamp.
 	 * @param {string} prefix Prepend generated value.
@@ -228,7 +293,7 @@ define(function() {
 	 * @param {string} uri URI to parse.
 	 * @return {Object} consists of URI parts.
 	 */
-	function URIParse(uri) {
+	function uri_parse(uri) {
 		var result = uri.match(URL_PARSER_REGEXP);
 		var scheme = (result[1] || '');
 		var authority = (result[2] || '');
@@ -243,16 +308,20 @@ define(function() {
 		};
 	}
 
-	function URIParseData(data) {
+	function uri_parseData(data) {
+		if (!isString(data)) return;
+
 		var keyValue, result = {
 			type: 'text/plain',
 			data: '', encoding: '',
 			params: {charset: 'US-ASCII'}
 		};
-		if (!isString(data)) return result;
+
 		data = data.split(',');
-		if (isString(data[1])) result.data = data.pop();
-		data = data.shift().split(';');
+		if (data.length < 2) return;
+		result.data = data.slice(1).join(',');
+
+		data = data[0].split(';');
 		if (isString(data[0])) result.type = data.shift();
 		while (data.length) {
 			keyValue = data.shift().split('=');
@@ -265,7 +334,7 @@ define(function() {
 		return result;
 	}
 
-	function URIParseQuery(query) {
+	function uri_parseQuery(query) {
 		var result = {};
 		if (!isString(query)) return {};
 		query.replace(new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
@@ -273,7 +342,7 @@ define(function() {
 		return result;
 	}
 
-	function URIFormat(uri) {
+	function uri_format(uri) {
 		return ((uri.scheme ? uri.scheme + '://' : '') +
 			(uri.authority ? uri.authority : '') +
 			(uri.path ? uri.path : '') +
@@ -281,7 +350,7 @@ define(function() {
 			(uri.fragment ? '#' + uri.fragment : ''));
 	}
 
-	function URIFormatQuery(query) {
+	function uri_formatQuery(query) {
 		var queryArr = [], key;
 		if (!isMap(query)) return '';
 		for (key in query) {
@@ -298,9 +367,9 @@ define(function() {
 	 * @param {string} urlArgs Additional arguments for resolved url.
 	 * @return {string} Absolute URI.
 	 */
-	function URIResolve(uri, base, urlArgs) {
-		var relUri = URIParse(uri);
-		var baseUri = URIParse(base);
+	function uri_resolve(uri, base, urlArgs) {
+		var relUri = uri_parse(uri);
+		var baseUri = uri_parse(base);
 		var res = '', ts = '';
 		if (relUri.scheme) {
 			res += (relUri.scheme + ':');
@@ -335,7 +404,7 @@ define(function() {
 
 	function getEnvType() {
 		if (ENV_TYPE !== null) return ENV_TYPE;
-		return (typeof process  === 'object' && (ENV_TYPE = 'node') ||
+		return (typeof process  === 'object' && (ENV_TYPE = 'nodejs') ||
 			typeof window !== 'undefined' && (ENV_TYPE = 'browser') ||
 			(ENV_TYPE = 'unknown')
 		);
@@ -344,7 +413,7 @@ define(function() {
 	function getEnvInfo() {
 		if (ENV_INFO !== null) return ENV_INFO;
 		var envType = getEnvType();
-		if (envType === 'node') return (ENV_INFO = process.versions);
+		if (envType === 'nodejs') return (ENV_INFO = process.versions);
 		if (envType === 'browser') return (ENV_INFO = window.navigator.userAgent);
 	}
 
@@ -374,14 +443,21 @@ define(function() {
 		getEnvType: getEnvType,
 		getEnvInfo: getEnvInfo,
 		forEachAsync: forEachAsync,
+		base64decode: base64decode,
+
+		string: {
+			trimLeft: string_trimLeft,
+			trimRight: string_trimRight,
+			startsWith: string_startsWith
+		},
 
 		uri: {
-			parse: URIParse,
-			format: URIFormat,
-			resolve: URIResolve,
-			parseData: URIParseData,
-			parseQuery: URIParseQuery,
-			formatQuery: URIFormatQuery
+			parse: uri_parse,
+			format: uri_format,
+			resolve: uri_resolve,
+			parseData: uri_parseData,
+			parseQuery: uri_parseQuery,
+			formatQuery: uri_formatQuery
 		}
 	};
 
