@@ -138,7 +138,7 @@ module.exports = function(Histone, testPath, callback) {
 				functionDef = functionDefs.shift();
 				registerFunction(
 					functionDef.node,
-					functionDef.name,
+					'.' + functionDef.name,
 					functionDef.result,
 					functionDef.exception
 				);
