@@ -22,7 +22,7 @@ define(['../../Utils'], function(Utils) {
 	var HTTPModule = null;
 	var HTTPSModule = null;
 
-	function doHTTPRequest(requestObj, success, fail, requestProps) {
+	function doHTTPRequest(requestObj, ret, requestProps) {
 		var request = (
 			requestObj.protocol === 'http:' && (
 			HTTPModule = HTTPModule || require('http')
@@ -43,20 +43,20 @@ define(['../../Utils'], function(Utils) {
 				if (!toURI.host) toURI.host = requestObj.host;
 				if (!toURI.hostname) toURI.hostname = requestObj.hostname;
 				if (!toURI.protocol) toURI.protocol = requestObj.protocol;
-				return doHTTPRequest(toURI, success, fail, requestProps);
+				return doHTTPRequest(toURI, ret, requestProps);
 			}
 
 			var data = '';
-			response.on('end', function() { success(data); });
+			response.on('end', function() { ret(data); });
 			response.on('data', function(chunk) { data += chunk; });
 		});
 
-		request.on('error', function(error) { fail(); });
+		request.on('error', function(error) { ret(); });
 		if (requestProps.data) request.write(requestProps.data);
 		request.end();
 	}
 
-	function NodeDriver(requestURI, success, fail, requestProps, isJSONP) {
+	function NodeDriver(requestURI, ret, requestProps, isJSONP) {
 
 		if (!URL) URL = require('url');
 		var requestObj = Utils.uri.parse(requestURI);
@@ -72,22 +72,14 @@ define(['../../Utils'], function(Utils) {
 			}
 			requestURI = Utils.uri.format(requestObj);
 			requestObj = URL.parse(requestURI);
-			doHTTPRequest(requestObj, success, fail, requestProps);
-		} else if (requestProtocol === 'data') {
-			requestObj = Utils.uri.parseData(requestObj.path);
-			if (requestObj.encoding === 'base64') {
-				var requestData = requestObj.data;
-				requestData = new Buffer(requestData, 'base64');
-				requestData = requestData.toString('binary');
-				success(requestData);
-			} else fail();
+			doHTTPRequest(requestObj, ret, requestProps);
 		} else if (requestProtocol === '') {
 			FSModule = (FSModule || require('fs'));
 			FSModule.readFile(requestURI, function(error, data) {
-				if (error) return fail();
-				success(data.toString());
+				if (error) return ret();
+				ret(data.toString());
 			});
-		} else fail();
+		} else ret();
 	}
 
 	return NodeDriver;
