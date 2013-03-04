@@ -308,29 +308,24 @@ define(function() {
 		};
 	}
 
-	function uri_parseData(data) {
-		if (!isString(data)) return;
-
-		var keyValue, result = {
-			type: 'text/plain',
-			data: '', encoding: '',
-			params: {charset: 'US-ASCII'}
+	function uri_parseData(dataURI) {
+		if (!isString(dataURI)) return;
+		if (!string_startsWith(dataURI, 'data:', true)) return;
+		var keyValue = dataURI.substr(5).split(',');
+		if (keyValue.length < 2) return;
+		dataURI = keyValue.shift().split(';');
+		var result = {
+			encoding: '',
+			data: keyValue.join(','),
+			params: {charset: 'US-ASCII'},
+			type: dataURI.shift() || 'text/plain'
 		};
-
-		data = data.split(',');
-		if (data.length < 2) return;
-		result.data = data.slice(1).join(',');
-
-		data = data[0].split(';');
-		if (isString(data[0])) result.type = data.shift();
-		while (data.length) {
-			keyValue = data.shift().split('=');
-			if (isString(keyValue[1])) {
+		while (dataURI.length) {
+			keyValue = dataURI.shift().split('=');
+			if (isString(keyValue[1]))
 				result.params[keyValue[0]] = keyValue[1];
-			} else result.encoding = keyValue[0];
+			else result.encoding = keyValue[0];
 		}
-		if (!result.type) result.type = 'text/plain';
-		if (!result.params.charset) result.params.charset = 'US-ASCII';
 		return result;
 	}
 
