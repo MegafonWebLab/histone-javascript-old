@@ -16,7 +16,7 @@
  */
 
 define([
-	'module', 'ClientInfo', 'Utils',
+	'!module', 'ClientInfo', 'Utils',
 	'CallStack', 'OrderedMap', 'Share', 'Processor',
 	'parser/Parser', 'parser/Constants',
 	'network/Network'
