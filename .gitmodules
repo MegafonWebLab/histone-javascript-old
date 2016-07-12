@@ -1,3 +1,0 @@
-[submodule "histone-acceptance-tests"]
-	path = histone-acceptance-tests
-	url = git://github.com/MegafonWebLab/histone-acceptance-tests.git
