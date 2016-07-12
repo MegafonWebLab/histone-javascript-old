@@ -1,3 +1,7 @@
+# This version is deprecated and no longer supported
+
+Go here https://github.com/MegafonWebLab/histone-javascript if you're looking for the new one.
+
 Histone template engine [![Build Status](https://secure.travis-ci.org/MegafonWebLab/histone-javascript.png)](http://travis-ci.org/MegafonWebLab/histone-javascript)[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/17de6a6e7787895c686693a91cec57d8 "githalytics.com")](http://githalytics.com/MegafonWebLab/histone-javascript)
 ==================
 
