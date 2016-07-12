@@ -1,2 +1,0 @@
-   Histone template engine
-   Copyright 2012 MegaFon
