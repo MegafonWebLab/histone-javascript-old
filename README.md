@@ -1,4 +1,4 @@
-# This version is deprecated and no longer supported
+# This version is deprecated and no longer supported!!!
 
 Go here https://github.com/MegafonWebLab/histone-javascript if you're looking for the new one.
 
